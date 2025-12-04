@@ -28,7 +28,16 @@ import java.io.File
 import java.util.Locale
 import kotlin.math.roundToInt
 
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
+import id.nkz.nokontzzzmanager.data.repository.BatteryGraphRepository
+import id.nkz.nokontzzzmanager.data.database.BatteryGraphEntry
+
+@AndroidEntryPoint
 class BatteryMonitorService : Service() {
+
+    @Inject
+    lateinit var batteryGraphRepository: BatteryGraphRepository
 
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private lateinit var notificationManager: NotificationManager
@@ -39,6 +48,7 @@ class BatteryMonitorService : Service() {
     private val notificationId = 1001
 
     private var lastUpdate = System.currentTimeMillis()
+    private var lastHistorySaveTime = 0L
     private var lastCurrent = 0f
     private var designCapacityUah = 0L // autodetected; no hardcoded fallback
     private var realtimeUsedMah = 0.0
@@ -317,6 +327,25 @@ class BatteryMonitorService : Service() {
             "0% /hr"
         } else {
             String.format(Locale.US, "%.2f%% /hr", idleRate)
+        }
+
+        // Save history every 1 minute
+        val nowMs = System.currentTimeMillis()
+        if (nowMs - lastHistorySaveTime >= 60_000L) {
+            lastHistorySaveTime = nowMs
+            scope.launch {
+                batteryGraphRepository.insertEntry(
+                    BatteryGraphEntry(
+                        timestamp = nowMs,
+                        batteryLevel = level,
+                        currentMa = currentMa,
+                        isCharging = charging,
+                        activeDrainRate = activeRate.toFloat(),
+                        idleDrainRate = idleRate.toFloat(),
+                        temperature = temp
+                    )
+                )
+            }
         }
 
         return BatteryData(

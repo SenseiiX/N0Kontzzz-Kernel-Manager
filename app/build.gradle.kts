@@ -82,6 +82,11 @@ dependencies {
     // Background Tasks
     implementation(libs.androidx.work.runtime.ktx)
 
+    // Room
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
+
     // Utility
     implementation(libs.libsu)
     implementation(libs.coil.compose)

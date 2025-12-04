@@ -92,6 +92,10 @@ class MainActivity : ComponentActivity() {
     private val MAX_PERMISSION_RETRIES = 2
     private var notifPermissionLauncher: ActivityResultLauncher<String>? = null
 
+    // State for BatteryHistoryScreen FAB
+    val batteryHistoryFabVisible = mutableStateOf(false)
+    val batteryHistoryFabAction: MutableState<(() -> Unit)?> = mutableStateOf(null)
+
     @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
     @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -154,6 +158,7 @@ class MainActivity : ComponentActivity() {
 
                 val title = when (currentRoute) {
                     "settings" -> stringResource(id = R.string.settings)
+                    "battery_history" -> stringResource(id = R.string.battery_history_title) // Define title for Battery History screen
                     else -> stringResource(id = R.string.n0kz_kernel_manager) // Default title for home, tuning, misc
                 }
 
@@ -161,17 +166,23 @@ class MainActivity : ComponentActivity() {
                     "home", "tuning", "misc" -> true
                     else -> false // Do not show for settings or other screens
                 }
+                
+                val showUnifiedTopAppBar = when (currentRoute) {
+                    else -> true
+                }
 
                 Scaffold(
                     modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
                     topBar = {
-                        UnifiedTopAppBar(
-                            title = title,
-                            navController = navController,
-                            showSettingsIcon = showSettingsIcon,
-                            scrollBehavior = scrollBehavior,
-                            isAmoledMode = isAmoledMode
-                        )
+                        if (showUnifiedTopAppBar) {
+                            UnifiedTopAppBar(
+                                title = title,
+                                navController = navController,
+                                showSettingsIcon = showSettingsIcon,
+                                scrollBehavior = scrollBehavior,
+                                isAmoledMode = isAmoledMode
+                            )
+                        }
                     },
                     floatingActionButton = {
                         if (currentRoute == "home") {
@@ -227,6 +238,13 @@ class MainActivity : ComponentActivity() {
                                         text = { Text(text = stringResource(textRes)) },
                                     )
                                 }
+                            }
+                        } else if (currentRoute == "battery_history" && batteryHistoryFabVisible.value) {
+                            FloatingActionButton(
+                                onClick = { batteryHistoryFabAction.value?.invoke() },
+                                modifier = Modifier.size(72.dp) // Match HomeScreen FAB size
+                            ) {
+                                Icon(Icons.Default.Delete, contentDescription = "Clear History")
                             }
                         }
                     },
@@ -285,6 +303,23 @@ class MainActivity : ComponentActivity() {
                             popEnterTransition = { fadeIn(animationSpec = tween(300)) },
                             popExitTransition = { fadeOut(animationSpec = tween(150)) + scaleOut(targetScale = 0.92f, animationSpec = tween(150)) }
                         ) { MiscScreen(navController = navController) }
+                        composable(
+                            "battery_history",
+                            enterTransition = {
+                                slideInHorizontally(initialOffsetX = { fullWidth -> fullWidth }, animationSpec = tween(500))
+                            },
+                            exitTransition = {
+                                slideOutHorizontally(targetOffsetX = { fullWidth -> -fullWidth }, animationSpec = tween(500))
+                            },
+                            popEnterTransition = {
+                                slideInHorizontally(initialOffsetX = { fullWidth -> -fullWidth }, animationSpec = tween(500))
+                            },
+                            popExitTransition = {
+                                slideOutHorizontally(targetOffsetX = { fullWidth -> fullWidth }, animationSpec = tween(500))
+                            }
+                        ) {
+                            BatteryHistoryScreen(navController = navController)
+                        }
                         composable(
                             "settings",
                             enterTransition = {

@@ -205,6 +205,15 @@
     <string name="battery_monitor_reset_title">Reset Battery Monitor</string>
     <string name="battery_monitor_reset_desc">Clear accumulated stats without turning off the service</string>
     <string name="battery_stats_reset_toast">Battery stats reset</string>
+    <string name="battery_history_title">Battery History</string>
+    <string name="battery_history_desc">View charging speed and drain rate history</string>
+    <string name="history_stats_title">History Statistics</string>
+    <string name="stats_avg_charge_speed">Avg Charge Speed</string>
+    <string name="stats_max_charge_speed">Max Charge Speed</string>
+    <string name="stats_avg_discharge_speed">Avg Discharge Speed</string>
+    <string name="stats_max_discharge_speed">Max Discharge Speed</string>
+    <string name="stats_avg_active_drain">Avg Active Drain</string>
+    <string name="stats_avg_idle_drain">Avg Idle Drain</string>
 
     <!-- SettingsScreen -->
     <string name="coming_soon">Coming Soon</string>

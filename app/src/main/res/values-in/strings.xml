@@ -204,6 +204,15 @@
     <string name="battery_monitor_reset_title">Reset Monitor Baterai</string>
     <string name="battery_monitor_reset_desc">Hapus akumulasi statistik tanpa mematikan layanan</string>
     <string name="battery_stats_reset_toast">Statistik baterai direset</string>
+    <string name="battery_history_title">Histori Baterai</string>
+    <string name="battery_history_desc">Lihat kecepatan pengisian dan pengurasan baterai serta riwayat</string>
+    <string name="history_stats_title">Statistik Histori</string>
+    <string name="stats_avg_charge_speed">Rata-rata Kecepatan Isi</string>
+    <string name="stats_max_charge_speed">Maks Kecepatan Isi</string>
+    <string name="stats_avg_discharge_speed">Rata-rata Kecepatanuras</string>
+    <string name="stats_max_discharge_speed">Maks Kecepatanuras</string>
+    <string name="stats_avg_active_drain">Rata-rata Drain Aktif</string>
+    <string name="stats_avg_idle_drain">Rata-rata Drain Idle</string>
 
     <!-- SettingsScreen -->
     <string name="coming_soon">Segera Hadir</string>
