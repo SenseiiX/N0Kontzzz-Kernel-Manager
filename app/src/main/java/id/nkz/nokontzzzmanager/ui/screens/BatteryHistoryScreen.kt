@@ -10,27 +10,31 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.BatteryStd
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Speed
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BasicAlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -43,7 +47,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
@@ -52,8 +55,12 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import id.nkz.nokontzzzmanager.R
@@ -62,20 +69,8 @@ import id.nkz.nokontzzzmanager.ui.MainActivity
 import id.nkz.nokontzzzmanager.viewmodel.BatteryHistoryViewModel
 import id.nkz.nokontzzzmanager.viewmodel.HistoryFilter
 import java.text.SimpleDateFormat
-import java.util.*
-import androidx.compose.material3.ButtonGroupDefaults
-import androidx.compose.material3.ToggleButton
-import androidx.compose.material3.ToggleButtonDefaults
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.material3.BasicAlertDialog
-import androidx.compose.ui.window.DialogProperties
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.OutlinedButton
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -128,8 +123,9 @@ fun BatteryHistoryScreen(
             ) {
                 val modes = listOf(BatteryGraphMode.SPEED, BatteryGraphMode.DRAIN)
                 modes.forEachIndexed { index, mode ->
+                    val isSelected = graphMode == mode
                     ToggleButton(
-                        checked = graphMode == mode,
+                        checked = isSelected,
                         onCheckedChange = { graphMode = mode },
                         modifier = Modifier
                             .weight(1f)
@@ -174,6 +170,15 @@ fun BatteryHistoryScreen(
                             stringResource(R.string.graph_title_drain, filterText),
                         style = MaterialTheme.typography.titleMedium
                     )
+
+                    if (graphMode == BatteryGraphMode.DRAIN) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                            LegendItem(color = MaterialTheme.colorScheme.primary, label = stringResource(R.string.legend_active_drain))
+                            LegendItem(color = MaterialTheme.colorScheme.tertiary, label = stringResource(R.string.legend_idle_drain))
+                        }
+                    }
+
                     Spacer(modifier = Modifier.height(16.dp))
                     BatteryHistoryGraph(
                         data = historyData,
@@ -191,8 +196,9 @@ fun BatteryHistoryScreen(
             ) {
                 val filters = listOf(HistoryFilter.LAST_24_HOURS, HistoryFilter.SINCE_UNPLUGGED)
                 filters.forEachIndexed { index, filterOption ->
+                    val isSelected = currentFilter == filterOption
                     ToggleButton(
-                        checked = currentFilter == filterOption,
+                        checked = isSelected,
                         onCheckedChange = { viewModel.setFilter(filterOption) },
                         modifier = Modifier
                             .weight(1f)
@@ -212,14 +218,6 @@ fun BatteryHistoryScreen(
             
             // Stats Card
             BatteryHistoryStatsCard(historyData)
-            
-            // Legend
-            if (graphMode == BatteryGraphMode.DRAIN) {
-                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    LegendItem(color = MaterialTheme.colorScheme.primary, label = stringResource(R.string.legend_active_drain))
-                    LegendItem(color = MaterialTheme.colorScheme.tertiary, label = stringResource(R.string.legend_idle_drain))
-                }
-            }
             
             // Extra spacer for FAB
             Spacer(modifier = Modifier.height(80.dp))
