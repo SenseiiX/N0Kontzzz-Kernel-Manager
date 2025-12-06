@@ -451,4 +451,9 @@
     <string name="legend_charge_speed">Kec. Isi</string>
     <string name="legend_discharge_speed">Kec. Kuras</string>
     <string name="no_data_available">Data belum tersedia</string>
+    <string name="app_usage_title">Penggunaan Aplikasi</string>
+    <string name="grant_usage_permission">Izinkan Akses Penggunaan</string>
+    <string name="usage_permission_desc">Untuk melihat detail penggunaan aplikasi, mohon berikan izin akses penggunaan.</string>
+    <string name="usage_time_format">%dj %dm</string>
+    <string name="usage_time_format_min">%dm</string>
 </resources>

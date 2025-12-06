@@ -73,6 +73,15 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+import android.content.Intent
+import android.provider.Settings
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.asImageBitmap
+import id.nkz.nokontzzzmanager.data.model.AppUsageInfo
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun BatteryHistoryScreen(
@@ -81,15 +90,32 @@ fun BatteryHistoryScreen(
 ) {
     val historyData by viewModel.historyData.collectAsState()
     val currentFilter by viewModel.filter.collectAsState()
+    val appUsageList by viewModel.appUsageList.collectAsState()
+    val hasUsagePermission by viewModel.hasUsagePermission.collectAsState()
+    
     var graphMode by remember { mutableStateOf(BatteryGraphMode.SPEED) }
     var showClearDialog by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
     val mainActivity = remember(context) { context as? MainActivity }
 
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                viewModel.checkUsagePermission()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
     LaunchedEffect(Unit) {
         mainActivity?.batteryHistoryFabVisible?.value = true
         mainActivity?.batteryHistoryFabAction?.value = { showClearDialog = true }
+        viewModel.checkUsagePermission()
     }
 
     DisposableEffect(Unit) {
@@ -228,7 +254,22 @@ fun BatteryHistoryScreen(
             }
             
             // Stats Card
-            BatteryHistoryStatsCard(historyData)
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                BatteryHistoryStatsCard(
+                    data = historyData,
+                    shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 8.dp, bottomEnd = 8.dp)
+                )
+
+                // App Usage Card
+                AppUsageCard(
+                    appUsageList = appUsageList,
+                    hasPermission = hasUsagePermission,
+                    onGrantPermission = { 
+                        context.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+                    },
+                    shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = 24.dp, bottomEnd = 24.dp)
+                )
+            }
             
             // Extra spacer for FAB
             Spacer(modifier = Modifier.height(80.dp))
@@ -470,7 +511,10 @@ fun BatteryHistoryGraph(
 }
 
 @Composable
-fun BatteryHistoryStatsCard(data: List<BatteryGraphEntry>) {
+fun BatteryHistoryStatsCard(
+    data: List<BatteryGraphEntry>,
+    shape: Shape = CardDefaults.shape
+) {
     if (data.isEmpty()) return
 
     val chargeEntries = data.filter { it.currentMa > 0 }
@@ -487,6 +531,7 @@ fun BatteryHistoryStatsCard(data: List<BatteryGraphEntry>) {
 
     Card(
         modifier = Modifier.fillMaxWidth(),
+        shape = shape,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         )
@@ -534,5 +579,138 @@ fun StatRow(label: String, value: String) {
             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
             color = MaterialTheme.colorScheme.onSurface
         )
+    }
+}
+
+@Composable
+fun AppUsageCard(
+    appUsageList: List<AppUsageInfo>,
+    hasPermission: Boolean,
+    onGrantPermission: () -> Unit,
+    shape: Shape
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = shape,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.app_usage_title),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            if (!hasPermission) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.usage_permission_desc),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 8.dp)
+                    )
+                    Button(onClick = onGrantPermission) {
+                        Text(text = stringResource(R.string.grant_usage_permission))
+                    }
+                }
+            } else if (appUsageList.isEmpty()) {
+                Text(
+                    text = stringResource(R.string.no_data_available),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    appUsageList.forEach { app ->
+                        AppUsageItem(app)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun AppUsageItem(app: AppUsageInfo) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        if (app.icon != null) {
+            Image(
+                bitmap = app.icon.asImageBitmap(),
+                contentDescription = null,
+                modifier = Modifier.size(32.dp)
+            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(8.dp))
+            )
+        }
+        
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            // Top Row: Name and Time
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = app.appName,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    text = app.formattedTime,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.width(64.dp),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.End
+                )
+            }
+
+            // Bottom Row: Progress Bar and Percentage
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                LinearProgressIndicator(
+                    progress = { app.usagePercentage / 100f },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(6.dp)
+                        .clip(RoundedCornerShape(3.dp)),
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                )
+                Text(
+                    text = "${app.usagePercentage}%",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.width(64.dp),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.End
+                )
+            }
+        }
     }
 }

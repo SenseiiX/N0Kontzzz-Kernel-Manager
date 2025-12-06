@@ -452,4 +452,9 @@
     <string name="legend_charge_speed">Charge Speed</string>
     <string name="legend_discharge_speed">Discharge Speed</string>
     <string name="no_data_available">No data available yet</string>
+    <string name="app_usage_title">App Usage</string>
+    <string name="grant_usage_permission">Grant Usage Access</string>
+    <string name="usage_permission_desc">To see app usage details, please grant usage access permission.</string>
+    <string name="usage_time_format">%dh %dm</string>
+    <string name="usage_time_format_min">%dm</string>
 </resources>
