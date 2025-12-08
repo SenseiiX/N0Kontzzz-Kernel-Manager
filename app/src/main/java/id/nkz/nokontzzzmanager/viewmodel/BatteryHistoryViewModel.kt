@@ -148,12 +148,12 @@ class BatteryHistoryViewModel @Inject constructor(
                 // Find the last time it was charging
                 val lastChargeIndex = entries.indexOfLast { it.isCharging }
                 if (lastChargeIndex != -1) {
-                    // Return entries starting from the point it stopped charging (or the last charge point)
-                    // Usually "since unplugged" means from the moment it was unplugged.
-                    // So we take entries AFTER the last charge entry.
-                    // If currently charging (last entry is charging), it might show nothing or just the current charging session?
-                    // Let's include the transition point.
-                    entries.subList(lastChargeIndex, entries.size)
+                    // Return entries starting AFTER the last charge entry (pure discharge)
+                    if (lastChargeIndex + 1 < entries.size) {
+                        entries.subList(lastChargeIndex + 1, entries.size)
+                    } else {
+                        emptyList()
+                    }
                 } else {
                     // Never charged in history? Show all.
                     entries
