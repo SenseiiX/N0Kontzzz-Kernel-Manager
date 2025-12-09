@@ -21,6 +21,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -29,6 +30,7 @@ import id.nkz.nokontzzzmanager.ui.viewmodel.SettingsViewModel
 import id.nkz.nokontzzzmanager.ui.theme.ThemeMode
 import id.nkz.nokontzzzmanager.R
 import id.nkz.nokontzzzmanager.utils.LocaleHelper
+import id.nkz.nokontzzzmanager.utils.PreferenceManager
 import androidx.compose.foundation.background
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -43,7 +45,9 @@ fun SettingsScreen(
 ) {
     
     var showThemeDialog by remember { mutableStateOf(false) }
+    var showNotificationIconDialog by remember { mutableStateOf(false) }
     val currentThemeMode by viewModel.currentThemeMode.collectAsState()
+    val notificationIconStyle by viewModel.notificationIconStyle.collectAsState()
     val context = LocalContext.current
     
     var themeRefreshKey by remember { mutableIntStateOf(0) }
@@ -118,6 +122,48 @@ fun SettingsScreen(
             
             Spacer(modifier = Modifier.height(16.dp))
             
+            Text(
+                text = stringResource(id = R.string.battery_monitor),
+                style = MaterialTheme.typography.titleSmall.copy(
+                    fontWeight = FontWeight.Normal
+                ),
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp, bottom = 4.dp)
+            )
+
+            SettingItemCard(
+                headlineText = stringResource(R.string.notification_icon),
+                supportingText = when (notificationIconStyle) {
+                    PreferenceManager.ICON_STYLE_BATTERY_PERCENT -> stringResource(R.string.icon_battery_percent)
+                    PreferenceManager.ICON_STYLE_APP_LOGO -> stringResource(R.string.icon_app_logo)
+                    PreferenceManager.ICON_STYLE_TRANSPARENT -> stringResource(R.string.icon_transparent)
+                    else -> stringResource(R.string.icon_app_logo)
+                },
+                icon = {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_notification),
+                        contentDescription = null
+                    )
+                },
+                shape = getRoundedCornerShape(0, 1),
+                onClick = { showNotificationIconDialog = true }
+            )
+
+            if (showNotificationIconDialog) {
+                NotificationIconSelectionDialog(
+                    currentStyle = notificationIconStyle,
+                    onStyleSelected = { style ->
+                        viewModel.setNotificationIconStyle(style)
+                        showNotificationIconDialog = false
+                    },
+                    onDismiss = { showNotificationIconDialog = false }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             Text(
                 text = stringResource(id = R.string.theme_and_display),
                 style = MaterialTheme.typography.titleSmall.copy(
@@ -228,6 +274,114 @@ fun SettingsScreen(
             },
             onDismiss = { showThemeDialog = false }
         )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun NotificationIconSelectionDialog(
+    currentStyle: Int,
+    onStyleSelected: (Int) -> Unit,
+    onDismiss: () -> Unit
+) {
+    BasicAlertDialog(
+        onDismissRequest = onDismiss,
+        modifier = Modifier.fillMaxWidth().wrapContentHeight(),
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize().background(Color.Transparent),
+            contentAlignment = Alignment.Center
+        ) {
+            Card(
+                modifier = Modifier.fillMaxWidth(0.9f).heightIn(min = 300.dp, max = 600.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+                shape = RoundedCornerShape(24.dp),
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier.size(56.dp).clip(RoundedCornerShape(16.dp)).background(MaterialTheme.colorScheme.primaryContainer),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_notification),
+                                contentDescription = stringResource(id = R.string.notification_icon),
+                                modifier = Modifier.size(28.dp),
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                        Text(
+                            text = stringResource(R.string.select_notification_icon),
+                            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(2.dp)
+                    ) {
+                        val styles = listOf(
+                            PreferenceManager.ICON_STYLE_BATTERY_PERCENT,
+                            PreferenceManager.ICON_STYLE_APP_LOGO,
+                            PreferenceManager.ICON_STYLE_TRANSPARENT
+                        )
+                        styles.forEachIndexed { index, style ->
+                            val isSelected = style == currentStyle
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = getDialogListItemShape(index, styles.size),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
+                                ),
+                                onClick = { onStyleSelected(style) }
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    RadioButton(
+                                        selected = isSelected,
+                                        onClick = null,
+                                        colors = RadioButtonDefaults.colors(
+                                            selectedColor = MaterialTheme.colorScheme.primary,
+                                            unselectedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                        )
+                                    )
+                                    Text(
+                                        text = when (style) {
+                                            PreferenceManager.ICON_STYLE_BATTERY_PERCENT -> stringResource(R.string.icon_battery_percent)
+                                            PreferenceManager.ICON_STYLE_APP_LOGO -> stringResource(R.string.icon_app_logo)
+                                            PreferenceManager.ICON_STYLE_TRANSPARENT -> stringResource(R.string.icon_transparent)
+                                            else -> ""
+                                        },
+                                        style = MaterialTheme.typography.bodyLarge.copy(
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                        ),
+                                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    OutlinedButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Text(stringResource(R.string.close))
+                    }
+                }
+            }
+        }
     }
 }
 

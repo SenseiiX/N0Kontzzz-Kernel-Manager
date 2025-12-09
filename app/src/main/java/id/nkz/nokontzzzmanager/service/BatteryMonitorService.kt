@@ -16,6 +16,12 @@ import android.os.IBinder
 import android.os.SystemClock
 import android.os.PowerManager
 import androidx.core.app.NotificationCompat
+import androidx.core.graphics.drawable.IconCompat
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Typeface
 import id.nkz.nokontzzzmanager.R
 import id.nkz.nokontzzzmanager.ui.MainActivity
 import kotlinx.coroutines.CoroutineScope
@@ -171,6 +177,11 @@ class BatteryMonitorService : Service() {
             if (preferenceManager.isAutoResetOnReboot()) {
                 fullReset()
             }
+        } else if (intent?.action == ACTION_UPDATE_ICON) {
+            try {
+                val stats = collectSystemStats()
+                updateNotification(stats)
+            } catch (_: Exception) { }
         }
         return START_STICKY
     }
@@ -644,8 +655,24 @@ class BatteryMonitorService : Service() {
         }
     }
 
+    private fun createBatteryIcon(level: Int): IconCompat {
+        val size = 24 * 3 // 72px for xhdpi approx
+        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        val paint = Paint().apply {
+            color = Color.WHITE
+            textSize = size * 0.6f
+            isAntiAlias = true
+            textAlign = Paint.Align.CENTER
+            typeface = Typeface.DEFAULT_BOLD
+        }
+        val yPos = (canvas.height / 2) - ((paint.descent() + paint.ascent()) / 2)
+        canvas.drawText(if (level >= 0) "$level" else "?", canvas.width / 2f, yPos, paint)
+        return IconCompat.createWithBitmap(bitmap)
+    }
+
     // === NOTIFICATION ===
-    private fun createNotification(title: String, bigText: String): Notification {
+    private fun createNotification(title: String, bigText: String, batteryLevel: Int = -1): Notification {
         val intent = packageManager.getLaunchIntentForPackage(packageName)
             ?: Intent(this, MainActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
@@ -655,8 +682,8 @@ class BatteryMonitorService : Service() {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
-        return NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(R.drawable.ic_notification)
+        val iconStyle = preferenceManager.getNotificationIconStyle()
+        val builder = NotificationCompat.Builder(this, channelId)
             .setContentTitle(title)
             .setContentText(null)
             .setStyle(NotificationCompat.BigTextStyle().bigText(bigText))
@@ -665,7 +692,20 @@ class BatteryMonitorService : Service() {
             .setWhen(if (serviceStartedAtMs != 0L) serviceStartedAtMs else System.currentTimeMillis())
             .setOngoing(true)
             .setSilent(true)
-            .build()
+
+        when (iconStyle) {
+            PreferenceManager.ICON_STYLE_BATTERY_PERCENT -> {
+                builder.setSmallIcon(createBatteryIcon(batteryLevel))
+            }
+            PreferenceManager.ICON_STYLE_TRANSPARENT -> {
+                builder.setSmallIcon(R.drawable.transparent)
+            }
+            else -> {
+                builder.setSmallIcon(R.drawable.nkm_logo)
+            }
+        }
+
+        return builder.build()
     }
 
     private fun createNotificationChannel() {
@@ -711,7 +751,7 @@ class BatteryMonitorService : Service() {
             Deep sleep   : ${stats.deepSleep}
             Awake        : ${stats.uptime}
         """.trimIndent()
-        notificationManager.notify(notificationId, createNotification(title, bigText))
+        notificationManager.notify(notificationId, createNotification(title, bigText, stats.level))
     }
 
     private fun formatDurationAdaptive(ms: Long): String {
@@ -754,6 +794,7 @@ class BatteryMonitorService : Service() {
     companion object {
         private const val ACTION_RESET = "id.nkz.nokontzzzmanager.action.RESET_BATTERY_MONITOR"
         private const val ACTION_BOOT_START = "id.nkz.nokontzzzmanager.action.BOOT_START_BATTERY_MONITOR"
+        private const val ACTION_UPDATE_ICON = "id.nkz.nokontzzzmanager.action.UPDATE_ICON"
 
         fun start(context: Context, isBoot: Boolean = false) {
             val intent = Intent(context, BatteryMonitorService::class.java)
@@ -769,6 +810,13 @@ class BatteryMonitorService : Service() {
 
         fun reset(context: Context) {
             val intent = Intent(context, BatteryMonitorService::class.java).apply { action = ACTION_RESET }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                context.startForegroundService(intent)
+            else context.startService(intent)
+        }
+
+        fun updateIcon(context: Context) {
+            val intent = Intent(context, BatteryMonitorService::class.java).apply { action = ACTION_UPDATE_ICON }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
                 context.startForegroundService(intent)
             else context.startService(intent)

@@ -21,6 +21,11 @@ class PreferenceManager @Inject constructor(
         private const val KEY_AUTO_RESET_ON_CHARGING = "auto_reset_on_charging"
         private const val KEY_AUTO_RESET_AT_LEVEL = "auto_reset_at_level"
         private const val KEY_AUTO_RESET_TARGET_LEVEL = "auto_reset_target_level"
+        private const val KEY_NOTIFICATION_ICON_STYLE = "notification_icon_style"
+
+        const val ICON_STYLE_BATTERY_PERCENT = 0
+        const val ICON_STYLE_APP_LOGO = 1
+        const val ICON_STYLE_TRANSPARENT = 2
     }
 
     private fun credentialPrefs(): SharedPreferences? {
@@ -131,5 +136,16 @@ class PreferenceManager @Inject constructor(
         return credentialPrefs()?.getInt(KEY_AUTO_RESET_TARGET_LEVEL, 90)
             ?: deviceProtectedPrefs()?.getInt(KEY_AUTO_RESET_TARGET_LEVEL, 90)
             ?: 90
+    }
+
+    fun setNotificationIconStyle(style: Int) {
+        credentialPrefs()?.edit { putInt(KEY_NOTIFICATION_ICON_STYLE, style) }
+        deviceProtectedPrefs()?.edit { putInt(KEY_NOTIFICATION_ICON_STYLE, style) }
+    }
+
+    fun getNotificationIconStyle(): Int {
+        return credentialPrefs()?.getInt(KEY_NOTIFICATION_ICON_STYLE, ICON_STYLE_APP_LOGO)
+            ?: deviceProtectedPrefs()?.getInt(KEY_NOTIFICATION_ICON_STYLE, ICON_STYLE_APP_LOGO)
+            ?: ICON_STYLE_APP_LOGO
     }
 }

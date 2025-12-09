@@ -29,6 +29,14 @@
     <string name="reboot_recovery">Mulai Ulang ke Recovery</string>
     <string name="power_off">Matikan Daya</string>
 
+    <!-- Notification Settings -->
+    <string name="notification_icon">Ikon Notifikasi</string>
+    <string name="notification_icon_desc">Pilih ikon untuk ditampilkan di bilah notifikasi</string>
+    <string name="icon_battery_percent">Persentase Baterai</string>
+    <string name="icon_app_logo">Logo Aplikasi</string>
+    <string name="icon_transparent">Transparan</string>
+    <string name="select_notification_icon">Pilih Ikon Notifikasi</string>
+
     <!-- Settings strings -->
     <string name="settings_language_label">Bahasa</string>
 
