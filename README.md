@@ -10,75 +10,77 @@
 [![Telegram](https://img.shields.io/badge/Telegram-Join-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/n0kontzzz)
 
 
-**N0Kontzzz Kernel Manager** is a modern, rooted Android application. Built with Kotlin and Jetpack Compose, the app provides real-time monitoring and tuning of CPU performance, thermal behavior, and more for Poco F4 (munch), optimized for [N0Kontzzz](https://github.com/bimoalfarrabi/kernel_xiaomi_sm8250_n0kontzz) custom kernel.
+**N0Kontzzz Kernel Manager** is a sophisticated Android application designed for rooted devices. Developed using Kotlin and Jetpack Compose, this utility offers comprehensive real-time monitoring and tuning capabilities for CPU performance, thermal management, and battery statistics. It is specifically optimized for the Poco F4 (munch) utilizing the [N0Kontzzz](https://github.com/bimoalfarrabi/kernel_xiaomi_sm8250_n0kontzz) custom kernel.
 
 
-## ✨ Features
+## Features
 
-- 📊 **Real-time CPU Monitoring**  
-  View individual core in a clean, responsive UI.
+- **Real-time System Monitoring**  
+  Detailed visualization of individual CPU core frequencies and system status in a responsive user interface.
 
-- 🌡️ **Thermal Zone Status**  
-  Retrieve and display system thermal zone data for advanced thermal debugging.
+- **Advanced Battery Analytics**  
+  Comprehensive battery history tracking including charging speeds, discharge rates, screen-on time, and deep sleep statistics. Includes automated reset options based on device reboot, charging events, or specific battery levels.
 
-- ⚙️ **CPU Tuning**
-  Apply governor changes on-the-fly with native shell execution via [libsu](https://github.com/topjohnwu/libsu).
+- **Thermal Management**  
+  Access to system thermal zone data for in-depth debugging and monitoring of device temperature profiles.
 
-- 💡 **Material 3 Expressive UI**  
-  Elegant interface using the latest Jetpack Compose and Material Design 3 Expressive components.
+- **CPU Performance Tuning**
+  Direct control over CPU governors and frequencies via native shell execution using [libsu](https://github.com/topjohnwu/libsu).
 
-- 🚀 **Fast & Minimal**  
-  Lightweight architecture using MVVM pattern, ensuring smooth performance on rooted Poco F4 devices.
+- **Modern User Interface**  
+  Designed with the latest Jetpack Compose and Material Design 3 Expressive components for a cohesive and intuitive user experience.
 
----
-
-## 📱 Requirements
-
-- ✅ Poco F4 (munch) running N0Kontzzz or FusionX kernel.
-- ✅ Root access (Magisk / KernelSU supported).
+- **Efficient Architecture**  
+  Built on a lightweight MVVM architecture to ensure optimal performance and minimal resource usage on rooted devices.
 
 ---
 
-## 🔐 Permissions
+## Requirements
 
-- `root` access via libsu (automatic permission request).
-- No internet access or telemetry. Operates 100% offline and private.
+- Poco F4 (munch) device running N0Kontzzz or FusionX kernel.
+- Root access (Magisk or KernelSU supported).
 
 ---
 
-## 🛠 Built With
+## Permissions
+
+- **Root Access**: Required for core functionality via libsu.
+- **Privacy Focused**: No internet access or telemetry required. The application operates entirely offline to ensure data privacy.
+
+---
+
+## Technology Stack
 
 - [Kotlin](https://kotlinlang.org/)
 - [Jetpack Compose](https://developer.android.com/jetpack/compose)
-- [libsu by Topjohnwu](https://github.com/topjohnwu/libsu)
-- MVVM Architecture (ViewModel + LiveData)
+- [libsu](https://github.com/topjohnwu/libsu)
+- MVVM Architecture
 - Material Design 3
 
 ---
 
-## 📂 Repository
+## Repository
 
-Feel free to fork, open issues, or contribute via pull requests.
+Contributions are welcome. Please feel free to fork the repository, submit issues, or create pull requests.
 
 ---
 > [!TIP]
 >
-> - **Performance Mode**: For demanding tasks like gaming, switch to `performance` governor for maximum CPU speed.
-> - **Balanced Profile**: `schedutil` governor for a balance between performance and power saving.
+> - **Performance Mode**: Utilize the `performance` governor for demanding computational tasks.
+> - **Balanced Profile**: The `schedutil` governor is recommended for an optimal balance between system responsiveness and power efficiency.
 
 
 ---
 
-### Credits
-- Forked from **[Xtra Kernel Manager](https://github.com/Gustyx-Power/Xtra-Kernel-Manager)** — used as the foundation for this app.
-- **[Danda](https://github.com/Danda420)** — for contributions to app development and guidance in understanding Android internals.
-- **[RvKernel Manager](https://github.com/Rve27/RvKernel-Manager)** —  inspired feature concepts and code references in this project.
-- **Poco F4 (Munch) community** —  for support and enthusiasm.
+### Acknowledgments
+- **[Xtra Kernel Manager](https://github.com/Gustyx-Power/Xtra-Kernel-Manager)** — The foundational project for this application.
+- **[Danda](https://github.com/Danda420)** — For significant contributions to development and insights into Android system internals.
+- **[RvKernel Manager](https://github.com/Rve27/RvKernel-Manager)** —  Provided inspiration for specific features and implementation references.
+- **Poco F4 Community** —  For ongoing support and feedback.
 ---
 
-## 📣 Disclaimer
+## Disclaimer
 
-> ⚠️ This app performs advanced functions that may affect system stability.  
-> Use at your own risk — no responsibility for any damage resulting from misconfiguration.
+> This application executes advanced system-level operations that may impact device stability. Use is at your own risk. The developers assume no responsibility for potential issues resulting from improper configuration.
 
 ---
