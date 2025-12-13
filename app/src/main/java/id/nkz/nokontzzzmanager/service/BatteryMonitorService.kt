@@ -245,9 +245,7 @@ class BatteryMonitorService : Service() {
             currentMa = (currentMa * 0.6f) + (lastCurrent * 0.4f)
         lastCurrent = currentMa
 
-        val computedWatt = if (voltageV != null && !currentMa.isNaN()) {
-            kotlin.math.abs((voltageV * (currentMa.toDouble() / 1000.0)).toFloat())
-        } else 0f
+        val computedWatt = kotlin.math.abs((voltageV * (currentMa.toDouble() / 1000.0)).toFloat())
         val powerWatt = when {
             powerUwSys != null && powerUwSys != 0L -> kotlin.math.abs(powerUwSys.toFloat() / 1_000_000f)
             else -> computedWatt

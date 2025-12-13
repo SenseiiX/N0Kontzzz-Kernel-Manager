@@ -21,7 +21,7 @@ import javax.inject.Inject
 class SettingsViewModel @Inject constructor(
     private val themeManager: ThemeManager,
     private val preferenceManager: PreferenceManager,
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _notificationIconStyle = MutableStateFlow(preferenceManager.getNotificationIconStyle())

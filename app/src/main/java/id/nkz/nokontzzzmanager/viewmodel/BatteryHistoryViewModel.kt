@@ -29,7 +29,7 @@ import androidx.core.graphics.scale
 @HiltViewModel
 class BatteryHistoryViewModel @Inject constructor(
     private val repository: BatteryGraphRepository,
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private val _filter = MutableStateFlow(HistoryFilter.LAST_24_HOURS)
