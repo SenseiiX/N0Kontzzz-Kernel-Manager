@@ -496,6 +496,14 @@ fun AppProfileConfigDialog(
                                         else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
                                     }
                                 ) {
+                                    if (isSelected) {
+                                        Icon(
+                                            imageVector = Icons.Default.Check,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(ToggleButtonDefaults.IconSize)
+                                        )
+                                        Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
+                                    }
                                     Text(
                                         text = if (option == "Balanced") stringResource(R.string.app_profiles_balanced) else stringResource(R.string.app_profiles_performance)
                                     )
