@@ -491,4 +491,12 @@
     <string name="app_profiles_bypass_prefix"> • Bypass: </string>
     <string name="app_profiles_on">Aktif</string>
     <string name="app_profiles_off">Nonaktif</string>
+
+    <!-- Battery History Config Dialog -->
+    <string name="battery_history_config_title">Pengaturan Reset Otomatis</string>
+    <string name="battery_history_config_desc">Secara otomatis mereset riwayat dan statistik baterai saat:</string>
+    <string name="battery_history_config_device_reboot">Perangkat Reboot</string>
+    <string name="battery_history_config_charger_connected">Pengisi Daya Terhubung</string>
+    <string name="battery_history_config_battery_level">Baterai mencapai %1$d%%</string>
+    <string name="battery_history_config_done">Selesai</string>
 </resources>

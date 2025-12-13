@@ -492,4 +492,12 @@
     <string name="app_profiles_bypass_prefix"> • Bypass: </string>
     <string name="app_profiles_on">On</string>
     <string name="app_profiles_off">Off</string>
+
+    <!-- Battery History Config Dialog -->
+    <string name="battery_history_config_title">Auto-Reset Settings</string>
+    <string name="battery_history_config_desc">Automatically reset battery history and stats when:</string>
+    <string name="battery_history_config_device_reboot">Device Reboot</string>
+    <string name="battery_history_config_charger_connected">Charger Connected</string>
+    <string name="battery_history_config_battery_level">Battery reaches %1$d%%</string>
+    <string name="battery_history_config_done">Done</string>
 </resources>
