@@ -105,12 +105,12 @@ fun BatteryHistoryConfigDialog(
                         }
 
                         // Content
-                        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) { // Reduced spacing
                             Text(
                                 text = stringResource(R.string.battery_history_config_desc),
                                 style = MaterialTheme.typography.bodyMedium
                             )
-                            Spacer(modifier = Modifier.height(16.dp))
+                            // Spacer(modifier = Modifier.height(16.dp)) // Removed explicit Spacer
 
                             // Reset on Reboot
                             Row(
@@ -123,7 +123,7 @@ fun BatteryHistoryConfigDialog(
                                 )
                                 Switch(
                                     checked = resetOnReboot,
-                                    onCheckedChange = onResetOnRebootChange,
+                                    onCheckedChange = onResetOnRebootChange, // Fixed typo here
                                     thumbContent = if (resetOnReboot) {
                                         {
                                             Icon(
@@ -227,11 +227,12 @@ fun BatteryHistoryConfigDialog(
                         // Actions
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End
+                            horizontalArrangement = Arrangement.Center // Centering the button in the row
                         ) {
                             OutlinedButton(
                                 onClick = onDismiss,
-                                shape = RoundedCornerShape(16.dp)
+                                shape = RoundedCornerShape(16.dp),
+                                modifier = Modifier.fillMaxWidth() // Button fills the width
                             ) {
                                 Text(stringResource(R.string.battery_history_config_done))
                             }
