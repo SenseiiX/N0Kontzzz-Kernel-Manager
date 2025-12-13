@@ -4,6 +4,8 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import id.nkz.nokontzzzmanager.R
 
 @Composable
 fun BatteryOptDialog(
@@ -14,32 +16,29 @@ fun BatteryOptDialog(
 ) {
     AlertDialog(
         onDismissRequest = { /* Prevent dismissal by tapping outside */ },
-        title = { Text(if (showExitButton) "Permissions Required" else "Battery Optimization") },
+        title = { Text(if (showExitButton) stringResource(R.string.permissions_required) else stringResource(R.string.battery_optimization)) },
         text = {
             Text(
                 if (showExitButton) {
-                    "NKM requires battery optimization exclusion to function properly. Without this permission, " +
-                    "the app cannot maintain your thermal settings in the background. Please grant the permission " +
-                    "or exit the app."
+                    stringResource(R.string.battery_opt_desc_exit)
                 } else {
-                    "NKM needs to be excluded from battery optimization to maintain your thermal settings " +
-                    "in the background. Please allow this permission for the app to work properly."
+                    stringResource(R.string.battery_opt_desc_later)
                 }
             )
         },
         confirmButton = {
             TextButton(onClick = onConfirm) {
-                Text("Open Settings")
+                Text(stringResource(R.string.open_settings))
             }
         },
         dismissButton = {
             if (showExitButton) {
                 TextButton(onClick = onExit) {
-                    Text("Exit App")
+                    Text(stringResource(R.string.exit_app_dialog))
                 }
             } else {
                 TextButton(onClick = onDismiss) {
-                    Text("Later")
+                    Text(stringResource(R.string.later))
                 }
             }
         }

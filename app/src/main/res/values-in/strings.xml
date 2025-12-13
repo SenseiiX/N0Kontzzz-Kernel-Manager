@@ -499,4 +499,13 @@
     <string name="battery_history_config_charger_connected">Pengisi Daya Terhubung</string>
     <string name="battery_history_config_battery_level">Baterai mencapai %1$d%%</string>
     <string name="battery_history_config_done">Selesai</string>
+
+    <!-- Battery Optimization Dialog -->
+    <string name="permissions_required">Izin Diperlukan</string>
+    <string name="battery_optimization">Optimasi Baterai</string>
+    <string name="battery_opt_desc_exit">NKM memerlukan pengecualian optimasi baterai agar berfungsi dengan baik. Tanpa izin ini, aplikasi tidak dapat mempertahankan pengaturan termal di latar belakang. Harap berikan izin atau keluar dari aplikasi.</string>
+    <string name="battery_opt_desc_later">NKM perlu dikecualikan dari optimasi baterai untuk mempertahankan pengaturan termal di latar belakang. Harap izinkan izin ini agar aplikasi berfungsi dengan baik.</string>
+    <string name="open_settings">Buka Pengaturan</string>
+    <string name="exit_app_dialog">Keluar Aplikasi</string>
+    <string name="later">Nanti</string>
 </resources>

@@ -310,7 +310,7 @@
     <string name="dpi">DPI</string>
 
     <!-- MergedSystemCard Batch 7 -->
-    <string name="internal_storage">Internal Storage</string>
+    <string name="internal_storage">Penyimpanan Internal</string>
     <string name="storage_usage_template">%1$s / %2$s</string>
     <string name="used_template">Used: %s</string>
     <string name="free_template">Free: %s</string>
@@ -416,7 +416,7 @@
     <string name="set_min_free_memory">Set Min Free Memory</string>
 
     <!-- SwappinessCard Batch 3 -->
-    <string name="ram_control">RAM Control</string>
+    <string name="ram_control">Kontrol RAM</string>
     <string name="zram_active_template">ZRAM: %dMB Active</string>
     <string name="zram_disabled">ZRAM: Disabled</string>
     <string name="zram_state">ZRAM State</string>
@@ -500,4 +500,13 @@
     <string name="battery_history_config_charger_connected">Charger Connected</string>
     <string name="battery_history_config_battery_level">Battery reaches %1$d%%</string>
     <string name="battery_history_config_done">Done</string>
+
+    <!-- Battery Optimization Dialog -->
+    <string name="permissions_required">Permissions Required</string>
+    <string name="battery_optimization">Battery Optimization</string>
+    <string name="battery_opt_desc_exit">NKM requires battery optimization exclusion to function properly. Without this permission, the app cannot maintain your thermal settings in the background. Please grant the permission or exit the app.</string>
+    <string name="battery_opt_desc_later">NKM needs to be excluded from battery optimization to maintain your thermal settings in the background. Please allow this permission for the app to work properly.</string>
+    <string name="open_settings">Open Settings</string>
+    <string name="exit_app_dialog">Exit App</string>
+    <string name="later">Later</string>
 </resources>
