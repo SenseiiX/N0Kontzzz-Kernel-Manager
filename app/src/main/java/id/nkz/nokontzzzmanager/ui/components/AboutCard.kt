@@ -146,18 +146,6 @@ fun AboutCard(
                             modifier = Modifier.size(32.dp)
                         )
                     }
-
-                    // GitHub Button
-                    IconButton(
-                        onClick = { uriHandler.openUri(githubLink) },
-                        modifier = Modifier.size(48.dp)
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.github),
-                            contentDescription = stringResource(id = R.string.github),
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
                 }
 
                 // Add spacing between social links and credits badge
