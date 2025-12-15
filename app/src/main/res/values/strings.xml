@@ -515,4 +515,16 @@
     <!-- Source Code Chip -->
     <string name="source_code">Source Code</string>
     <string name="source_code_link" translatable="false">https://github.com/bimoalfarrabi/N0Kontzzz-Kernel-Manager.git</string>
+
+    <!-- Compression Algorithm Descriptions -->
+    <string name="compression_lz4_desc">Maximum speed • Low latency</string>
+    <string name="compression_zstd_desc">High efficiency • Best compression ratio</string>
+    <string name="compression_lzo_desc">Optimal balance • Stable</string>
+    <string name="compression_lz4hc_desc">High compression • Moderate speed</string>
+    <string name="compression_deflate_desc">Standard compression • Moderate speed</string>
+    <string name="compression_lzma_desc">Maximum compression • Slower</string>
+    <string name="compression_bzip2_desc">Better compression • Slower</string>
+    <string name="compression_zlib_desc">Balanced compression • Moderate speed</string>
+    <string name="compression_lzo_rle_desc">Fast compression • Low CPU usage</string>
+    <string name="compression_default_desc">Compression algorithm • Good performance</string>
 </resources>

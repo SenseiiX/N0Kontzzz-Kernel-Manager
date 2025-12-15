@@ -514,4 +514,16 @@
 
     <!-- Source Code Chip -->
     <string name="source_code">Kode Sumber</string>
+
+    <!-- Compression Algorithm Descriptions -->
+    <string name="compression_lz4_desc">Kecepatan maksimum • Latensi rendah</string>
+    <string name="compression_zstd_desc">Efisiensi tinggi • Rasio kompresi terbaik</string>
+    <string name="compression_lzo_desc">Keseimbangan optimal • Stabil</string>
+    <string name="compression_lz4hc_desc">Kompresi tinggi • Kecepatan sedang</string>
+    <string name="compression_deflate_desc">Kompresi standar • Kecepatan sedang</string>
+    <string name="compression_lzma_desc">Kompresi maksimum • Lebih lambat</string>
+    <string name="compression_bzip2_desc">Kompresi lebih baik • Lebih lambat</string>
+    <string name="compression_zlib_desc">Kompresi seimbang • Kecepatan sedang</string>
+    <string name="compression_lzo_rle_desc">Kompresi cepat • Penggunaan CPU rendah</string>
+    <string name="compression_default_desc">Algoritma kompresi • Performa baik</string>
 </resources>

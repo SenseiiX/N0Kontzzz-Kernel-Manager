@@ -10,6 +10,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -1013,7 +1014,7 @@ fun CompressionAlgorithmDialog(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth(0.9f)
-                        .heightIn(min = 300.dp, max = 600.dp),
+                        .heightIn(min = 300.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                     ),
@@ -1021,7 +1022,7 @@ fun CompressionAlgorithmDialog(
                 ) {
                     Column(
                         modifier = Modifier.padding(24.dp),
-                        verticalArrangement = Arrangement.spacedBy(20.dp)
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         // Enhanced Header with better styling
                         Row(
@@ -1063,7 +1064,8 @@ fun CompressionAlgorithmDialog(
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                             ),
                             shape = RoundedCornerShape(24.dp),
                         ) {
@@ -1079,20 +1081,20 @@ fun CompressionAlgorithmDialog(
                                         imageVector = Icons.Default.Info,
                                         contentDescription = "Info",
                                         modifier = Modifier.size(16.dp),
-                                        tint = MaterialTheme.colorScheme.primary
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer
                                     )
                                     Text(
                                         text = "About This Feature",
                                         style = MaterialTheme.typography.labelLarge.copy(
                                             fontWeight = FontWeight.SemiBold
                                         ),
-                                        color = MaterialTheme.colorScheme.onSurface
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer
                                     )
                                 }
                                 Text(
                                     text = "The compression algorithm used by ZRAM to compress data in memory. LZ4 prioritizes speed, ZSTD high efficiency, LZO optimal balance between speed and compression ratio. (ZRAM state is controlled by your kernel and cannot be changed)",
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurface,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                                     lineHeight = 18.sp
                                 )
                             }
@@ -1101,15 +1103,16 @@ fun CompressionAlgorithmDialog(
                         // Enhanced algorithm selection list
                         LazyColumn(
                             modifier = Modifier.heightIn(max = 280.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                            verticalArrangement = Arrangement.spacedBy(2.dp) // Changed to 2.dp
                         ) {
-                            items(compressionAlgorithms) { algorithm ->
+                            itemsIndexed(compressionAlgorithms) { index, algorithm ->
                                 val isSelected = algorithm.lowercase() == currentCompression.lowercase()
 
                                 Card(
                                     modifier = Modifier.fillMaxWidth(),
+                                    shape = getDialogListItemShape(index, compressionAlgorithms.size),
                                     colors = CardDefaults.cardColors(
-                                        containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerLow
+                                        containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
                                     )
                                 ) {
                                     Row(
@@ -1140,17 +1143,17 @@ fun CompressionAlgorithmDialog(
                                                     MaterialTheme.colorScheme.onSurface
                                             )
                                             Text(
-                                                text = when (algorithm.lowercase()) { // ENGLISH_TRANSLATION
-                                                    "lz4" -> "Maximum speed • Low latency"
-                                                    "zstd" -> "High efficiency • Best compression ratio"
-                                                    "lzo" -> "Optimal balance • Stable"
-                                                    "lz4hc" -> "High compression • Moderate speed"
-                                                    "deflate" -> "Standard compression • Moderate speed"
-                                                    "lzma" -> "Maximum compression • Slower"
-                                                    "bzip2" -> "Better compression • Slower"
-                                                    "zlib" -> "Balanced compression • Moderate speed"
-                                                    "lzo-rle" -> "Fast compression • Low CPU usage"
-                                                    else -> "Compression algorithm • Good performance"
+                                                text = when (algorithm.lowercase()) {
+                                                    "lz4" -> stringResource(R.string.compression_lz4_desc)
+                                                    "zstd" -> stringResource(R.string.compression_zstd_desc)
+                                                    "lzo" -> stringResource(R.string.compression_lzo_desc)
+                                                    "lz4hc" -> stringResource(R.string.compression_lz4hc_desc)
+                                                    "deflate" -> stringResource(R.string.compression_deflate_desc)
+                                                    "lzma" -> stringResource(R.string.compression_lzma_desc)
+                                                    "bzip2" -> stringResource(R.string.compression_bzip2_desc)
+                                                    "zlib" -> stringResource(R.string.compression_zlib_desc)
+                                                    "lzo-rle" -> stringResource(R.string.compression_lzo_rle_desc)
+                                                    else -> stringResource(R.string.compression_default_desc)
                                                 },
                                                 style = MaterialTheme.typography.bodySmall,
                                                 color = MaterialTheme.colorScheme.onSurface
@@ -1173,11 +1176,11 @@ fun CompressionAlgorithmDialog(
                         // Enhanced action buttons
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            horizontalArrangement = Arrangement.Center // Center if there's only one button, or if more buttons would justify
                         ) {
                             OutlinedButton(
                                 onClick = onDismiss,
-                                modifier = Modifier.weight(1f),
+                                modifier = Modifier.fillMaxWidth(), // Fill width directly
                                 colors = ButtonDefaults.outlinedButtonColors(
                                     contentColor = MaterialTheme.colorScheme.onSurface
                                 ),
@@ -1189,11 +1192,11 @@ fun CompressionAlgorithmDialog(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Close,
-                                    contentDescription = "Cancel",
+                                    contentDescription = stringResource(id = R.string.close),
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("CANCEL", fontWeight = FontWeight.Medium)
+                                Text(stringResource(id = R.string.close), fontWeight = FontWeight.Medium)
                             }
                         }
                     }
@@ -1202,7 +1205,14 @@ fun CompressionAlgorithmDialog(
         })
 }
 
-
+private fun getDialogListItemShape(index: Int, totalItems: Int): RoundedCornerShape {
+    return when {
+        totalItems == 1 -> RoundedCornerShape(16.dp)
+        index == 0 -> RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
+        index == totalItems - 1 -> RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 16.dp, bottomEnd = 16.dp)
+        else -> RoundedCornerShape(4.dp)
+    }
+}
 
 private fun getRoundedCornerShape(index: Int, totalItems: Int): RoundedCornerShape {
     return when (totalItems) {
