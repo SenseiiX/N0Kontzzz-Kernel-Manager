@@ -527,4 +527,13 @@
     <string name="compression_zlib_desc">Balanced compression • Moderate speed</string>
     <string name="compression_lzo_rle_desc">Fast compression • Low CPU usage</string>
     <string name="compression_default_desc">Compression algorithm • Good performance</string>
+
+    <!-- SwappinessCard Additional -->
+    <string name="unit_sec"> sec</string>
+    <string name="unit_cs"> cs</string>
+    <string name="unit_mb_suffix"> MB</string>
+    <string name="set_zram_size_title">Set ZRAM Size</string>
+    <string name="choose_compression_algorithm">Choose Compression Algorithm</string>
+    <string name="zram_performance_settings_subtitle">ZRAM Performance Settings</string>
+    <string name="compression_feature_explanation">The compression algorithm used by ZRAM to compress data in memory. LZ4 prioritizes speed, ZSTD high efficiency, LZO optimal balance between speed and compression ratio. (ZRAM state is controlled by your kernel and cannot be changed)</string>
 </resources>

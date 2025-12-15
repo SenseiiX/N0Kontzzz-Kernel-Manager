@@ -526,4 +526,13 @@
     <string name="compression_zlib_desc">Kompresi seimbang • Kecepatan sedang</string>
     <string name="compression_lzo_rle_desc">Kompresi cepat • Penggunaan CPU rendah</string>
     <string name="compression_default_desc">Algoritma kompresi • Performa baik</string>
+
+    <!-- SwappinessCard Additional -->
+    <string name="unit_sec"> det</string>
+    <string name="unit_cs"> cs</string>
+    <string name="unit_mb_suffix"> MB</string>
+    <string name="set_zram_size_title">Atur Ukuran ZRAM</string>
+    <string name="choose_compression_algorithm">Pilih Algoritma Kompresi</string>
+    <string name="zram_performance_settings_subtitle">Pengaturan Performa ZRAM</string>
+    <string name="compression_feature_explanation">Algoritma kompresi yang digunakan oleh ZRAM untuk mengompres data di memori. LZ4 memprioritaskan kecepatan, ZSTD efisiensi tinggi, LZO keseimbangan optimal antara kecepatan dan rasio kompresi. (Status ZRAM dikendalikan oleh kernel Anda dan tidak dapat diubah)</string>
 </resources>

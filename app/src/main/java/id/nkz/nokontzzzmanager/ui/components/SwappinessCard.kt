@@ -246,6 +246,8 @@ fun SwappinessCard(
         SliderSettingDialog(
             showDialog = showSwappinessDialog,
             title = stringResource(id = R.string.set_swappiness),
+            icon = Icons.Default.Speed,
+            explanation = stringResource(id = R.string.swappiness_explanation),
             currentValue = swappiness,
             valueSuffix = "%",
             valueRange = 0f..100f,
@@ -262,6 +264,8 @@ fun SwappinessCard(
         SliderSettingDialog(
             showDialog = showDirtyRatioDialog,
             title = stringResource(id = R.string.set_dirty_ratio),
+            icon = Icons.Default.DataUsage,
+            explanation = stringResource(id = R.string.dirty_ratio_explanation),
             currentValue = dirtyRatio,
             valueSuffix = "%",
             valueRange = 0f..100f,
@@ -278,6 +282,8 @@ fun SwappinessCard(
         SliderSettingDialog(
             showDialog = showDirtyBgRatioDialog,
             title = stringResource(id = R.string.set_dirty_background_ratio),
+            icon = Icons.Default.Analytics,
+            explanation = stringResource(id = R.string.dirty_background_ratio_explanation),
             currentValue = dirtyBackgroundRatio,
             valueSuffix = "%",
             valueRange = 0f..100f,
@@ -294,8 +300,10 @@ fun SwappinessCard(
         SliderSettingDialog(
             showDialog = showDirtyWritebackDialog,
             title = stringResource(id = R.string.set_dirty_writeback),
+            icon = Icons.Default.Timer,
+            explanation = stringResource(id = R.string.dirty_writeback_explanation),
             currentValue = dirtyWriteback,
-            valueSuffix = " sec",
+            valueSuffix = stringResource(id = R.string.unit_sec),
             valueRange = 0f..300f,
             steps = 299,
             onDismissRequest = { showDirtyWritebackDialog = false },
@@ -310,8 +318,10 @@ fun SwappinessCard(
         SliderSettingDialog(
             showDialog = showDirtyExpireDialog,
             title = stringResource(id = R.string.set_dirty_expire),
+            icon = Icons.Default.Schedule,
+            explanation = stringResource(id = R.string.dirty_expire_explanation),
             currentValue = dirtyExpireCentisecs,
-            valueSuffix = " cs",
+            valueSuffix = stringResource(id = R.string.unit_cs),
             valueRange = 0f..30000f,
             steps = 29999,
             onDismissRequest = { showDirtyExpireDialog = false },
@@ -326,8 +336,10 @@ fun SwappinessCard(
         SliderSettingDialog(
             showDialog = showMinFreeMemoryDialog,
             title = stringResource(id = R.string.set_min_free_memory),
+            icon = Icons.Default.Memory,
+            explanation = stringResource(id = R.string.min_free_memory_explanation),
             currentValue = minFreeMemory,
-            valueSuffix = " MB",
+            valueSuffix = stringResource(id = R.string.unit_mb_suffix),
             valueRange = 0f..1024f,
             steps = 1023,
             onDismissRequest = { showMinFreeMemoryDialog = false },
@@ -547,6 +559,8 @@ fun RamSettingItem(
 fun SliderSettingDialog(
     showDialog: Boolean,
     title: String,
+    icon: ImageVector,
+    explanation: String,
     currentValue: Int,
     valueSuffix: String = "",
     valueRange: ClosedFloatingPointRange<Float>,
@@ -564,9 +578,6 @@ fun SliderSettingDialog(
             animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
             label = "slider_value_animation"
         )
-
-        // Get feature explanation based on title
-        val featureExplanation = getFeatureExplanation(title)
 
         BasicAlertDialog(
             onDismissRequest = onDismissRequest,
@@ -610,7 +621,7 @@ fun SliderSettingDialog(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
-                                        imageVector = getFeatureIcon(title),
+                                        imageVector = icon,
                                         contentDescription = stringResource(id = R.string.settings),
                                         modifier = Modifier.size(28.dp),
                                         tint = MaterialTheme.colorScheme.onPrimaryContainer
@@ -663,7 +674,7 @@ fun SliderSettingDialog(
                                         )
                                     }
                                     Text(
-                                        text = featureExplanation,
+                                        text = explanation,
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurface,
                                         lineHeight = 18.sp
@@ -801,45 +812,7 @@ fun SliderSettingDialog(
     }
 }
 
-// Helper function to get feature explanations
-private fun getFeatureExplanation(title: String): String {
-    return when {
-        title.contains("Swappiness", ignoreCase = true) ->
-            "Controls how aggressively the kernel moves data from RAM to storage. Low values (0-10) make the system focus more on using RAM, high values (60-100) use swap more frequently to save RAM."
 
-        title.contains("ZRAM", ignoreCase = true) ->
-            "Sets the size of compressed RAM to increase virtual memory capacity. ZRAM compresses data in RAM to store more applications without using slower storage. (ZRAM state is controlled by your kernel and cannot be changed)"
-
-        title.contains("Dirty Ratio", ignoreCase = true) ->
-            "Sets the percentage of RAM used for write cache before forcing writes to storage. Higher values = better performance but risk of data loss during crashes."
-
-        title.contains("Dirty Background", ignoreCase = true) ->
-            "Sets when the kernel starts gradually writing cache to storage in the background. Helps maintain stable performance by reducing lag during large writes."
-
-        title.contains("Min Free Memory", ignoreCase = true) ->
-            "Sets the minimum amount of RAM that must always remain free. Higher values make the system more responsive but reduce RAM available for applications."
-
-        title.contains("Dirty Expire", ignoreCase = true) ->
-            "Sets how long cache data can persist before being forced to write to storage. Lower values = safer data but reduced performance."
-
-        title.contains("Dirty Writeback", ignoreCase = true) ->
-            "Sets the time interval for the kernel to check and write expired cache. Affects how often the system performs automatic cache cleanup."
-
-        else ->
-            "This setting affects how the system manages memory and performance. Adjust according to your device usage needs for optimal results."
-    }
-}
-
-// Helper function to get appropriate icons
-fun getFeatureIcon(title: String): ImageVector {
-    return when {
-        title.contains("Swappiness", ignoreCase = true) -> Icons.Default.SwapVert
-        title.contains("ZRAM", ignoreCase = true) -> Icons.Default.Compress
-        title.contains("Dirty", ignoreCase = true) -> Icons.Default.Storage
-        title.contains("Memory", ignoreCase = true) -> Icons.Default.Memory
-        else -> Icons.Default.Tune
-    }
-}
 
 // Placeholder dialog composables - these need to be implemented based on your existing dialogs
 // Helper function to generate ZRAM size options in bytes
@@ -916,13 +889,13 @@ fun ZramSizeDialog(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Storage,
-                                contentDescription = "ZRAM Size",
+                                contentDescription = stringResource(id = R.string.zram_size),
                                 modifier = Modifier.size(28.dp),
                                 tint = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
                         Text(
-                            text = "Set ZRAM Size",
+                            text = stringResource(id = R.string.set_zram_size_title),
                             style = MaterialTheme.typography.headlineSmall.copy(
                                 fontWeight = FontWeight.Bold
                             ),
@@ -978,7 +951,7 @@ fun ZramSizeDialog(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp)
                     ) {
-                        Text("Close")
+                        Text(stringResource(id = R.string.close))
                     }
                 }
             }
@@ -1038,7 +1011,7 @@ fun CompressionAlgorithmDialog(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Compress,
-                                    contentDescription = "Compress",
+                                    contentDescription = stringResource(id = R.string.compression),
                                     modifier = Modifier.size(28.dp),
                                     tint = MaterialTheme.colorScheme.onPrimaryContainer
                                 )
@@ -1046,14 +1019,14 @@ fun CompressionAlgorithmDialog(
 
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "Choose Compression Algorithm",
+                                    text = stringResource(id = R.string.choose_compression_algorithm),
                                     style = MaterialTheme.typography.headlineSmall.copy(
                                         fontWeight = FontWeight.Bold
                                     ),
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = "ZRAM Performance Settings",
+                                    text = stringResource(id = R.string.zram_performance_settings_subtitle),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
@@ -1079,12 +1052,12 @@ fun CompressionAlgorithmDialog(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Info,
-                                        contentDescription = "Info",
+                                        contentDescription = stringResource(id = R.string.info),
                                         modifier = Modifier.size(16.dp),
                                         tint = MaterialTheme.colorScheme.onPrimaryContainer
                                     )
                                     Text(
-                                        text = "About This Feature",
+                                        text = stringResource(id = R.string.about_this_feature),
                                         style = MaterialTheme.typography.labelLarge.copy(
                                             fontWeight = FontWeight.SemiBold
                                         ),
@@ -1092,7 +1065,7 @@ fun CompressionAlgorithmDialog(
                                     )
                                 }
                                 Text(
-                                    text = "The compression algorithm used by ZRAM to compress data in memory. LZ4 prioritizes speed, ZSTD high efficiency, LZO optimal balance between speed and compression ratio. (ZRAM state is controlled by your kernel and cannot be changed)",
+                                    text = stringResource(id = R.string.compression_feature_explanation),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                                     lineHeight = 18.sp
@@ -1163,7 +1136,7 @@ fun CompressionAlgorithmDialog(
                                         if (isSelected) {
                                             Icon(
                                                 imageVector = Icons.Default.CheckCircle,
-                                                contentDescription = "Selected",
+                                                contentDescription = stringResource(id = R.string.common_selected),
                                                 modifier = Modifier.size(20.dp),
                                                 tint = MaterialTheme.colorScheme.primary
                                             )
