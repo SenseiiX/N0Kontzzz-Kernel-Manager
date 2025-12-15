@@ -32,6 +32,7 @@ import id.nkz.nokontzzzmanager.R
 import id.nkz.nokontzzzmanager.utils.LocaleHelper
 import id.nkz.nokontzzzmanager.utils.PreferenceManager
 import androidx.compose.foundation.background
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -48,6 +49,7 @@ fun SettingsScreen(
     var showNotificationIconDialog by remember { mutableStateOf(false) }
     val currentThemeMode by viewModel.currentThemeMode.collectAsState()
     val notificationIconStyle by viewModel.notificationIconStyle.collectAsState()
+    val isBatteryMonitorEnabled by viewModel.isBatteryMonitorEnabled.collectAsState()
     val context = LocalContext.current
     
     var themeRefreshKey by remember { mutableIntStateOf(0) }
@@ -135,11 +137,15 @@ fun SettingsScreen(
 
             SettingItemCard(
                 headlineText = stringResource(R.string.notification_icon),
-                supportingText = when (notificationIconStyle) {
-                    PreferenceManager.ICON_STYLE_BATTERY_PERCENT -> stringResource(R.string.icon_battery_percent)
-                    PreferenceManager.ICON_STYLE_APP_LOGO -> stringResource(R.string.icon_app_logo)
-                    PreferenceManager.ICON_STYLE_TRANSPARENT -> stringResource(R.string.icon_transparent)
-                    else -> stringResource(R.string.icon_app_logo)
+                supportingText = if (isBatteryMonitorEnabled) {
+                    when (notificationIconStyle) {
+                        PreferenceManager.ICON_STYLE_BATTERY_PERCENT -> stringResource(R.string.icon_battery_percent)
+                        PreferenceManager.ICON_STYLE_APP_LOGO -> stringResource(R.string.icon_app_logo)
+                        PreferenceManager.ICON_STYLE_TRANSPARENT -> stringResource(R.string.icon_transparent)
+                        else -> stringResource(R.string.icon_app_logo)
+                    }
+                } else {
+                    stringResource(R.string.requires_battery_monitor)
                 },
                 icon = {
                     Icon(
@@ -148,6 +154,7 @@ fun SettingsScreen(
                     )
                 },
                 shape = getRoundedCornerShape(0, 1),
+                enabled = isBatteryMonitorEnabled,
                 onClick = { showNotificationIconDialog = true }
             )
 
@@ -598,13 +605,14 @@ fun SettingItemCard(
     icon: @Composable () -> Unit,
     shape: RoundedCornerShape,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     trailingContent: @Composable () -> Unit = {},
     onClick: () -> Unit = {}
 ) {
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .clickable { onClick() },
+            .clickable(enabled = enabled) { onClick() },
         shape = shape,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
@@ -613,7 +621,8 @@ fun SettingItemCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(16.dp)
+                .then(if (enabled) Modifier else Modifier.alpha(0.38f)),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {

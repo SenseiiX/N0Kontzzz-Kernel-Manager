@@ -32,6 +32,7 @@
     <!-- Notification Settings -->
     <string name="notification_icon">Notification Icon</string>
     <string name="notification_icon_desc">Select the icon to display in the notification bar</string>
+    <string name="requires_battery_monitor">Requires Battery Monitor to be enabled</string>
     <string name="icon_battery_percent">Battery Percentage</string>
     <string name="icon_app_logo">App Logo</string>
     <string name="icon_transparent">Transparent</string>

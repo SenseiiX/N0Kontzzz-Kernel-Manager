@@ -27,6 +27,9 @@ class SettingsViewModel @Inject constructor(
     private val _notificationIconStyle = MutableStateFlow(preferenceManager.getNotificationIconStyle())
     val notificationIconStyle: StateFlow<Int> = _notificationIconStyle.asStateFlow()
 
+    private val _isBatteryMonitorEnabled = MutableStateFlow(preferenceManager.isBatteryMonitorEnabled())
+    val isBatteryMonitorEnabled: StateFlow<Boolean> = _isBatteryMonitorEnabled.asStateFlow()
+
     val currentThemeMode: StateFlow<ThemeMode> = themeManager.currentThemeMode
         .stateIn(
             viewModelScope,

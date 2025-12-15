@@ -32,6 +32,7 @@
     <!-- Notification Settings -->
     <string name="notification_icon">Ikon Notifikasi</string>
     <string name="notification_icon_desc">Pilih ikon untuk ditampilkan di bilah notifikasi</string>
+    <string name="requires_battery_monitor">Memerlukan Monitor Baterai untuk diaktifkan</string>
     <string name="icon_battery_percent">Persentase Baterai</string>
     <string name="icon_app_logo">Logo Aplikasi</string>
     <string name="icon_transparent">Transparan</string>
