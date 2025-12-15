@@ -524,12 +524,7 @@ fun AppProfileConfigDialog(
                                         modifier = Modifier
                                             .weight(1f)
                                             .semantics { role = Role.RadioButton },
-                                        shapes = when (index) {
-                                            0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                                            options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                                            else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-                                        }
-                                    ) {
+                                        enabled = isEnabled) {
                                         if (isSelected) {
                                             Icon(
                                                 imageVector = Icons.Default.Check,
@@ -568,7 +563,7 @@ fun AppProfileConfigDialog(
                                     Switch(
                                         checked = kgslSkipZeroing && isKgslFeatureAvailable,
                                         onCheckedChange = { kgslSkipZeroing = it },
-                                        enabled = isKgslFeatureAvailable,
+                                        enabled = isKgslFeatureAvailable && isEnabled,
                                         thumbContent = if (kgslSkipZeroing && isKgslFeatureAvailable) {
                                             {
                                                 Icon(
@@ -609,6 +604,7 @@ fun AppProfileConfigDialog(
                                     Switch(
                                         checked = bypassCharging,
                                         onCheckedChange = { bypassCharging = it },
+                                        enabled = isEnabled,
                                         thumbContent = if (bypassCharging) {
                                             {
                                                 Icon(
