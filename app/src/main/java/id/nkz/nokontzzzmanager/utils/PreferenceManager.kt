@@ -17,6 +17,11 @@ class PreferenceManager @Inject constructor(
         private const val KEY_KGSL_SKIP_ZEROING = "kgsl_skip_zeroing"
         private const val KEY_BYPASS_CHARGING = "bypass_charging"
         private const val KEY_BATTERY_MONITOR_ENABLED = "battery_monitor_enabled"
+
+        private const val KEY_CHARGING_CONTROL_ENABLED = "charging_control_enabled"
+        private const val KEY_CHARGING_CONTROL_STOP_LEVEL = "charging_control_stop_level"
+        private const val KEY_CHARGING_CONTROL_RESUME_LEVEL = "charging_control_resume_level"
+
         private const val KEY_AUTO_RESET_ON_REBOOT = "auto_reset_on_reboot"
         private const val KEY_AUTO_RESET_ON_CHARGING = "auto_reset_on_charging"
         private const val KEY_AUTO_RESET_AT_LEVEL = "auto_reset_at_level"
@@ -98,6 +103,39 @@ class PreferenceManager @Inject constructor(
         if (primary == true) return true
         val fallback = deviceProtectedPrefs()?.getBoolean(KEY_BATTERY_MONITOR_ENABLED, false)
         return fallback ?: false
+    }
+
+    fun setChargingControlEnabled(enabled: Boolean) {
+        credentialPrefs()?.edit { putBoolean(KEY_CHARGING_CONTROL_ENABLED, enabled) }
+        deviceProtectedPrefs()?.edit { putBoolean(KEY_CHARGING_CONTROL_ENABLED, enabled) }
+    }
+
+    fun isChargingControlEnabled(): Boolean {
+        return credentialPrefs()?.getBoolean(KEY_CHARGING_CONTROL_ENABLED, false)
+            ?: deviceProtectedPrefs()?.getBoolean(KEY_CHARGING_CONTROL_ENABLED, false)
+            ?: false
+    }
+
+    fun setChargingControlStopLevel(level: Int) {
+        credentialPrefs()?.edit { putInt(KEY_CHARGING_CONTROL_STOP_LEVEL, level) }
+        deviceProtectedPrefs()?.edit { putInt(KEY_CHARGING_CONTROL_STOP_LEVEL, level) }
+    }
+
+    fun getChargingControlStopLevel(): Int {
+        return credentialPrefs()?.getInt(KEY_CHARGING_CONTROL_STOP_LEVEL, 80)
+            ?: deviceProtectedPrefs()?.getInt(KEY_CHARGING_CONTROL_STOP_LEVEL, 80)
+            ?: 80
+    }
+
+    fun setChargingControlResumeLevel(level: Int) {
+        credentialPrefs()?.edit { putInt(KEY_CHARGING_CONTROL_RESUME_LEVEL, level) }
+        deviceProtectedPrefs()?.edit { putInt(KEY_CHARGING_CONTROL_RESUME_LEVEL, level) }
+    }
+
+    fun getChargingControlResumeLevel(): Int {
+        return credentialPrefs()?.getInt(KEY_CHARGING_CONTROL_RESUME_LEVEL, 70)
+            ?: deviceProtectedPrefs()?.getInt(KEY_CHARGING_CONTROL_RESUME_LEVEL, 70)
+            ?: 70
     }
 
     fun setAutoResetOnReboot(enabled: Boolean) {

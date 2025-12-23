@@ -37,6 +37,7 @@ import kotlin.math.roundToInt
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import id.nkz.nokontzzzmanager.data.repository.BatteryGraphRepository
+import id.nkz.nokontzzzmanager.data.repository.SystemRepository
 import id.nkz.nokontzzzmanager.data.database.BatteryGraphEntry
 import id.nkz.nokontzzzmanager.utils.PreferenceManager
 
@@ -45,6 +46,9 @@ class BatteryMonitorService : Service() {
 
     @Inject
     lateinit var batteryGraphRepository: BatteryGraphRepository
+
+    @Inject
+    lateinit var systemRepository: SystemRepository
 
     @Inject
     lateinit var preferenceManager: PreferenceManager
@@ -225,6 +229,7 @@ class BatteryMonitorService : Service() {
         val charging = status == BatteryManager.BATTERY_STATUS_CHARGING || plugged > 0
 
         checkAutoResetAtLevel(level, charging)
+        checkChargingControl(level, plugged > 0)
 
         // Prefer sysfs for current/voltage; fallback to BatteryManager
         val currentUaSys = readFirstLong(listOf(
@@ -598,6 +603,32 @@ class BatteryMonitorService : Service() {
             um.isUserUnlocked
         } else {
             true
+        }
+    }
+
+    private fun checkChargingControl(level: Int, plugged: Boolean) {
+        if (!preferenceManager.isChargingControlEnabled()) return
+        
+        // Only run check if plugged in
+        if (plugged) {
+            val stopLevel = preferenceManager.getChargingControlStopLevel()
+            val resumeLevel = preferenceManager.getChargingControlResumeLevel()
+            
+            // Avoid frequent file reads if possible, but for now we read to ensure state consistency
+            // Logic:
+            // 1. If Level >= Stop -> Ensure Bypass is ON (Stop charging)
+            // 2. If Level <= Resume -> Ensure Bypass is OFF (Resume charging)
+            // 3. Otherwise leave as is (Hysteresis zone)
+            
+            if (level >= stopLevel) {
+                 if (!systemRepository.getBypassCharging()) {
+                     systemRepository.setBypassCharging(true)
+                 }
+            } else if (level <= resumeLevel) {
+                 if (systemRepository.getBypassCharging()) {
+                     systemRepository.setBypassCharging(false)
+                 }
+            }
         }
     }
 

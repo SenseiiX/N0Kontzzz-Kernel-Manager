@@ -10,6 +10,9 @@ import id.nkz.nokontzzzmanager.service.BatteryMonitorService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -71,6 +74,19 @@ class MiscViewModel @Inject constructor(
     private val _monitorAutoResetTargetLevel = MutableStateFlow(90)
     val monitorAutoResetTargetLevel: StateFlow<Int> = _monitorAutoResetTargetLevel.asStateFlow()
 
+    private val _chargingControlEnabled = MutableStateFlow(false)
+    val chargingControlEnabled: StateFlow<Boolean> = _chargingControlEnabled.asStateFlow()
+
+    private val _chargingControlStopLevel = MutableStateFlow(80)
+    val chargingControlStopLevel: StateFlow<Int> = _chargingControlStopLevel.asStateFlow()
+
+    private val _chargingControlResumeLevel = MutableStateFlow(70)
+    val chargingControlResumeLevel: StateFlow<Int> = _chargingControlResumeLevel.asStateFlow()
+
+    val batteryInfo = systemRepository.realtimeAggregatedInfoFlow
+        .map { it.batteryInfo }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
     private val isDataLoaded = java.util.concurrent.atomic.AtomicBoolean(false)
 
     init {
@@ -107,6 +123,10 @@ class MiscViewModel @Inject constructor(
         _monitorAutoResetOnCharging.value = preferenceManager.isMonitorAutoResetOnCharging()
         _monitorAutoResetAtLevel.value = preferenceManager.isMonitorAutoResetAtLevel()
         _monitorAutoResetTargetLevel.value = preferenceManager.getMonitorAutoResetTargetLevel()
+
+        _chargingControlEnabled.value = preferenceManager.isChargingControlEnabled()
+        _chargingControlStopLevel.value = preferenceManager.getChargingControlStopLevel()
+        _chargingControlResumeLevel.value = preferenceManager.getChargingControlResumeLevel()
     }
 
     fun toggleKgslSkipZeroing(enabled: Boolean) {
@@ -235,5 +255,24 @@ class MiscViewModel @Inject constructor(
     fun setMonitorAutoResetTargetLevel(level: Int) {
         _monitorAutoResetTargetLevel.value = level
         preferenceManager.setMonitorAutoResetTargetLevel(level)
+    }
+
+    fun setChargingControlEnabled(enabled: Boolean) {
+        _chargingControlEnabled.value = enabled
+        preferenceManager.setChargingControlEnabled(enabled)
+        // If disabling, we might want to ensure charging is resumed?
+        // User might want to keep it stopped, but usually if you disable "Control", you expect normal behavior.
+        // But for safety, we leave it as is or let the user toggle "Bypass Charging" manually.
+        // Let's strictly follow the instruction: just toggle the preference.
+    }
+
+    fun setChargingControlStopLevel(level: Int) {
+        _chargingControlStopLevel.value = level
+        preferenceManager.setChargingControlStopLevel(level)
+    }
+
+    fun setChargingControlResumeLevel(level: Int) {
+        _chargingControlResumeLevel.value = level
+        preferenceManager.setChargingControlResumeLevel(level)
     }
 }

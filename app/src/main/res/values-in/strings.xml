@@ -207,9 +207,21 @@
     <string name="bypass_charging_activated">Bypass Charging Diaktifkan</string>
     <string name="bypass_charging_active_desc">Bypass Charging aktif. Baterai tidak diisi.</string>
 
+    <string name="charging_control_title">Kontrol Pengisian Daya</string>
+    <string name="charging_control_desc">Berhenti dan lanjutkan pengisian daya secara otomatis pada level baterai tertentu</string>
+    <string name="enable_charging_control">Aktifkan Batas Pengisian</string>
+    <string name="stop_charging_at">Berhenti mengisi pada: %d%%</string>
+    <string name="resume_charging_at">Lanjutkan mengisi pada: %d%%</string>
+    <string name="charging_status">Status: %s</string>
+    <string name="status_limit_reached">BATAS TERCAPAI</string>
+    <string name="status_stopped">BERHENTI</string>
+    <string name="status_charging">MENGISI DAYA</string>
+    <string name="status_discharging">MENGURANGI DAYA</string>
+    <string name="status_idle">IDLE</string>
+
     <!-- Battery Monitor -->
     <string name="battery_monitor">Monitor Baterai</string>
-    <string name="battery_monitor_desc">Tampilkan statistik baterai realtime sebagai notifikasi foreground</string>
+    <string name="battery_monitor_desc">Tampilkan statistik baterai realtime. Diperlukan untuk fitur seperti Kontrol Pengisian Daya.</string>
     <string name="reset_battery_stats">Reset</string>
     <string name="battery_monitor_reset_title">Reset Monitor Baterai</string>
     <string name="battery_monitor_reset_desc">Hapus akumulasi statistik tanpa mematikan layanan</string>

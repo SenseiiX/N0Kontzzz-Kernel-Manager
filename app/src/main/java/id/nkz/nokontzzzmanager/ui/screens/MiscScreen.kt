@@ -25,6 +25,7 @@ import id.nkz.nokontzzzmanager.ui.dialog.TcpCongestionDialog
 import id.nkz.nokontzzzmanager.viewmodel.MiscViewModel
 import id.nkz.nokontzzzmanager.ui.dialog.IoSchedulerDialog
 import id.nkz.nokontzzzmanager.ui.dialog.BatteryHistoryConfigDialog
+import id.nkz.nokontzzzmanager.ui.dialog.ChargingControlDialog
 
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -88,8 +89,14 @@ fun MiscScreen(
     val monitorAutoResetAtLevel by viewModel.monitorAutoResetAtLevel.collectAsStateWithLifecycle()
     val monitorAutoResetTargetLevel by viewModel.monitorAutoResetTargetLevel.collectAsStateWithLifecycle()
 
+    val chargingControlEnabled by viewModel.chargingControlEnabled.collectAsStateWithLifecycle()
+    val chargingControlStopLevel by viewModel.chargingControlStopLevel.collectAsStateWithLifecycle()
+    val chargingControlResumeLevel by viewModel.chargingControlResumeLevel.collectAsStateWithLifecycle()
+    val batteryInfo by viewModel.batteryInfo.collectAsStateWithLifecycle()
+
     var showAutoResetDialog by remember { mutableStateOf(false) }
     var showMonitorAutoResetDialog by remember { mutableStateOf(false) }
+    var showChargingControlDialog by remember { mutableStateOf(false) }
 
     if (showAutoResetDialog) {
         BatteryHistoryConfigDialog(
@@ -118,6 +125,20 @@ fun MiscScreen(
             onResetAtLevelChange = viewModel::setMonitorAutoResetAtLevel,
             targetLevel = monitorAutoResetTargetLevel,
             onTargetLevelChange = viewModel::setMonitorAutoResetTargetLevel
+        )
+    }
+
+    if (showChargingControlDialog) {
+        ChargingControlDialog(
+            onDismiss = { showChargingControlDialog = false },
+            enabled = chargingControlEnabled,
+            onEnabledChange = viewModel::setChargingControlEnabled,
+            stopLevel = chargingControlStopLevel,
+            onStopLevelChange = viewModel::setChargingControlStopLevel,
+            resumeLevel = chargingControlResumeLevel,
+            onResumeLevelChange = viewModel::setChargingControlResumeLevel,
+            batteryInfo = batteryInfo,
+            isBypassActive = bypassChargingEnabled
         )
     }
 
@@ -161,6 +182,15 @@ fun MiscScreen(
                 onToggleBypassCharging = { enabled ->
                     viewModel.toggleBypassCharging(enabled)
                 }
+            )
+        }
+
+        // Charging Control feature
+        item {
+            ChargingControlCard(
+                enabled = chargingControlEnabled,
+                isBatteryMonitorEnabled = batteryMonitorEnabled,
+                onClick = { showChargingControlDialog = true }
             )
         }
 
@@ -844,6 +874,58 @@ fun BypassChargingCard(
                         )
                     }
                 }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ChargingControlCard(
+    enabled: Boolean,
+    isBatteryMonitorEnabled: Boolean,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        ),
+        enabled = isBatteryMonitorEnabled,
+        onClick = onClick
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(id = R.string.charging_control_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Medium,
+                        color = if (isBatteryMonitorEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                    )
+                    Text(
+                        text = if (isBatteryMonitorEnabled) {
+                            stringResource(id = R.string.charging_control_desc)
+                        } else {
+                            stringResource(id = R.string.requires_battery_monitor)
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (isBatteryMonitorEnabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                    )
+                }
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = "Configure",
+                    tint = if (isBatteryMonitorEnabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                )
             }
         }
     }

@@ -207,9 +207,21 @@
     <string name="bypass_charging_activated">Bypass Charging Activated</string>
     <string name="bypass_charging_active_desc">Bypass charging is active. The battery is not charging.</string>
 
+    <string name="charging_control_title">Charging Control</string>
+    <string name="charging_control_desc">Automatically stop and resume charging at specific battery levels</string>
+    <string name="enable_charging_control">Enable Charge Limit</string>
+    <string name="stop_charging_at">Stop charging at: %d%%</string>
+    <string name="resume_charging_at">Resume charging at: %d%%</string>
+    <string name="charging_status">Status: %s</string>
+    <string name="status_limit_reached">LIMIT REACHED</string>
+    <string name="status_stopped">STOPPED</string>
+    <string name="status_charging">CHARGING</string>
+    <string name="status_discharging">DISCHARGING</string>
+    <string name="status_idle">IDLE</string>
+
     <!-- Battery Monitor -->
     <string name="battery_monitor">Battery Monitor</string>
-    <string name="battery_monitor_desc">Show realtime battery stats as a foreground notification</string>
+    <string name="battery_monitor_desc">Show realtime battery stats. Required for features like Charging Control.</string>
     <string name="reset_battery_stats">Reset</string>
     <string name="battery_monitor_reset_title">Reset Battery Monitor</string>
     <string name="battery_monitor_reset_desc">Clear accumulated stats without turning off the service</string>
