@@ -148,6 +148,11 @@ class MiscViewModel @Inject constructor(
 
     fun toggleBypassCharging(enabled: Boolean) {
         viewModelScope.launch {
+            // Disable automation if manual bypass is being enabled
+            if (enabled && _chargingControlEnabled.value) {
+                setChargingControlEnabled(false)
+            }
+
             val success = systemRepository.setBypassCharging(enabled)
             if (success) {
                 _bypassChargingEnabled.value = enabled
@@ -260,10 +265,11 @@ class MiscViewModel @Inject constructor(
     fun setChargingControlEnabled(enabled: Boolean) {
         _chargingControlEnabled.value = enabled
         preferenceManager.setChargingControlEnabled(enabled)
-        // If disabling, we might want to ensure charging is resumed?
-        // User might want to keep it stopped, but usually if you disable "Control", you expect normal behavior.
-        // But for safety, we leave it as is or let the user toggle "Bypass Charging" manually.
-        // Let's strictly follow the instruction: just toggle the preference.
+        
+        // If enabling automation, turn off manual bypass to give control to the service
+        if (enabled && _bypassChargingEnabled.value) {
+            toggleBypassCharging(false)
+        }
     }
 
     fun setChargingControlStopLevel(level: Int) {
