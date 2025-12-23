@@ -89,7 +89,10 @@ class BatteryMonitorService : Service() {
     private var windowStartElapsed: Long = -1L
     private var windowStartUptime: Long = -1L
     private var windowAccumMs: Long = 0L // Accumulated window time from previous sessions (for reboot persistence)
-    @Volatile private var nextDelayOverrideMs: Long? = null
+    private var nextDelayOverrideMs: Long? = null
+    
+    // Cache for Charging Control to reduce File I/O
+    private var lastKnownBypassState: Boolean? = null
 
     // Persistence
     private val prefs by lazy {
@@ -607,28 +610,49 @@ class BatteryMonitorService : Service() {
     }
 
     private fun checkChargingControl(level: Int, plugged: Boolean) {
-        if (!preferenceManager.isChargingControlEnabled()) return
+        if (!preferenceManager.isChargingControlEnabled()) {
+            lastKnownBypassState = null // Reset cache if disabled
+            return
+        }
         
         // Only run check if plugged in
         if (plugged) {
             val stopLevel = preferenceManager.getChargingControlStopLevel()
             val resumeLevel = preferenceManager.getChargingControlResumeLevel()
             
-            // Avoid frequent file reads if possible, but for now we read to ensure state consistency
-            // Logic:
-            // 1. If Level >= Stop -> Ensure Bypass is ON (Stop charging)
-            // 2. If Level <= Resume -> Ensure Bypass is OFF (Resume charging)
-            // 3. Otherwise leave as is (Hysteresis zone)
-            
+            var shouldEnableBypass: Boolean? = null
+
+            // Determine desired state based on levels
             if (level >= stopLevel) {
-                 if (!systemRepository.getBypassCharging()) {
-                     systemRepository.setBypassCharging(true)
-                 }
+                shouldEnableBypass = true
             } else if (level <= resumeLevel) {
-                 if (systemRepository.getBypassCharging()) {
-                     systemRepository.setBypassCharging(false)
-                 }
+                shouldEnableBypass = false
             }
+
+            // Apply only if state needs to change or if we don't know the state yet
+            if (shouldEnableBypass != null) {
+                // If cache is missing, read the actual state once to sync
+                if (lastKnownBypassState == null) {
+                    lastKnownBypassState = systemRepository.getBypassCharging()
+                }
+
+                // Only perform I/O if the desired state differs from the current/cached state
+                if (lastKnownBypassState != shouldEnableBypass) {
+                    val success = systemRepository.setBypassCharging(shouldEnableBypass)
+                    if (success) {
+                        lastKnownBypassState = shouldEnableBypass
+                        // Force update notification to reflect status change immediately
+                        try {
+                           scope.launch {
+                               updateNotification(collectSystemStats())
+                           }
+                        } catch (_: Exception) {}
+                    }
+                }
+            }
+        } else {
+            // Reset cache when unplugged so we verify fresh state next time we plug in
+            lastKnownBypassState = null
         }
     }
 
