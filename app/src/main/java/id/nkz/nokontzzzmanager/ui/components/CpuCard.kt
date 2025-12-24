@@ -106,7 +106,7 @@ private fun CpuHeaderSection(
 
             Surface( // Using Surface for the label background
                 shape = RoundedCornerShape(8.dp),
-                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                color = MaterialTheme.colorScheme.surfaceVariant
             ) {
                 Text(
                     text = if ((soc.isNotBlank() && soc != "Unknown SoC" && soc != "N/A") ||
@@ -123,8 +123,7 @@ private fun CpuHeaderSection(
         Box(
             modifier = Modifier
                 .size(56.dp) // Slightly smaller
-                .clip(RoundedCornerShape(16.dp)) // M3 friendly shape
-                .background(MaterialTheme.colorScheme.secondaryContainer),
+                .background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(16.dp)),
             contentAlignment = Alignment.Center
         ) {
             Icon(
@@ -172,7 +171,7 @@ private fun CpuCoresSection(info: RealtimeCpuInfo, clusters: ImmutableList<CpuCl
                     Surface(
                         modifier = Modifier.weight(1f),
                         shape = shape, // Apply conditional shape
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        color = MaterialTheme.colorScheme.surfaceContainerHighest,
                         contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                     ) {
                         Column(
@@ -245,7 +244,7 @@ private fun CpuCoresSection(info: RealtimeCpuInfo, clusters: ImmutableList<CpuCl
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = shape,
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    color = MaterialTheme.colorScheme.surfaceContainerHighest,
                     contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                 ) {
                     Row(
@@ -389,12 +388,15 @@ private fun EnhancedCpuGraph(
     currentGraphMode: GraphMode,
     primaryColor: Color
 ) {
+    val path = remember { Path() }
+    val fillPath = remember { Path() }
+
     Surface( // Use Surface for graph background
         modifier = Modifier
             .fillMaxWidth()
             .height(120.dp),
         shape = RoundedCornerShape(12.dp), // Consistent rounding
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+        color = MaterialTheme.colorScheme.surfaceContainerHighest,
         contentColor = MaterialTheme.colorScheme.onSurfaceVariant
     ) {
         Box(
@@ -403,6 +405,9 @@ private fun EnhancedCpuGraph(
         ) {
             if (graphDataHistory.size > 1) {
                 Canvas(modifier = Modifier.fillMaxSize()) {
+                    path.reset()
+                    fillPath.reset()
+
                     val (yAxisMin, yAxisMax) = when (currentGraphMode) {
                         GraphMode.SPEED -> {
                             val dataMin = graphDataHistory.filter { it > 0 }.minOrNull() ?: 0f
@@ -415,9 +420,6 @@ private fun EnhancedCpuGraph(
 
                     val effectiveYRange = (yAxisMax - yAxisMin).coerceAtLeast(1f)
                     val stepX = size.width / (MAX_HISTORY_POINTS_GRAPH - 1).coerceAtLeast(1).toFloat()
-
-                    val path = Path()
-                    val fillPath = Path()
 
                     graphDataHistory.forEachIndexed { index, dataPoint ->
                         val x = size.width - (graphDataHistory.size - 1 - index) * stepX

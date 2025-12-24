@@ -15,6 +15,8 @@ import id.nkz.nokontzzzmanager.data.model.*
 import id.nkz.nokontzzzmanager.data.repository.RootRepository
 import id.nkz.nokontzzzmanager.data.repository.SystemRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -23,6 +25,7 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 
 @HiltViewModel
+@OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
 class HomeViewModel @Inject constructor(
     @field:ApplicationContext private val context: Context,
     private val systemRepo: SystemRepository,
@@ -93,43 +96,49 @@ class HomeViewModel @Inject constructor(
     init {
         // The realtime flow is relatively lightweight to start collecting.
         // It will begin emitting data as it becomes available.
-        viewModelScope.launch {
-            systemRepo.realtimeAggregatedInfoFlow
-                .catch { e ->
-                    Log.e("HomeViewModel", "Error in realtimeAggregatedInfoFlow: ${e.message}", e)
+        viewModelScope.launch(Dispatchers.Default) {
+            _isScrolling
+                .flatMapLatest { isScrolling ->
+                    if (isScrolling) {
+                        emptyFlow()
+                    } else {
+                        systemRepo.realtimeAggregatedInfoFlow
+                            .catch { e ->
+                                Log.e("HomeViewModel", "Error in realtimeAggregatedInfoFlow: ${e.message}", e)
+                            }
+                            .sample(500L)
+                    }
                 }
                 .collect { aggregatedInfo ->
-                    if (!_isScrolling.value) {
-                        _cpuInfo.value = aggregatedInfo.cpuInfo
-                        _gpuInfo.value = aggregatedInfo.gpuInfo
-                        _batteryInfo.value = aggregatedInfo.batteryInfo
-                        _memoryInfo.value = aggregatedInfo.memoryInfo
-                        _deepSleep.value = DeepSleepInfo(
-                            uptime = aggregatedInfo.uptimeMillis,
-                            deepSleep = aggregatedInfo.deepSleepMillis
-                        )
+                    _cpuInfo.value = aggregatedInfo.cpuInfo
+                    _gpuInfo.value = aggregatedInfo.gpuInfo
+                    _batteryInfo.value = aggregatedInfo.batteryInfo
+                    _memoryInfo.value = aggregatedInfo.memoryInfo
+                    _deepSleep.value = DeepSleepInfo(
+                        uptime = aggregatedInfo.uptimeMillis,
+                        deepSleep = aggregatedInfo.deepSleepMillis
+                    )
 
-                        // Update Graph Data
-                        val cpuInfo = aggregatedInfo.cpuInfo
-                        val gpuInfo = aggregatedInfo.gpuInfo
+                    // Update Graph Data
+                    val cpuInfo = aggregatedInfo.cpuInfo
+                    val gpuInfo = aggregatedInfo.gpuInfo
 
-                        // Calculate CPU Data Points
-                        val avgSpeed = if (cpuInfo.freqs.isNotEmpty()) {
-                            cpuInfo.freqs.filter { it > 0 }.map { it.toFloat() }.average().toFloat().takeIf { !it.isNaN() } ?: 0f
-                        } else 0f
-                        val cpuLoad = (cpuInfo.cpuLoadPercentage ?: 0f).coerceIn(0f, 100f)
+                    // Calculate CPU Data Points
+                    val avgSpeed = if (cpuInfo.freqs.isNotEmpty()) {
+                        cpuInfo.freqs.filter { it > 0 }.map { it.toFloat() }.average().toFloat().takeIf { !it.isNaN() } ?: 0f
+                    } else 0f
+                    val cpuLoad = (cpuInfo.cpuLoadPercentage ?: 0f).coerceIn(0f, 100f)
 
-                        // Calculate GPU Data Point
-                        val gpuUsage = (gpuInfo.usagePercentage ?: 0f).coerceIn(0f, 100f)
+                    // Calculate GPU Data Point
+                    val gpuUsage = (gpuInfo.usagePercentage ?: 0f).coerceIn(0f, 100f)
 
-                        // Atomically update graph history
-                        val currentGraph = _graphData.value
-                        _graphData.value = currentGraph.copy(
-                            cpuLoadHistory = (currentGraph.cpuLoadHistory + cpuLoad).takeLast(50).toImmutableList(),
-                            cpuSpeedHistory = (currentGraph.cpuSpeedHistory + avgSpeed).takeLast(50).toImmutableList(),
-                            gpuHistory = (currentGraph.gpuHistory + gpuUsage).takeLast(50).toImmutableList()
-                        )
-                    }
+                    // Atomically update graph history
+                    val currentGraph = _graphData.value
+                    _graphData.value = currentGraph.copy(
+                        cpuLoadHistory = (currentGraph.cpuLoadHistory + cpuLoad).takeLast(50).toImmutableList(),
+                        cpuSpeedHistory = (currentGraph.cpuSpeedHistory + avgSpeed).takeLast(50).toImmutableList(),
+                        gpuHistory = (currentGraph.gpuHistory + gpuUsage).takeLast(50).toImmutableList()
+                    )
                 }
         }
     }

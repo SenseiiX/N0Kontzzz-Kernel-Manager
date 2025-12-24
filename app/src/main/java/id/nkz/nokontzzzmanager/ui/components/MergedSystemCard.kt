@@ -201,8 +201,7 @@ private fun BatteryHeaderSection(
             // Battery Status Box with temperature
             Box(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.primaryContainer)
+                    .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(12.dp))
                     .padding(horizontal = 12.dp, vertical = 6.dp)
             ) {
                 Text(
@@ -214,14 +213,13 @@ private fun BatteryHeaderSection(
         }
 
         // Battery Icon
-        Box(
-            modifier = Modifier
-                .size(56.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(MaterialTheme.colorScheme.secondaryContainer),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(16.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
                 imageVector = if (batteryInfo.isCharging) Icons.Default.BatteryChargingFull else Icons.Default.BatteryFull,
                 contentDescription = stringResource(id = R.string.battery_toggle),
                 modifier = Modifier.size(28.dp),
@@ -254,8 +252,7 @@ private fun MemoryHeaderSection(
             // Memory Status Box
             Box(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.primaryContainer)
+                    .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(12.dp))
                     .padding(horizontal = 12.dp, vertical = 6.dp)
             ) {
                 val totalGb = (memoryInfo.total / (1024 * 1024 * 1024))
@@ -276,14 +273,13 @@ private fun MemoryHeaderSection(
         }
 
         // Memory Icon
-        Box(
-            modifier = Modifier
-                .size(56.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(MaterialTheme.colorScheme.secondaryContainer),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(16.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
                 painter = painterResource(id = R.drawable.memory_alt_24),
                 contentDescription = stringResource(id = R.string.memory_status),
                 modifier = Modifier.size(28.dp),
@@ -316,8 +312,7 @@ private fun StorageHeaderSection(
             // Storage Status Box
             Box(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.secondaryContainer)
+                    .background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(12.dp))
                     .padding(horizontal = 12.dp, vertical = 6.dp)
             ) {
                 Text(
@@ -329,14 +324,13 @@ private fun StorageHeaderSection(
         }
 
         // Storage Icon
-        Box(
-            modifier = Modifier
-                .size(56.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(MaterialTheme.colorScheme.secondaryContainer),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(16.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
                 imageVector = Icons.Default.Storage,
                 contentDescription = stringResource(id = R.string.storage_status),
                 modifier = Modifier.size(28.dp),
@@ -346,7 +340,6 @@ private fun StorageHeaderSection(
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun BatteryProgressSection(
     batteryInfo: BatteryInfo
@@ -391,16 +384,18 @@ private fun BatteryProgressSection(
             batteryInfo.level > 30 -> MaterialTheme.colorScheme.tertiary
             else -> MaterialTheme.colorScheme.error
         }
-        LinearWavyProgressIndicator(
+        LinearProgressIndicator(
             progress = { batteryInfo.level / 100f },
-            modifier = Modifier.fillMaxWidth().height(10.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(6.dp)
+                .clip(RoundedCornerShape(3.dp)),
             color = progressColor,
-            trackColor = MaterialTheme.colorScheme.surface
+            trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
         )
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun MemoryProgressSection(
     memoryInfo: MemoryInfo,
@@ -450,11 +445,14 @@ private fun MemoryProgressSection(
                 usedPercentage < 80 -> MaterialTheme.colorScheme.tertiary
                 else -> MaterialTheme.colorScheme.error
             }
-            LinearWavyProgressIndicator(
+            LinearProgressIndicator(
                 progress = { usedPercentage / 100f },
-                modifier = Modifier.fillMaxWidth().height(10.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(6.dp)
+                    .clip(RoundedCornerShape(3.dp)),
                 color = progressColor,
-                trackColor = MaterialTheme.colorScheme.surface
+                trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
             )
         }
 
@@ -497,11 +495,14 @@ private fun MemoryProgressSection(
                     )
                 }
 
-                LinearWavyProgressIndicator(
+                LinearProgressIndicator(
                     progress = { zramUsedPercentage / 100f },
-                    modifier = Modifier.fillMaxWidth().height(10.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(6.dp)
+                        .clip(RoundedCornerShape(3.dp)),
                     color = MaterialTheme.colorScheme.secondary,
-                    trackColor = MaterialTheme.colorScheme.surface
+                    trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                 )
             }
         }
@@ -757,8 +758,6 @@ private fun MemoryStatsSection(
                     )
                 }
             }
-
-
         }
     }
 }
@@ -841,10 +840,10 @@ fun DeviceInfoCard(
                         // Root Status Box
                         Box(
                             modifier = Modifier
-                                .clip(RoundedCornerShape(12.dp))
                                 .background(
                                     if (rooted) MaterialTheme.colorScheme.primaryContainer
-                                    else MaterialTheme.colorScheme.errorContainer
+                                    else MaterialTheme.colorScheme.errorContainer,
+                                    RoundedCornerShape(12.dp)
                                 )
                                 .padding(horizontal = 12.dp, vertical = 6.dp)
                         ) {
@@ -858,8 +857,7 @@ fun DeviceInfoCard(
                         // Version Box
                         Box(
                             modifier = Modifier
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(MaterialTheme.colorScheme.secondaryContainer)
+                                .background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(12.dp))
                                 .padding(horizontal = 12.dp, vertical = 6.dp)
                         ) {
                             Text(
@@ -872,14 +870,13 @@ fun DeviceInfoCard(
                 }
 
                 // Device Icon
-                Box(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(MaterialTheme.colorScheme.secondaryContainer),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
+                        Box(
+                            modifier = Modifier
+                                .size(56.dp)
+                                .background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(16.dp)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
                         imageVector = Icons.Rounded.Smartphone,
                         contentDescription = stringResource(id = R.string.device),
                         modifier = Modifier.size(28.dp),
@@ -998,15 +995,12 @@ fun DeviceInfoCard(
                             modifier = Modifier.weight(1f)
                         )
                     }
-
-
                 }
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun StorageProgressSection(
     storageInfo: StorageInfo
@@ -1055,11 +1049,14 @@ private fun StorageProgressSection(
             usedPercentage < 85 -> MaterialTheme.colorScheme.tertiary
             else -> MaterialTheme.colorScheme.error
         }
-        LinearWavyProgressIndicator(
+        LinearProgressIndicator(
             progress = { usedPercentage / 100f },
-            modifier = Modifier.fillMaxWidth().height(10.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(6.dp)
+                .clip(RoundedCornerShape(3.dp)),
             color = progressColor,
-            trackColor = MaterialTheme.colorScheme.surface
+            trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
         )
 
         // Storage Details

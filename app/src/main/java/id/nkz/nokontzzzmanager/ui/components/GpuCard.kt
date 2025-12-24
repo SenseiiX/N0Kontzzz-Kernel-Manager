@@ -91,7 +91,7 @@ private fun GpuHeaderSection(info: RealtimeGpuInfo) {
 
             Surface(
                 shape = RoundedCornerShape(8.dp),
-                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                color = MaterialTheme.colorScheme.surfaceVariant
             ) {
                 Text(
                     text = stringResource(R.string.gpu_label),
@@ -106,8 +106,7 @@ private fun GpuHeaderSection(info: RealtimeGpuInfo) {
         Box(
             modifier = Modifier
                 .size(56.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(MaterialTheme.colorScheme.secondaryContainer),
+                .background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(16.dp)),
             contentAlignment = Alignment.Center
         ) {
             Icon(
@@ -220,12 +219,15 @@ private fun EnhancedGpuGraph(
     graphDataHistory: ImmutableList<Float>,
     primaryColor: Color
 ) {
+    val path = remember { Path() }
+    val fillPath = remember { Path() }
+
     Surface(
         modifier = Modifier
             .fillMaxWidth()
             .height(120.dp),
         shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+        color = MaterialTheme.colorScheme.surfaceContainerHighest,
         contentColor = MaterialTheme.colorScheme.onSurfaceVariant
     ) {
         Box(
@@ -234,13 +236,13 @@ private fun EnhancedGpuGraph(
         ) {
             if (graphDataHistory.size > 1) {
                 Canvas(modifier = Modifier.fillMaxSize()) {
+                    path.reset()
+                    fillPath.reset()
+
                     val yAxisMin = 0f
                     val yAxisMax = 100f
                     val effectiveYRange = (yAxisMax - yAxisMin).coerceAtLeast(1f)
                     val stepX = size.width / (MAX_GPU_HISTORY_POINTS - 1).coerceAtLeast(1).toFloat()
-
-                    val path = Path()
-                    val fillPath = Path()
 
                     graphDataHistory.forEachIndexed { index, dataPoint ->
                         val x = size.width - (graphDataHistory.size - 1 - index) * stepX
