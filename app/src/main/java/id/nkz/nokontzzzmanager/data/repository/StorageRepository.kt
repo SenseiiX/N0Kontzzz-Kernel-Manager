@@ -27,10 +27,33 @@ class StorageRepository @Inject constructor(
 
             val blockSize = internalStatFs.blockSizeLong
             val totalBlocks = internalStatFs.blockCountLong
-            val availableBlocks = internalStatFs.availableBlocksLong
-
-            val internalTotalSpace = totalBlocks * blockSize
-            val internalFreeSpace = availableBlocks * blockSize
+            val freeBlocks = internalStatFs.freeBlocksLong // Use freeBlocks for actual free space (matching Settings)
+            
+            // Calculate raw values
+            val rawTotalSpace = totalBlocks * blockSize
+            val internalFreeSpace = freeBlocks * blockSize
+            
+            // Logic to determine Total Physical Storage (Marketing Size)
+            // Common sizes in bytes (Decimal): 32, 64, 128, 256, 512 GB, 1 TB
+            val standardSizes = listOf(
+                32_000_000_000L,
+                64_000_000_000L,
+                128_000_000_000L,
+                256_000_000_000L,
+                512_000_000_000L,
+                1_000_000_000_000L
+            )
+            
+            // Find the closest standard size that is larger than rawTotalSpace
+            // We assume the partition size is at least 80% of the physical size
+            var internalTotalSpace = rawTotalSpace
+            for (size in standardSizes) {
+                if (rawTotalSpace < size && rawTotalSpace > (size * 0.8)) {
+                    internalTotalSpace = size
+                    break
+                }
+            }
+            
             val internalUsedSpace = internalTotalSpace - internalFreeSpace
 
             // Cek apakah ada SD card eksternal yang benar-benar terpisah
@@ -106,10 +129,10 @@ class StorageRepository @Inject constructor(
 
     // Helper function to format storage size
     fun formatStorageSize(bytes: Long): String {
-        val tb = 1024L * 1024L * 1024L * 1024L
-        val gb = 1024L * 1024L * 1024L
-        val mb = 1024L * 1024L
-        val kb = 1024L
+        val tb = 1_000_000_000_000L
+        val gb = 1_000_000_000L
+        val mb = 1_000_000L
+        val kb = 1_000L
 
         return when {
             bytes >= tb -> String.format(Locale.getDefault(), "%.1f TB", bytes.toDouble() / tb)

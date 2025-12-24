@@ -25,6 +25,8 @@ import id.nkz.nokontzzzmanager.data.model.MemoryInfo
 import id.nkz.nokontzzzmanager.data.model.StorageInfo
 import id.nkz.nokontzzzmanager.data.model.SystemInfo
 import java.util.Locale
+import kotlin.math.roundToLong
+import kotlin.math.roundToInt
 
 import androidx.compose.ui.res.stringResource
 
@@ -40,10 +42,10 @@ private fun formatTimeWithSeconds(timeInMillis: Long): String {
 // Helper function to format storage size
 @Composable
 private fun formatStorageSize(bytes: Long): String {
-    val tb = 1024L * 1024L * 1024L * 1024L
-    val gb = 1024L * 1024L * 1024L
-    val mb = 1024L * 1024L
-    val kb = 1024L
+    val tb = 1_000_000_000_000L
+    val gb = 1_000_000_000L
+    val mb = 1_000_000L
+    val kb = 1_000L
 
     return when {
         bytes >= tb -> stringResource(id = R.string.storage_tb, bytes.toDouble() / tb)
@@ -128,7 +130,7 @@ fun MemoryCard(
     memoryInfo: MemoryInfo,
     modifier: Modifier = Modifier
 ) {
-    val usedPercentage = ((memoryInfo.used.toDouble() / memoryInfo.total.toDouble()) * 100).toInt()
+    val usedPercentage = ((memoryInfo.used.toDouble() / memoryInfo.total.toDouble()) * 100).roundToInt()
 
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -156,7 +158,7 @@ fun StorageCard(
     storageInfo: StorageInfo,
     modifier: Modifier = Modifier
 ) {
-    val usedPercentage = ((storageInfo.usedSpace.toDouble() / storageInfo.totalSpace.toDouble()) * 100).toInt()
+    val usedPercentage = ((storageInfo.usedSpace.toDouble() / storageInfo.totalSpace.toDouble()) * 100).roundToInt()
 
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -255,8 +257,8 @@ private fun MemoryHeaderSection(
                     .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(12.dp))
                     .padding(horizontal = 12.dp, vertical = 6.dp)
             ) {
-                val totalGb = (memoryInfo.total / (1024 * 1024 * 1024))
-                val zramGb = (memoryInfo.zramTotal / (1024 * 1024 * 1024))
+                val totalGb = (memoryInfo.total.toDouble() / 1_000_000_000.0).roundToLong()
+                val zramGb = (memoryInfo.zramTotal.toDouble() / 1_000_000_000.0).roundToLong()
 
                 val memoryText = if (zramGb > 0) {
                     stringResource(id = R.string.memory_status_template_with_zram, usedPercentage, totalGb, zramGb)
@@ -458,7 +460,7 @@ private fun MemoryProgressSection(
 
         // ZRAM Usage Progress Bar (only show if zram is available)
         if (memoryInfo.zramTotal > 0) {
-            val zramUsedPercentage = ((memoryInfo.zramUsed.toDouble() / memoryInfo.zramTotal.toDouble()) * 100).toInt()
+            val zramUsedPercentage = ((memoryInfo.zramUsed.toDouble() / memoryInfo.zramTotal.toDouble()) * 100).roundToInt()
 
             Column(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -730,7 +732,7 @@ private fun MemoryStatsSection(
                 SystemStatItem(
                     icon = Icons.Default.Analytics,
                     label = stringResource(id = R.string.usage_percentage_label),
-                    value = stringResource(id = R.string.usage_percentage, ((memoryInfo.used.toDouble() / memoryInfo.total.toDouble()) * 100).toInt()),
+                    value = stringResource(id = R.string.usage_percentage, ((memoryInfo.used.toDouble() / memoryInfo.total.toDouble()) * 100).roundToInt()),
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -1006,7 +1008,7 @@ private fun StorageProgressSection(
     storageInfo: StorageInfo
 ) {
     val usedPercentage = if (storageInfo.totalSpace > 0) {
-        ((storageInfo.usedSpace.toDouble() / storageInfo.totalSpace.toDouble()) * 100).toInt()
+        ((storageInfo.usedSpace.toDouble() / storageInfo.totalSpace.toDouble()) * 100).roundToInt()
     } else 0
 
     Column(
@@ -1131,7 +1133,7 @@ private fun StorageStatsSection(
                 SystemStatItem(
                     icon = Icons.Default.Analytics,
                     label = stringResource(id = R.string.usage_percentage_label),
-                    value = stringResource(id = R.string.usage_percentage, ((storageInfo.usedSpace.toDouble() / storageInfo.totalSpace.toDouble()) * 100).toInt()),
+                    value = stringResource(id = R.string.usage_percentage, ((storageInfo.usedSpace.toDouble() / storageInfo.totalSpace.toDouble()) * 100).roundToInt()),
                     modifier = Modifier.weight(1f)
                 )
             }
