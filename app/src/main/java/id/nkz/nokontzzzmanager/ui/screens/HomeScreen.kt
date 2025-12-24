@@ -118,7 +118,7 @@ fun HomeScreen(
             verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
             /* 1. CPU */
-            item {
+            item(key = "cpu_card") {
                 val currentSystemInfo = systemInfoState
                 val clusters = cpuClusters
                 if (clusters != null) {
@@ -139,7 +139,7 @@ fun HomeScreen(
             }
 
             /* 2. GPU */
-            item {
+            item(key = "gpu_card") {
                 GpuCard(gpuInfo, graphData.gpuHistory, Modifier)
             }
 
@@ -154,26 +154,26 @@ fun HomeScreen(
             if (currentBattery != null && currentMemory != null && currentDeepSleep != null &&
                 currentRoot != null && currentVersion != null && currentSystem != null) {
                 
-                item {
+                item(key = "battery_card") {
                     BatteryCard(
                         batteryInfo = currentBattery,
                         deepSleepInfo = currentDeepSleep
                     )
                 }
                 
-                item {
+                item(key = "memory_card") {
                     MemoryCard(
                         memoryInfo = currentMemory
                     )
                 }
                 
-                item {
+                item(key = "storage_card") {
                     StorageCard(
                         storageInfo = storageInfo
                     )
                 }
                 
-                item {
+                item(key = "device_info_card") {
                     DeviceInfoCard(
                         systemInfo = currentSystem,
                         rooted = currentRoot,
@@ -182,14 +182,14 @@ fun HomeScreen(
                     )
                 }
             } else {
-                item {
+                item(key = "merged_placeholder") {
                     // Placeholder while data is loading
                     Card(modifier = Modifier.fillMaxWidth().height(200.dp)) { /* Placeholder */ }
                 }
             }
 
             /* 4. Kernel */
-            item {
+            item(key = "kernel_card") {
                 val currentKernel = kernelInfo
                 if (currentKernel != null) {
                     KernelCard(currentKernel, Modifier)
@@ -200,7 +200,7 @@ fun HomeScreen(
             }
 
             /* 5. About */
-            item {
+            item(key = "about_card") {
                 AboutCard(false, Modifier)
             }
         }

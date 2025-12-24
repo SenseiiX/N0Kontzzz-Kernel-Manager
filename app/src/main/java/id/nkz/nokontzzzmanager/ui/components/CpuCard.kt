@@ -26,8 +26,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import id.nkz.nokontzzzmanager.R
 import id.nkz.nokontzzzmanager.data.model.CpuCluster
 import id.nkz.nokontzzzmanager.data.model.RealtimeCpuInfo
-import id.nkz.nokontzzzmanager.viewmodel.GraphData
-import id.nkz.nokontzzzmanager.viewmodel.GraphMode
+import id.nkz.nokontzzzmanager.data.model.GraphData
+import id.nkz.nokontzzzmanager.data.model.GraphMode
 import kotlinx.collections.immutable.ImmutableList
 import kotlin.math.roundToInt
 
@@ -281,7 +281,7 @@ private fun CpuCoresSection(info: RealtimeCpuInfo, clusters: ImmutableList<CpuCl
 private fun CpuStatsSection(
     info: RealtimeCpuInfo,
     currentGraphMode: GraphMode,
-    graphDataHistory: List<Float>
+    graphDataHistory: ImmutableList<Float>
 ) {
     Card( // Using Card for stats section
         modifier = Modifier.fillMaxWidth(),
@@ -385,7 +385,7 @@ private fun StatItem(
 
 @Composable
 private fun EnhancedCpuGraph(
-    graphDataHistory: List<Float>,
+    graphDataHistory: ImmutableList<Float>,
     currentGraphMode: GraphMode,
     primaryColor: Color
 ) {

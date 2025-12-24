@@ -25,13 +25,14 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import id.nkz.nokontzzzmanager.R
 import id.nkz.nokontzzzmanager.data.model.RealtimeGpuInfo
+import kotlinx.collections.immutable.ImmutableList
 
 const val MAX_GPU_HISTORY_POINTS = 50
 
 @Composable
 fun GpuCard(
     info: RealtimeGpuInfo,
-    gpuHistory: List<Float>,
+    gpuHistory: ImmutableList<Float>,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -122,7 +123,7 @@ private fun GpuHeaderSection(info: RealtimeGpuInfo) {
 @Composable
 private fun GpuStatsSection(
     info: RealtimeGpuInfo,
-    graphDataHistory: List<Float>
+    graphDataHistory: ImmutableList<Float>
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -216,7 +217,7 @@ private fun StatItem(
 
 @Composable
 private fun EnhancedGpuGraph(
-    graphDataHistory: List<Float>,
+    graphDataHistory: ImmutableList<Float>,
     primaryColor: Color
 ) {
     Surface(

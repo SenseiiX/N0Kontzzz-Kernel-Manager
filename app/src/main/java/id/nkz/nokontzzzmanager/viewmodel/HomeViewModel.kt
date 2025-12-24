@@ -125,9 +125,9 @@ class HomeViewModel @Inject constructor(
                         // Atomically update graph history
                         val currentGraph = _graphData.value
                         _graphData.value = currentGraph.copy(
-                            cpuLoadHistory = (currentGraph.cpuLoadHistory + cpuLoad).takeLast(50),
-                            cpuSpeedHistory = (currentGraph.cpuSpeedHistory + avgSpeed).takeLast(50),
-                            gpuHistory = (currentGraph.gpuHistory + gpuUsage).takeLast(50)
+                            cpuLoadHistory = (currentGraph.cpuLoadHistory + cpuLoad).takeLast(50).toImmutableList(),
+                            cpuSpeedHistory = (currentGraph.cpuSpeedHistory + avgSpeed).takeLast(50).toImmutableList(),
+                            gpuHistory = (currentGraph.gpuHistory + gpuUsage).takeLast(50).toImmutableList()
                         )
                     }
                 }
