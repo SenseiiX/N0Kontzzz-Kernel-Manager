@@ -207,6 +207,17 @@ fun MiscScreen(
             )
         }
 
+        // Spacer between groups
+        item {
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        // Group: Battery
+        item {
+            Text(stringResource(id = R.string.battery_settings), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
         // Battery Monitor toggle
         item {
             BatteryMonitorCard(

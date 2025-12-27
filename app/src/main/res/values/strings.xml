@@ -226,6 +226,7 @@
     <string name="status_idle">IDLE</string>
 
     <!-- Battery Monitor -->
+    <string name="battery_settings">Battery</string>
     <string name="battery_monitor">Battery Monitor</string>
     <string name="battery_monitor_desc">Show realtime battery stats. Required for features like Charging Control.</string>
     <string name="reset_battery_stats">Reset</string>

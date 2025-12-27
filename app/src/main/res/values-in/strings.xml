@@ -226,6 +226,7 @@
     <string name="status_idle">IDLE</string>
 
     <!-- Battery Monitor -->
+    <string name="battery_settings">Baterai</string>
     <string name="battery_monitor">Monitor Baterai</string>
     <string name="battery_monitor_desc">Tampilkan statistik baterai realtime. Diperlukan untuk fitur seperti Kontrol Pengisian Daya.</string>
     <string name="reset_battery_stats">Reset</string>
