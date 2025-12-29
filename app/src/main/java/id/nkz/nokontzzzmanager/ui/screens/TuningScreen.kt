@@ -247,25 +247,18 @@ fun PerformanceModeCard(
         availableGovernors.contains("powersave")
     }
     
-    // Performance modes
-    val performanceModes = remember(isPowersaveAvailable) {
-        if (isPowersaveAvailable) {
-            listOf("Powersave", "Balanced", "Performance")
-        } else {
-            listOf("Balanced", "Performance")
-        }
+    // Performance modes - Always show all modes to maintain layout stability
+    val performanceModes = remember {
+        listOf("Powersave", "Balanced", "Performance")
     }
     
     // Governor mappings
-    val governorMappings = remember(isPowersaveAvailable) {
-        val map = mutableMapOf(
+    val governorMappings = remember {
+        mapOf(
+            "Powersave" to "powersave",
             "Balanced" to "schedutil",
             "Performance" to "performance"
         )
-        if (isPowersaveAvailable) {
-            map["Powersave"] = "powersave"
-        }
-        map
     }
 
     // Custom color themes for each mode
@@ -315,6 +308,7 @@ fun PerformanceModeCard(
                 performanceModes.forEachIndexed { index, mode ->
                     val isFirst = index == 0
                     val isLast = index == performanceModes.lastIndex
+                    val isEnabled = mode != "Powersave" || isPowersaveAvailable
                     
                     val shape = when {
                         isFirst -> RoundedCornerShape(
@@ -335,7 +329,7 @@ fun PerformanceModeCard(
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable {
+                            .clickable(enabled = isEnabled) {
                                 // Let the ViewModel handle the logic
                                 viewModel.onPerformanceModeChange(mode)
                             },
@@ -346,7 +340,11 @@ fun PerformanceModeCard(
                                 "Performance" -> if (performanceMode == mode) performanceRed.copy(alpha = 0.15f) else performanceRed.copy(alpha = 0.05f)
                                 else -> MaterialTheme.colorScheme.surface
                             }
-                        ),
+                        ).run {
+                            if (!isEnabled) {
+                                copy(containerColor = containerColor.copy(alpha = 0.02f))
+                            } else this
+                        },
                         shape = shape
                     ) {
                         Row(
@@ -356,6 +354,8 @@ fun PerformanceModeCard(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
+                            val contentAlpha = if (isEnabled) 1f else 0.38f
+
                             Icon(
                                 imageVector = when (mode) {
                                     "Powersave" -> Icons.Default.BatterySaver
@@ -370,7 +370,7 @@ fun PerformanceModeCard(
                                     "Balanced" -> balancedGreen
                                     "Performance" -> performanceRed
                                     else -> MaterialTheme.colorScheme.primary
-                                }
+                                }.copy(alpha = contentAlpha)
                             )
 
                             Column(
@@ -385,7 +385,7 @@ fun PerformanceModeCard(
                                         "Balanced" -> if (performanceMode == mode) balancedGreen else MaterialTheme.colorScheme.onSurface
                                         "Performance" -> if (performanceMode == mode) performanceRed else MaterialTheme.colorScheme.onSurface
                                         else -> MaterialTheme.colorScheme.onSurface
-                                    }
+                                    }.copy(alpha = contentAlpha)
                                 )
                                 Text(
                                     text = when (mode) {
@@ -407,7 +407,7 @@ fun PerformanceModeCard(
                                         }
                                     },
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = contentAlpha)
                                 )
                             }
 
@@ -422,7 +422,7 @@ fun PerformanceModeCard(
                                         "Balanced" -> balancedGreen
                                         "Performance" -> performanceRed
                                         else -> MaterialTheme.colorScheme.primary
-                                    }
+                                    }.copy(alpha = contentAlpha)
                                 )
                             }
                         }
