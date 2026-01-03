@@ -563,4 +563,9 @@
     <string name="process_monitor_max_processes">Maks Proses</string>
     <string name="process_monitor_settings">Pengaturan Monitor</string>
     <string name="process_name">Nama Proses</string>
+    <string name="sort_by">Urutkan</string>
+    <string name="filter">Filter</string>
+    <string name="filter_all">Semua</string>
+    <string name="filter_user">User</string>
+    <string name="filter_system">Sistem</string>
 </resources>

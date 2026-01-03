@@ -564,4 +564,9 @@
     <string name="process_monitor_max_processes">Max Processes</string>
     <string name="process_monitor_settings">Monitor Settings</string>
     <string name="process_name">Process Name</string>
+    <string name="sort_by">Sort By</string>
+    <string name="filter">Filter</string>
+    <string name="filter_all">All</string>
+    <string name="filter_user">User</string>
+    <string name="filter_system">System</string>
 </resources>

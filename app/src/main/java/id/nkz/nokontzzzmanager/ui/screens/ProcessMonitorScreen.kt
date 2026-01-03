@@ -281,9 +281,14 @@ fun ProcessMonitorSettingsDialog(
                         
                         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         
-                        // Sort Options using Button Group
+                        // Sort Options
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text(text = "Sort By", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+                            Text(
+                                text = stringResource(R.string.sort_by), 
+                                style = MaterialTheme.typography.titleSmall, 
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(start = 4.dp)
+                            )
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
@@ -309,11 +314,14 @@ fun ProcessMonitorSettingsDialog(
                             }
                         }
 
-                        // Filter Options using Button Group
+                        // Filter Options
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text(text = "Filter", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
-                            
-                            // Since we have 3 items, they fit well in one row
+                            Text(
+                                text = stringResource(R.string.filter), 
+                                style = MaterialTheme.typography.titleSmall, 
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(start = 4.dp)
+                            )
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
@@ -335,9 +343,9 @@ fun ProcessMonitorSettingsDialog(
                                     ) {
                                         Text(
                                             text = when(option) {
-                                                ProcessFilter.ALL -> "All"
-                                                ProcessFilter.USER_APPS -> "User"
-                                                ProcessFilter.SYSTEM_ROOT -> "System"
+                                                ProcessFilter.ALL -> stringResource(R.string.filter_all)
+                                                ProcessFilter.USER_APPS -> stringResource(R.string.filter_user)
+                                                ProcessFilter.SYSTEM_ROOT -> stringResource(R.string.filter_system)
                                             },
                                             maxLines = 1,
                                             overflow = TextOverflow.Ellipsis
