@@ -556,4 +556,11 @@
     <string name="choose_compression_algorithm">Pilih Algoritma Kompresi</string>
     <string name="zram_performance_settings_subtitle">Pengaturan Performa ZRAM</string>
     <string name="compression_feature_explanation">Algoritma kompresi yang digunakan oleh ZRAM untuk mengompres data di memori. LZ4 memprioritaskan kecepatan, ZSTD efisiensi tinggi, LZO keseimbangan optimal antara kecepatan dan rasio kompresi. (Status ZRAM dikendalikan oleh kernel Anda dan tidak dapat diubah)</string>
+    <!-- Process Monitor -->
+    <string name="process_monitor_title">Monitor Proses</string>
+    <string name="process_monitor_desc">Pantau penggunaan CPU dan RAM proses yang berjalan</string>
+    <string name="process_monitor_sample_rate">Laju Sampel (ms)</string>
+    <string name="process_monitor_max_processes">Maks Proses</string>
+    <string name="process_monitor_settings">Pengaturan Monitor</string>
+    <string name="process_name">Nama Proses</string>
 </resources>

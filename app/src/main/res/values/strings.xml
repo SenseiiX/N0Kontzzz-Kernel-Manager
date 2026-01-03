@@ -557,4 +557,11 @@
     <string name="choose_compression_algorithm">Choose Compression Algorithm</string>
     <string name="zram_performance_settings_subtitle">ZRAM Performance Settings</string>
     <string name="compression_feature_explanation">The compression algorithm used by ZRAM to compress data in memory. LZ4 prioritizes speed, ZSTD high efficiency, LZO optimal balance between speed and compression ratio. (ZRAM state is controlled by your kernel and cannot be changed)</string>
+    <!-- Process Monitor -->
+    <string name="process_monitor_title">Process Monitor</string>
+    <string name="process_monitor_desc">Monitor running processes CPU and RAM usage</string>
+    <string name="process_monitor_sample_rate">Sample Rate (ms)</string>
+    <string name="process_monitor_max_processes">Max Processes</string>
+    <string name="process_monitor_settings">Monitor Settings</string>
+    <string name="process_name">Process Name</string>
 </resources>

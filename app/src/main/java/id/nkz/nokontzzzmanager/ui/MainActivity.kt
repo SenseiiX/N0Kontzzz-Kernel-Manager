@@ -161,6 +161,7 @@ class MainActivity : ComponentActivity() {
                     "settings" -> stringResource(id = R.string.settings)
                     "battery_history" -> stringResource(id = R.string.battery_history_title) // Define title for Battery History screen
                     "app_profiles" -> "App Profiles"
+                    "process_monitor" -> stringResource(id = R.string.process_monitor_title)
                     else -> stringResource(id = R.string.n0kz_kernel_manager) // Default title for home, tuning, misc
                 }
 
@@ -355,6 +356,23 @@ class MainActivity : ComponentActivity() {
                             }
                         ) {
                             AppProfilesScreen(navController = navController)
+                        }
+                        composable(
+                            "process_monitor",
+                            enterTransition = {
+                                slideInHorizontally(initialOffsetX = { fullWidth -> fullWidth }, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                            },
+                            exitTransition = {
+                                slideOutHorizontally(targetOffsetX = { fullWidth -> -fullWidth }, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                            },
+                            popEnterTransition = {
+                                slideInHorizontally(initialOffsetX = { fullWidth -> -fullWidth }, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                            },
+                            popExitTransition = {
+                                slideOutHorizontally(targetOffsetX = { fullWidth -> fullWidth }, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                            }
+                        ) {
+                            ProcessMonitorScreen(navController = navController)
                         }
                     }
                 }
