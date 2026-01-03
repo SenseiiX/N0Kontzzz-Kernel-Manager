@@ -24,6 +24,9 @@
 - **Advanced Battery Analytics**  
   Comprehensive battery history tracking including charging speeds, discharge rates, screen-on time, and deep sleep statistics. Includes automated reset options based on device reboot, charging events, or specific battery levels.
 
+- **Process Monitor**  
+  Real-time task manager that monitors CPU and RAM usage across all system and user processes. Features precise CPU delta calculation via `/proc` parsing, factual RAM usage (RSS) in MB, and advanced filtering options to distinguish between User and System/Root applications. Includes customizable sample rates and sorting capabilities.
+
 - **Thermal Management**  
   Access to system thermal zone data for in-depth debugging and monitoring of device temperature profiles.
 
