@@ -97,6 +97,10 @@ class MainActivity : ComponentActivity() {
     val batteryHistoryFabVisible = mutableStateOf(false)
     val batteryHistoryFabAction: MutableState<(() -> Unit)?> = mutableStateOf(null)
 
+    // State for ProcessMonitor FAB
+    val processMonitorFabVisible = mutableStateOf(false)
+    val processMonitorFabAction: MutableState<(() -> Unit)?> = mutableStateOf(null)
+
     @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
     @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -248,6 +252,13 @@ class MainActivity : ComponentActivity() {
                                 modifier = Modifier.size(72.dp) // Match HomeScreen FAB size
                             ) {
                                 Icon(Icons.Default.Delete, contentDescription = "Clear History")
+                            }
+                        } else if (currentRoute == "process_monitor" && processMonitorFabVisible.value) {
+                            FloatingActionButton(
+                                onClick = { processMonitorFabAction.value?.invoke() },
+                                modifier = Modifier.size(72.dp)
+                            ) {
+                                Icon(Icons.Default.Settings, contentDescription = "Settings")
                             }
                         }
                     },

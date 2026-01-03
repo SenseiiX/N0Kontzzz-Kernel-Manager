@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
@@ -28,6 +29,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import id.nkz.nokontzzzmanager.R
+import id.nkz.nokontzzzmanager.ui.MainActivity
 import id.nkz.nokontzzzmanager.ui.components.IndeterminateExpressiveLoadingIndicator
 import id.nkz.nokontzzzmanager.viewmodel.ProcessFilter
 import id.nkz.nokontzzzmanager.viewmodel.ProcessInfo
@@ -49,73 +51,75 @@ fun ProcessMonitorScreen(
 
     var showSettingsDialog by remember { mutableStateOf(false) }
 
+    val context = LocalContext.current
+    val mainActivity = remember(context) { context as? MainActivity }
+
     LaunchedEffect(Unit) {
         viewModel.startMonitoring()
+    }
+
+    LaunchedEffect(isLoading) {
+        mainActivity?.processMonitorFabVisible?.value = !isLoading
+        mainActivity?.processMonitorFabAction?.value = { showSettingsDialog = true }
     }
 
     DisposableEffect(Unit) {
         onDispose {
             viewModel.stopMonitoring()
+            mainActivity?.processMonitorFabVisible?.value = false
+            mainActivity?.processMonitorFabAction?.value = null
         }
     }
 
-    Scaffold(
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        floatingActionButton = {
-            if (!isLoading) {
-                FloatingActionButton(
-                    onClick = { showSettingsDialog = true }
-                ) {
-                    Icon(imageVector = Icons.Default.Settings, contentDescription = stringResource(R.string.process_monitor_settings))
-                }
+    Box(modifier = Modifier.fillMaxSize()) {
+        if (processes.isEmpty() && isLoading) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                IndeterminateExpressiveLoadingIndicator()
             }
-        }
-    ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-            if (processes.isEmpty() && isLoading) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    IndeterminateExpressiveLoadingIndicator()
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    // Header
-                    item {
-                         Row(
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Header
+                item {
+                     Row(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                         Text(
+                             text = stringResource(R.string.process_name),
+                             style = MaterialTheme.typography.labelMedium,
+                             color = MaterialTheme.colorScheme.onSurfaceVariant,
+                             modifier = Modifier.weight(1f)
+                         )
+                         Row(modifier = Modifier.width(160.dp), horizontalArrangement = Arrangement.End) {
                              Text(
-                                 text = stringResource(R.string.process_name),
+                                 text = "CPU",
                                  style = MaterialTheme.typography.labelMedium,
                                  color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                 modifier = Modifier.weight(1f)
+                                 modifier = Modifier.width(50.dp).padding(end = 8.dp),
+                                 textAlign = androidx.compose.ui.text.style.TextAlign.End
                              )
-                             Row(modifier = Modifier.width(160.dp), horizontalArrangement = Arrangement.End) {
-                                 Text(
-                                     text = "CPU",
-                                     style = MaterialTheme.typography.labelMedium,
-                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                     modifier = Modifier.width(50.dp).padding(end = 8.dp),
-                                     textAlign = androidx.compose.ui.text.style.TextAlign.End
-                                 )
-                                 Text(
-                                     text = "RAM(MB)",
-                                     style = MaterialTheme.typography.labelMedium,
-                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                     modifier = Modifier.width(70.dp),
-                                     textAlign = androidx.compose.ui.text.style.TextAlign.End
-                                 )
-                             }
-                        }
+                             Text(
+                                 text = "RAM(MB)",
+                                 style = MaterialTheme.typography.labelMedium,
+                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                 modifier = Modifier.width(70.dp),
+                                 textAlign = androidx.compose.ui.text.style.TextAlign.End
+                             )
+                         }
                     }
-                    
-                    items(processes, key = { it.pid }) { process ->
-                        ProcessItem(process)
-                    }
+                }
+                
+                items(processes, key = { it.pid }) { process ->
+                    ProcessItem(process)
+                }
+                
+                // Extra spacer for FAB
+                item {
+                    Spacer(modifier = Modifier.height(80.dp))
                 }
             }
         }
