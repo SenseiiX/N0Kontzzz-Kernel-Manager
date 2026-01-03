@@ -104,14 +104,32 @@ class MiscViewModel @Inject constructor(
         if (isDataLoaded.getAndSet(true)) return
 
         viewModelScope.launch(Dispatchers.IO) {
-            // Check if KGSL feature is available
-            _isKgslFeatureAvailable.value = systemRepository.isKgslFeatureAvailable()
+            // Check KGSL feature
+            val kgslAvailable = systemRepository.isKgslFeatureAvailable()
+            _isKgslFeatureAvailable.value = kgslAvailable
+            if (kgslAvailable) {
+                _kgslSkipZeroingEnabled.value = systemRepository.getKgslSkipZeroing()
+            } else {
+                _kgslSkipZeroingEnabled.value = false
+            }
 
-            // Check bypass charging availability
-            _isBypassChargingAvailable.value = systemRepository.isBypassChargingAvailable()
+            // Check bypass charging
+            val bypassAvailable = systemRepository.isBypassChargingAvailable()
+            _isBypassChargingAvailable.value = bypassAvailable
+            if (bypassAvailable) {
+                _bypassChargingEnabled.value = systemRepository.getBypassCharging()
+            } else {
+                _bypassChargingEnabled.value = false
+            }
 
-            // Check force fast charge availability
-            _isForceFastChargeAvailable.value = systemRepository.isForceFastChargeAvailable()
+            // Check force fast charge
+            val fastChargeAvailable = systemRepository.isForceFastChargeAvailable()
+            _isForceFastChargeAvailable.value = fastChargeAvailable
+            if (fastChargeAvailable) {
+                _forceFastChargeEnabled.value = systemRepository.getForceFastCharge()
+            } else {
+                _forceFastChargeEnabled.value = false
+            }
 
             // Load TCP congestion algorithm
             loadTcpCongestionAlgorithm()
