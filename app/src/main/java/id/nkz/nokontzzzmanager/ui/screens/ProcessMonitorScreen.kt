@@ -17,6 +17,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
@@ -189,7 +192,7 @@ fun ProcessItem(process: ProcessInfo) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ProcessMonitorSettingsDialog(
     currentRate: Long,
@@ -276,53 +279,69 @@ fun ProcessMonitorSettingsDialog(
                         
                         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         
+                        // Sort Options using Button Group
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text(text = "Sort By", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                FilterChip(
-                                    selected = sortOption == ProcessSort.CPU,
-                                    onClick = { sortOption = ProcessSort.CPU },
-                                    label = { Text("CPU") }
-                                )
-                                FilterChip(
-                                    selected = sortOption == ProcessSort.RAM,
-                                    onClick = { sortOption = ProcessSort.RAM },
-                                    label = { Text("RAM") }
-                                )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
+                            ) {
+                                val sortOptions = listOf(ProcessSort.CPU, ProcessSort.RAM)
+                                sortOptions.forEachIndexed { index, option ->
+                                    val isSelected = sortOption == option
+                                    ToggleButton(
+                                        checked = isSelected,
+                                        onCheckedChange = { sortOption = option },
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .semantics { role = Role.RadioButton },
+                                        shapes = when (index) {
+                                            0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                                            sortOptions.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                                            else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                                        }
+                                    ) {
+                                        Text(text = option.name)
+                                    }
+                                }
                             }
                         }
 
+                        // Filter Options using Button Group
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text(text = "Filter", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+                            
+                            // Since we have 3 items, they fit well in one row
                             Row(
-                                modifier = Modifier.fillMaxWidth(), 
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
                             ) {
-                                // First two chips
-                                FilterChip(
-                                    selected = filterOption == ProcessFilter.ALL,
-                                    onClick = { filterOption = ProcessFilter.ALL },
-                                    label = { Text("All") },
-                                    modifier = Modifier.weight(1f)
-                                )
-                                FilterChip(
-                                    selected = filterOption == ProcessFilter.USER_APPS,
-                                    onClick = { filterOption = ProcessFilter.USER_APPS },
-                                    label = { Text("User Apps") },
-                                    modifier = Modifier.weight(1f)
-                                )
-                            }
-                            // Third chip on new row if needed, or better, just one row with horizontal scroll?
-                            // Or wrap? FlowRow is experimental.
-                            // Let's just put the 3rd one below or all in one row if they fit.
-                            // System/Root might be long.
-                            Row(modifier = Modifier.fillMaxWidth()) {
-                                FilterChip(
-                                    selected = filterOption == ProcessFilter.SYSTEM_ROOT,
-                                    onClick = { filterOption = ProcessFilter.SYSTEM_ROOT },
-                                    label = { Text("System/Root") },
-                                    modifier = Modifier.fillMaxWidth()
-                                )
+                                val filterOptions = listOf(ProcessFilter.ALL, ProcessFilter.USER_APPS, ProcessFilter.SYSTEM_ROOT)
+                                filterOptions.forEachIndexed { index, option ->
+                                    val isSelected = filterOption == option
+                                    ToggleButton(
+                                        checked = isSelected,
+                                        onCheckedChange = { filterOption = option },
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .semantics { role = Role.RadioButton },
+                                        shapes = when (index) {
+                                            0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                                            filterOptions.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                                            else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                                        }
+                                    ) {
+                                        Text(
+                                            text = when(option) {
+                                                ProcessFilter.ALL -> "All"
+                                                ProcessFilter.USER_APPS -> "User"
+                                                ProcessFilter.SYSTEM_ROOT -> "System"
+                                            },
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
