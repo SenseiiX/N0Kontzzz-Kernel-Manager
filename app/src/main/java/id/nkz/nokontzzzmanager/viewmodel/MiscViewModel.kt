@@ -203,6 +203,7 @@ class MiscViewModel @Inject constructor(
             if (success) {
                 // Update the current algorithm in state
                 _tcpCongestionAlgorithm.value = algorithm
+                preferenceManager.setTcpCongestionAlgorithm(algorithm)
             } else {
                 // If failed, reload the actual current value
                 _tcpCongestionAlgorithm.value = systemRepository.getTcpCongestionAlgorithm()
@@ -216,6 +217,7 @@ class MiscViewModel @Inject constructor(
             if (success) {
                 // Update the current scheduler in state
                 _ioScheduler.value = scheduler
+                preferenceManager.setIoScheduler(scheduler)
             } else {
                 // If failed, reload the actual current value
                 _ioScheduler.value = systemRepository.getIoScheduler()

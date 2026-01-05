@@ -38,6 +38,9 @@ class PreferenceManager @Inject constructor(
         const val ICON_STYLE_BATTERY_PERCENT = 0
         const val ICON_STYLE_APP_LOGO = 1
         const val ICON_STYLE_TRANSPARENT = 2
+
+        private const val KEY_TCP_CONGESTION_ALGORITHM = "tcp_congestion_algorithm"
+        private const val KEY_IO_SCHEDULER = "io_scheduler"
     }
 
     private fun credentialPrefs(): SharedPreferences? {
@@ -247,5 +250,25 @@ class PreferenceManager @Inject constructor(
         return credentialPrefs()?.getInt(KEY_NOTIFICATION_ICON_STYLE, ICON_STYLE_APP_LOGO)
             ?: deviceProtectedPrefs()?.getInt(KEY_NOTIFICATION_ICON_STYLE, ICON_STYLE_APP_LOGO)
             ?: ICON_STYLE_APP_LOGO
+    }
+
+    fun setTcpCongestionAlgorithm(algorithm: String) {
+        credentialPrefs()?.edit { putString(KEY_TCP_CONGESTION_ALGORITHM, algorithm) }
+        deviceProtectedPrefs()?.edit { putString(KEY_TCP_CONGESTION_ALGORITHM, algorithm) }
+    }
+
+    fun getTcpCongestionAlgorithm(): String? {
+        return credentialPrefs()?.getString(KEY_TCP_CONGESTION_ALGORITHM, null)
+            ?: deviceProtectedPrefs()?.getString(KEY_TCP_CONGESTION_ALGORITHM, null)
+    }
+
+    fun setIoScheduler(scheduler: String) {
+        credentialPrefs()?.edit { putString(KEY_IO_SCHEDULER, scheduler) }
+        deviceProtectedPrefs()?.edit { putString(KEY_IO_SCHEDULER, scheduler) }
+    }
+
+    fun getIoScheduler(): String? {
+        return credentialPrefs()?.getString(KEY_IO_SCHEDULER, null)
+            ?: deviceProtectedPrefs()?.getString(KEY_IO_SCHEDULER, null)
     }
 }

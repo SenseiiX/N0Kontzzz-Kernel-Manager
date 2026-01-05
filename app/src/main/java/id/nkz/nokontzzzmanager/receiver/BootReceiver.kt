@@ -54,6 +54,11 @@ class BootReceiver : BroadcastReceiver() {
 
     private fun handleBootCompleted(context: Context) {
         Log.d(TAG, "Handling boot completed event")
+        
+        // Always attempt to restore settings on boot
+        val restoreReq = OneTimeWorkRequestBuilder<id.nkz.nokontzzzmanager.worker.RestoreSettingsWorker>().build()
+        WorkManager.getInstance(context).enqueue(restoreReq)
+
         runCatching {
             val enabled = isBatteryMonitorEnabled(context)
             if (enabled) {
