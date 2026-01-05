@@ -65,7 +65,12 @@
   - **Customizable Notification Icon**: Choose between live battery percentage, app logo, or a transparent icon for a cleaner status bar.
   - **Multi-language Support**: Fully localized in English and Indonesian.
   - **Permission Manager**: Transparently view and verify all critical system permissions requested by the application, including Root access and Usage statistics.
-  - **Backup & Restore**: Securely backup and restore your application settings, including kernel tuning configurations, charging profiles, and UI preferences, to local storage.
+- **Intelligent Backup & Restore**
+  Securely manage your application configurations with built-in safety mechanisms and granular control.
+  - **Granular Management**: Selectively backup or restore specific categories including System Tuning, Network & Storage, Battery & Charging, or general UI preferences.
+  - **Compatibility Guard**: The application performs strict validation during the restore process. It checks every setting (governors, frequencies, etc.) against the current kernel's capabilities. Unsupported values are safely skipped to prevent system instability or bootloops.
+  - **Instant Application**: Restored settings are applied to the system nodes immediately upon completion, ensuring the device state matches your backup without requiring a reboot.
+  - **Secure Storage**: Leverages the Android Storage Access Framework (SAF) for secure, user-granted file access to local storage.
 
 - **Efficient Architecture**  
   Built on a lightweight MVVM architecture to ensure optimal performance and minimal resource usage on rooted devices.
