@@ -166,6 +166,7 @@ class MainActivity : ComponentActivity() {
                     "battery_history" -> stringResource(id = R.string.battery_history_title) // Define title for Battery History screen
                     "app_profiles" -> "App Profiles"
                     "process_monitor" -> stringResource(id = R.string.process_monitor_title)
+                    "permission_manager" -> stringResource(id = R.string.permission_manager_title)
                     else -> stringResource(id = R.string.n0kz_kernel_manager) // Default title for home, tuning, misc
                 }
 
@@ -384,6 +385,23 @@ class MainActivity : ComponentActivity() {
                             }
                         ) {
                             ProcessMonitorScreen(navController = navController)
+                        }
+                        composable(
+                            "permission_manager",
+                            enterTransition = {
+                                slideInHorizontally(initialOffsetX = { fullWidth -> fullWidth }, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                            },
+                            exitTransition = {
+                                slideOutHorizontally(targetOffsetX = { fullWidth -> -fullWidth }, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                            },
+                            popEnterTransition = {
+                                slideInHorizontally(initialOffsetX = { fullWidth -> -fullWidth }, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                            },
+                            popExitTransition = {
+                                slideOutHorizontally(targetOffsetX = { fullWidth -> fullWidth }, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                            }
+                        ) {
+                            PermissionManagerScreen(navController = navController)
                         }
                     }
                 }

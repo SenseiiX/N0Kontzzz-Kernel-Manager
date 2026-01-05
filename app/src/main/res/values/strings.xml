@@ -572,4 +572,25 @@
     <string name="filter_all">All</string>
     <string name="filter_user">User</string>
     <string name="filter_system">System</string>
+
+    <!-- Permission Manager -->
+    <string name="permission_manager_title">Permission Manager</string>
+    <string name="permission_manager_desc">View granted and denied permissions</string>
+    <string name="permission_granted">Granted</string>
+    <string name="permission_denied">Denied</string>
+    <string name="permission_name_unknown">Unknown Permission</string>
+
+    <!-- Permission Labels & Descriptions -->
+    <string name="perm_root_title">Root Access</string>
+    <string name="perm_root_desc">Required for kernel tuning and system-level operations.</string>
+    <string name="perm_notif_title">Notifications</string>
+    <string name="perm_notif_desc">Required to show real-time battery statistics in the status bar.</string>
+    <string name="perm_usage_title">Usage Statistics</string>
+    <string name="perm_usage_desc">Required for Per-App Profiles to detect current foreground application.</string>
+    <string name="perm_storage_title">File Storage</string>
+    <string name="perm_storage_desc">Required for backing up and restoring app configurations.</string>
+    <string name="perm_overlay_title">System Overlay</string>
+    <string name="perm_overlay_desc">Required for displaying floating monitors or critical alerts.</string>
+    <string name="perm_battery_opt_title">Ignore Battery Optimization</string>
+    <string name="perm_battery_opt_desc">Ensures the app is not killed by the system to maintain active tuning.</string>
 </resources>

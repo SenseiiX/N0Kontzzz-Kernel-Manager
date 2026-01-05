@@ -571,4 +571,25 @@
     <string name="filter_all">Semua</string>
     <string name="filter_user">User</string>
     <string name="filter_system">Sistem</string>
+
+    <!-- Permission Manager -->
+    <string name="permission_manager_title">Manajer Izin</string>
+    <string name="permission_manager_desc">Lihat izin yang diberikan dan ditolak</string>
+    <string name="permission_granted">Diberikan</string>
+    <string name="permission_denied">Ditolak</string>
+    <string name="permission_name_unknown">Izin Tidak Diketahui</string>
+
+    <!-- Permission Labels & Descriptions -->
+    <string name="perm_root_title">Akses Root</string>
+    <string name="perm_root_desc">Diperlukan untuk tuning kernel dan operasi tingkat sistem.</string>
+    <string name="perm_notif_title">Notifikasi</string>
+    <string name="perm_notif_desc">Diperlukan untuk menampilkan statistik baterai realtime di bilah status.</string>
+    <string name="perm_usage_title">Statistik Penggunaan</string>
+    <string name="perm_usage_desc">Diperlukan agar Profil Per-Aplikasi dapat mendeteksi aplikasi yang sedang dibuka.</string>
+    <string name="perm_storage_title">Penyimpanan File</string>
+    <string name="perm_storage_desc">Diperlukan untuk mencadangkan dan memulihkan konfigurasi aplikasi.</string>
+    <string name="perm_overlay_title">Hamparan Sistem (Overlay)</string>
+    <string name="perm_overlay_desc">Diperlukan untuk menampilkan monitor melayang atau peringatan kritis.</string>
+    <string name="perm_battery_opt_title">Abaikan Optimasi Baterai</string>
+    <string name="perm_battery_opt_desc">Memastikan aplikasi tidak dihentikan oleh sistem untuk menjaga tuning tetap aktif.</string>
 </resources>

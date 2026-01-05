@@ -38,6 +38,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.window.DialogProperties
 
+import androidx.compose.material.icons.filled.Lock
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
@@ -245,6 +247,32 @@ fun SettingsScreen(
                         viewModel.setAmoledMode(!isAmoledMode) 
                     }
                 }
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = stringResource(id = R.string.system_info),
+                style = MaterialTheme.typography.titleSmall.copy(
+                    fontWeight = FontWeight.Normal
+                ),
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp, bottom = 4.dp)
+            )
+
+            SettingItemCard(
+                headlineText = stringResource(R.string.permission_manager_title),
+                supportingText = stringResource(R.string.permission_manager_desc),
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.Lock,
+                        contentDescription = null
+                    )
+                },
+                shape = getRoundedCornerShape(0, 1),
+                onClick = { navController.navigate("permission_manager") }
             )
         }
 
