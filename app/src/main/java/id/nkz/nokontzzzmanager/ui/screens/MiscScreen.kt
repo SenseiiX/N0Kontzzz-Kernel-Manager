@@ -51,6 +51,7 @@ fun MiscScreen(
 
     LaunchedEffect(Unit) {
         viewModel.loadInitialData()
+        lazyListState.scrollToItem(0)
     }
 
     val kgslSkipZeroingEnabled by viewModel.kgslSkipZeroingEnabled.collectAsStateWithLifecycle()
