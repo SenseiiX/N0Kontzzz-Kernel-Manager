@@ -99,10 +99,13 @@ class BackupRepository @Inject constructor(
                     BufferedReader(InputStreamReader(inputStream)).readText()
                 } ?: return Result.failure(Exception("Failed to open input stream"))
     
-                val backupData = json.decodeFromString<BackupData>(jsonString)
-    
-                if (restoreTuning && backupData.tuning != null) {
-                    // Restore Thermal Mode
+                            val backupData = json.decodeFromString<BackupData>(jsonString)
+                
+                            if (!backupData.isValid) {
+                                return Result.failure(Exception("Invalid or empty backup file"))
+                            }
+                
+                            if (restoreTuning && backupData.tuning != null) {                    // Restore Thermal Mode
                     backupData.tuning.thermalMode?.let { persistentSettingsManager.saveThermalMode(it) }
     
                     // Restore CPU Settings (Governor & Freq) with Validation
@@ -218,6 +221,11 @@ class BackupRepository @Inject constructor(
             } ?: return Result.failure(Exception("Failed to open input stream"))
 
             val data = json.decodeFromString<BackupData>(jsonString)
+            
+            if (!data.isValid) {
+                return Result.failure(Exception("Invalid or empty backup file"))
+            }
+
             Result.success(
                 BackupPreview(
                     hasTuning = data.tuning != null,

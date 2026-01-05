@@ -9,7 +9,10 @@ data class BackupData(
     val battery: BatterySettings? = null,
     val other: OtherSettings? = null,
     val timestamp: Long = System.currentTimeMillis()
-)
+) {
+    val isValid: Boolean
+        get() = tuning != null || networkStorage != null || battery != null || other != null
+}
 
 @Serializable
 data class TuningSettings(
