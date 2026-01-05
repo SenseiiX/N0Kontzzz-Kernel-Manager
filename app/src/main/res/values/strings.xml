@@ -192,6 +192,9 @@
     <!-- TcpCongestionDialog -->
     <string name="tcp_congestion_control">TCP Congestion Control</string>
     <string name="tcp_congestion">TCP Congestion</string>
+    <string name="reset_network_io_title">Reset Network &amp; Storage</string>
+    <string name="reset_network_io_desc">Clear saved TCP congestion and I/O scheduler settings. System defaults will apply on next reboot.</string>
+    <string name="reset_network_io_toast">Settings reset. Reboot to apply system defaults.</string>
 
     <!-- MiscScreen -->
     <string name="gpu_power">GPU &amp; Power</string>

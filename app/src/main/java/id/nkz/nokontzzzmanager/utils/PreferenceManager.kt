@@ -252,9 +252,15 @@ class PreferenceManager @Inject constructor(
             ?: ICON_STYLE_APP_LOGO
     }
 
-    fun setTcpCongestionAlgorithm(algorithm: String) {
-        credentialPrefs()?.edit { putString(KEY_TCP_CONGESTION_ALGORITHM, algorithm) }
-        deviceProtectedPrefs()?.edit { putString(KEY_TCP_CONGESTION_ALGORITHM, algorithm) }
+    fun setTcpCongestionAlgorithm(algorithm: String?) {
+        credentialPrefs()?.edit {
+            if (algorithm == null) remove(KEY_TCP_CONGESTION_ALGORITHM)
+            else putString(KEY_TCP_CONGESTION_ALGORITHM, algorithm)
+        }
+        deviceProtectedPrefs()?.edit {
+            if (algorithm == null) remove(KEY_TCP_CONGESTION_ALGORITHM)
+            else putString(KEY_TCP_CONGESTION_ALGORITHM, algorithm)
+        }
     }
 
     fun getTcpCongestionAlgorithm(): String? {
@@ -262,9 +268,15 @@ class PreferenceManager @Inject constructor(
             ?: deviceProtectedPrefs()?.getString(KEY_TCP_CONGESTION_ALGORITHM, null)
     }
 
-    fun setIoScheduler(scheduler: String) {
-        credentialPrefs()?.edit { putString(KEY_IO_SCHEDULER, scheduler) }
-        deviceProtectedPrefs()?.edit { putString(KEY_IO_SCHEDULER, scheduler) }
+    fun setIoScheduler(scheduler: String?) {
+        credentialPrefs()?.edit {
+            if (scheduler == null) remove(KEY_IO_SCHEDULER)
+            else putString(KEY_IO_SCHEDULER, scheduler)
+        }
+        deviceProtectedPrefs()?.edit {
+            if (scheduler == null) remove(KEY_IO_SCHEDULER)
+            else putString(KEY_IO_SCHEDULER, scheduler)
+        }
     }
 
     fun getIoScheduler(): String? {

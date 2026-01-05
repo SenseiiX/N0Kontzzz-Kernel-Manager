@@ -192,6 +192,9 @@
     <!-- TcpCongestionDialog -->
     <string name="tcp_congestion_control">Kontrol TCP Congestion</string>
     <string name="tcp_congestion">Kemacetan TCP</string>
+    <string name="reset_network_io_title">Reset Jaringan &amp; Penyimpanan</string>
+    <string name="reset_network_io_desc">Hapus pengaturan TCP congestion dan I/O scheduler yang tersimpan. Default sistem akan diterapkan pada reboot berikutnya.</string>
+    <string name="reset_network_io_toast">Pengaturan direset. Reboot untuk menerapkan default sistem.</string>
 
     <!-- MiscScreen -->
     <string name="gpu_power">GPU &amp; Daya</string>
