@@ -101,7 +101,8 @@ class MiscViewModel @Inject constructor(
     }
 
     fun loadInitialData() {
-        if (isDataLoaded.getAndSet(true)) return
+        // Always reload data to ensure we have the latest state, especially after restore operations
+        // if (isDataLoaded.getAndSet(true)) return
 
         viewModelScope.launch(Dispatchers.IO) {
             // Check KGSL feature

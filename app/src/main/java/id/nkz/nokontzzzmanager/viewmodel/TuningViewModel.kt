@@ -182,7 +182,7 @@ class TuningViewModel @Inject constructor(
     }
 
     private suspend fun loadCpuData() {
-        if (isCpuDataLoaded.getAndSet(true)) return
+        // if (isCpuDataLoaded.getAndSet(true)) return
         Log.d("TuningVM_LazyLoad", "Loading CPU data...")
         withContext(Dispatchers.IO) {
             fetchAllCpuData()
@@ -191,7 +191,7 @@ class TuningViewModel @Inject constructor(
     }
 
     private suspend fun loadGpuData() {
-        if (isGpuDataLoaded.getAndSet(true)) return
+        // if (isGpuDataLoaded.getAndSet(true)) return
         Log.d("TuningVM_LazyLoad", "Loading GPU data...")
         withContext(Dispatchers.IO) {
             launch { fetchGpuData() }
@@ -201,7 +201,7 @@ class TuningViewModel @Inject constructor(
     }
 
     private suspend fun loadRamData() {
-        if (isRamDataLoaded.getAndSet(true)) return
+        // if (isRamDataLoaded.getAndSet(true)) return
         Log.d("TuningVM_LazyLoad", "Loading RAM data...")
         withContext(Dispatchers.IO) {
             fetchRamControlData()
@@ -209,7 +209,7 @@ class TuningViewModel @Inject constructor(
     }
 
     private suspend fun loadThermalData() {
-        if (isThermalDataLoaded.getAndSet(true)) return
+        // if (isThermalDataLoaded.getAndSet(true)) return
         Log.d("TuningVM_LazyLoad", "Loading Thermal data...")
         withContext(Dispatchers.IO) {
             // Prioritize restoring the user's last saved setting.
