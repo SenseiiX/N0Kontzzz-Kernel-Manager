@@ -138,6 +138,18 @@
 - **Vibration (`android.permission.VIBRATE`)**  
   Used to provide tactile haptic feedback when interacting with UI elements like sliders, enhancing the user experience.
 
+- **Notifications (`android.permission.POST_NOTIFICATIONS`)**  
+  Required to display persistent status notifications for background services like the Battery Monitor and Thermal Service.
+
+- **Boot Completed (`android.permission.RECEIVE_BOOT_COMPLETED`)**  
+  Allows the application to automatically initialize services and re-apply saved kernel profiles immediately after the device restarts.
+
+- **Foreground Service (`android.permission.FOREGROUND_SERVICE`)**  
+  Ensures critical monitoring services (Battery, App Monitor) continue running reliably in the background without being terminated by the system.
+
+- **Write Settings (`android.permission.WRITE_SETTINGS`)**  
+  Used to modify system configurations such as screen timeout or brightness as part of performance profile adjustments.
+
 - **Privacy Focused**  
   No internet access permission is requested. The application operates entirely offline to ensure data privacy.
 
