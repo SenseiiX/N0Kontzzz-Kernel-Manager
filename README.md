@@ -100,6 +100,12 @@
 - **I/O Scheduler Tuning**
   Optimize storage read/write performance by choosing the most suitable kernel I/O scheduler for your workload. Preferences are saved and restored on system startup.
 
+- **Dexopt (App Optimization)**
+  Manually trigger Android's Dalvik Executable Optimization process to improve application launch speeds and overall system smoothness.
+  - **Speed Profile Compilation**: Compiles applications based on usage profiles for faster execution.
+  - **Layout Compilation**: Optimizes view hierarchies to reduce UI rendering latency.
+  - **Background Dexopt**: Executes the system's background maintenance optimization script immediately.
+
 ---
 
 ## Requirements
@@ -113,6 +119,9 @@
 
 - **Root Access (`android.permission.ACCESS_SUPERUSER`)**  
   Fundamental for executing kernel-level operations such as CPU frequency scaling and thermal management via `libsu`.
+
+- **Dump (`android.permission.DUMP`)**  
+  Required for the **Dexopt** feature to execute and monitor system-level package optimization commands.
 
 - **Usage Access (`android.permission.PACKAGE_USAGE_STATS`)**  
   Required for the **Per-App Profiles** feature to detect which application is currently in the foreground and apply the corresponding system profile.
