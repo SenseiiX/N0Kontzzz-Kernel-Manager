@@ -147,9 +147,6 @@
 - **Foreground Service (`android.permission.FOREGROUND_SERVICE`)**  
   Ensures critical monitoring services (Battery, App Monitor) continue running reliably in the background without being terminated by the system.
 
-- **Write Settings (`android.permission.WRITE_SETTINGS`)**  
-  Used to modify system configurations such as screen timeout or brightness as part of performance profile adjustments.
-
 - **Privacy Focused**  
   No internet access permission is requested. The application operates entirely offline to ensure data privacy.
 
