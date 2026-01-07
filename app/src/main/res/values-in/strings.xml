@@ -204,7 +204,7 @@
 
     <string name="gpu_power">GPU &amp; Daya</string>
     <string name="network_storage">Jaringan &amp; Penyimpanan</string>
-    <string name="kgsl_skip_pool_zeroing">KGSL Lewati Pool Zeroing</string>
+    <string name="kgsl_skip_pool_zeroing">KGSL Skip Pool Zeroing</string>
     <string name="kgsl_skip_pool_zeroing_desc">Meningkatkan FPS di emulator, game Unity &amp; Unreal. Mungkin menyebabkan gangguan UI.</string>
     <string name="feature_not_available">Fitur tidak tersedia di versi kernel Anda.</string>
     <string name="performance_mode_active">Mode Performa Aktif</string>
