@@ -15,6 +15,7 @@ class PreferenceManager @Inject constructor(
     companion object {
         private const val KEY_TARGET_GAME_PACKAGES = "target_game_packages"
         private const val KEY_KGSL_SKIP_ZEROING = "kgsl_skip_zeroing"
+        private const val KEY_AVOID_DIRTY_PTE = "avoid_dirty_pte"
         private const val KEY_BYPASS_CHARGING = "bypass_charging"
         private const val KEY_FORCE_FAST_CHARGE = "force_fast_charge"
         private const val KEY_BATTERY_MONITOR_ENABLED = "battery_monitor_enabled"
@@ -80,6 +81,17 @@ class PreferenceManager @Inject constructor(
     fun getKgslSkipZeroing(): Boolean {
         credentialPrefs()?.getBoolean(KEY_KGSL_SKIP_ZEROING, false)?.let { return it }
         return deviceProtectedPrefs()?.getBoolean(KEY_KGSL_SKIP_ZEROING, false) ?: false
+    }
+
+    fun setAvoidDirtyPte(enabled: Boolean) {
+        credentialPrefs()?.edit {
+            putBoolean(KEY_AVOID_DIRTY_PTE, enabled)
+        }
+    }
+
+    fun getAvoidDirtyPte(): Boolean {
+        credentialPrefs()?.getBoolean(KEY_AVOID_DIRTY_PTE, false)?.let { return it }
+        return deviceProtectedPrefs()?.getBoolean(KEY_AVOID_DIRTY_PTE, false) ?: false
     }
 
     fun setBypassCharging(enabled: Boolean) {

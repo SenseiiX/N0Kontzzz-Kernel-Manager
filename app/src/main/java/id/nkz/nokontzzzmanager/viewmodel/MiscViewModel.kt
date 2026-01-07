@@ -30,6 +30,12 @@ class MiscViewModel @Inject constructor(
     private val _isKgslFeatureAvailable = MutableStateFlow<Boolean?>(null)
     val isKgslFeatureAvailable: StateFlow<Boolean?> = _isKgslFeatureAvailable.asStateFlow()
 
+    private val _avoidDirtyPteEnabled = MutableStateFlow(preferenceManager.getAvoidDirtyPte())
+    val avoidDirtyPteEnabled: StateFlow<Boolean> = _avoidDirtyPteEnabled.asStateFlow()
+
+    private val _isAvoidDirtyPteAvailable = MutableStateFlow<Boolean?>(null)
+    val isAvoidDirtyPteAvailable: StateFlow<Boolean?> = _isAvoidDirtyPteAvailable.asStateFlow()
+
     private val _bypassChargingEnabled = MutableStateFlow(preferenceManager.getBypassCharging())
     val bypassChargingEnabled: StateFlow<Boolean> = _bypassChargingEnabled.asStateFlow()
 
@@ -114,6 +120,15 @@ class MiscViewModel @Inject constructor(
                 _kgslSkipZeroingEnabled.value = false
             }
 
+            // Check Avoid Dirty PTE
+            val avoidDirtyPteAvailable = systemRepository.isAvoidDirtyPteAvailable()
+            _isAvoidDirtyPteAvailable.value = avoidDirtyPteAvailable
+            if (avoidDirtyPteAvailable) {
+                _avoidDirtyPteEnabled.value = systemRepository.getAvoidDirtyPte()
+            } else {
+                _avoidDirtyPteEnabled.value = false
+            }
+
             // Check bypass charging
             val bypassAvailable = systemRepository.isBypassChargingAvailable()
             _isBypassChargingAvailable.value = bypassAvailable
@@ -153,6 +168,19 @@ class MiscViewModel @Inject constructor(
                 // If failed, revert the state to the actual value
                 _kgslSkipZeroingEnabled.value = systemRepository.getKgslSkipZeroing()
                 preferenceManager.setKgslSkipZeroing(_kgslSkipZeroingEnabled.value)
+            }
+        }
+    }
+
+    fun toggleAvoidDirtyPte(enabled: Boolean) {
+        viewModelScope.launch {
+            val success = systemRepository.setAvoidDirtyPte(enabled)
+            if (success) {
+                _avoidDirtyPteEnabled.value = enabled
+                preferenceManager.setAvoidDirtyPte(enabled)
+            } else {
+                _avoidDirtyPteEnabled.value = systemRepository.getAvoidDirtyPte()
+                preferenceManager.setAvoidDirtyPte(_avoidDirtyPteEnabled.value)
             }
         }
     }

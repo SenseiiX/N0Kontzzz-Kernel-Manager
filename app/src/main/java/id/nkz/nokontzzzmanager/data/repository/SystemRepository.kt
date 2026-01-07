@@ -1215,6 +1215,26 @@ class SystemRepository @Inject constructor(
         return value?.toIntOrNull() == 1
     }
 
+    private val avoidDirtyPtePath = "/sys/kernel/n0kz_attributes/avoid_dirty_pte"
+
+    fun isAvoidDirtyPteAvailable(): Boolean {
+        val file = File(avoidDirtyPtePath)
+        if (file.exists()) {
+            return true
+        }
+        return readFileToString(avoidDirtyPtePath, "Avoid Dirty PTE Check") != null
+    }
+
+    fun getAvoidDirtyPte(): Boolean {
+        val value = readFileToString(avoidDirtyPtePath, "Avoid Dirty PTE Status")
+        return value?.trim() == "1"
+    }
+
+    fun setAvoidDirtyPte(enabled: Boolean): Boolean {
+        val value = if (enabled) "1" else "0"
+        return writeStringToFile(avoidDirtyPtePath, value, "Avoid Dirty PTE")
+    }
+
     private val bypassChargingPath = "/sys/class/power_supply/battery/input_suspend"
 
     fun isBypassChargingAvailable(): Boolean {

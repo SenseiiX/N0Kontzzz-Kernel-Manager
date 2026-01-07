@@ -197,6 +197,11 @@
     <string name="reset_network_io_toast">Pengaturan direset. Reboot untuk menerapkan default sistem.</string>
 
     <!-- MiscScreen -->
+    <string name="avoid_dirty_pte">Avoid Dirty PTE</string>
+    <string name="avoid_dirty_pte_desc">Mencegah pembersihan paksa dirty page. Dapat meningkatkan skor benchmark namun mungkin mempengaruhi konsistensi ZRAM.</string>
+    <string name="avoid_dirty_pte_activated">Avoid Dirty PTE Diaktifkan</string>
+    <string name="avoid_dirty_pte_active_desc">Sistem kini menghindari pembersihan paksa dirty page.</string>
+
     <string name="gpu_power">GPU &amp; Daya</string>
     <string name="network_storage">Jaringan &amp; Penyimpanan</string>
     <string name="kgsl_skip_pool_zeroing">KGSL Lewati Pool Zeroing</string>
@@ -629,7 +634,7 @@
     <string name="dexopt_start">Mulai</string>
     <string name="dexopt_about_title">Tentang Dexopt</string>
     <string name="dexopt_about_content">Dexopt (Dalvik EXecutable OPTimization) mengompilasi aplikasi untuk mengoptimalkan performa. Skrip ini menjalankan:\n\n1. Kompilasi Profil Kecepatan\n2. Kompilasi Tata Letak\n3. Pekerjaan Latar Belakang Dexopt</string>
-    <string name="dexopt_running">Berjalan... JANGAN tutup aplikasi!</string>
+    <string name="dexopt_running">Berjalan… JANGAN tutup aplikasi!</string>
     <string name="dexopt_finished">Dexopt Selesai!</string>
     <string name="dexopt_last_logs">10 Log Terakhir:</string>
 </resources>

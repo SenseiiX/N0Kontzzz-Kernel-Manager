@@ -197,6 +197,11 @@
     <string name="reset_network_io_toast">Settings reset. Reboot to apply system defaults.</string>
 
     <!-- MiscScreen -->
+    <string name="avoid_dirty_pte">Avoid Dirty PTE</string>
+    <string name="avoid_dirty_pte_desc">Prevent brute force clearing of dirty pages. Can improve benchmark scores but may affect ZRAM consistency.</string>
+    <string name="avoid_dirty_pte_activated">Avoid Dirty PTE Activated</string>
+    <string name="avoid_dirty_pte_active_desc">The system is now avoiding brute force clearing of dirty pages.</string>
+
     <string name="gpu_power">GPU &amp; Power</string>
     <string name="network_storage">Network &amp; Storage</string>
     <string name="kgsl_skip_pool_zeroing">KGSL Skip Pool Zeroing</string>
