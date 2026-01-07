@@ -1215,24 +1215,40 @@ class SystemRepository @Inject constructor(
         return value?.toIntOrNull() == 1
     }
 
-    private val avoidDirtyPtePath = "/sys/kernel/n0kz_attributes/avoid_dirty_pte"
+    private fun getAvailableAvoidDirtyPtePath(): String? {
+        val paths = listOf(
+            "/sys/kernel/n0kz_attributes/avoid_dirty_pte",
+            "/sys/kernel/e404/avoid_dirty_pte"
+        )
+        for (path in paths) {
+            if (File(path).exists()) return path
+        }
+        for (path in paths) {
+            if (readFileToString(path, "Avoid Dirty PTE Check", false) != null) return path
+        }
+        return null
+    }
 
     fun isAvoidDirtyPteAvailable(): Boolean {
-        val file = File(avoidDirtyPtePath)
-        if (file.exists()) {
-            return true
-        }
-        return readFileToString(avoidDirtyPtePath, "Avoid Dirty PTE Check") != null
+        return getAvailableAvoidDirtyPtePath() != null
     }
 
     fun getAvoidDirtyPte(): Boolean {
-        val value = readFileToString(avoidDirtyPtePath, "Avoid Dirty PTE Status")
-        return value?.trim() == "1"
+        val path = getAvailableAvoidDirtyPtePath()
+        if (path != null) {
+            val value = readFileToString(path, "Avoid Dirty PTE Status")
+            return value?.trim() == "1"
+        }
+        return false
     }
 
     fun setAvoidDirtyPte(enabled: Boolean): Boolean {
-        val value = if (enabled) "1" else "0"
-        return writeStringToFile(avoidDirtyPtePath, value, "Avoid Dirty PTE")
+        val path = getAvailableAvoidDirtyPtePath()
+        if (path != null) {
+            val value = if (enabled) "1" else "0"
+            return writeStringToFile(path, value, "Avoid Dirty PTE")
+        }
+        return false
     }
 
     private val bypassChargingPath = "/sys/class/power_supply/battery/input_suspend"
