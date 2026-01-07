@@ -96,6 +96,9 @@
 - **KGSL Skip Pool Zeroing**  
   Optimizes Adreno GPU memory management by skipping the zero-initialization of memory pages, resulting in reduced overhead and improved graphical performance. *Note: This feature requires kernel support.*
 
+- **Avoid Dirty PTE**
+  Prevents the system from brute-force clearing dirty pages, theoretically improving benchmark scores and reducing overhead. *Note: This feature requires kernel support and may occasionally impact ZRAM consistency.*
+
 - **TCP Congestion Control**
   Optimize network data throughput by selecting from available TCP congestion control algorithms (e.g., BBR, Cubic, Reno). Custom selections are persisted and automatically reapplied on boot.
 
