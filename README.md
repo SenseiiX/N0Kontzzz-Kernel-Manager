@@ -12,9 +12,11 @@
 [![Downloads](https://img.shields.io/github/downloads/bimoalfarrabi/N0Kontzzz-Kernel-Manager/total?color=%233DDC84&logo=android&logoColor=%23fff&style=for-the-badge)](https://github.com/bimoalfarrabi/N0Kontzzz-Kernel-Manager/releases)
 [![Telegram](https://img.shields.io/badge/Telegram-Join-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/n0kontzzz)
 
+> [!CAUTION]
+> **Use this application at your own risk.**
+> This utility performs advanced system-level operations and kernel tuning that may impact device stability, cause data loss, or potentially damage hardware if misconfigured. The developers assume no responsibility for any issues or damages resulting from the use of this software.
 
 **N0Kontzzz Kernel Manager** is a sophisticated Android application designed for rooted devices. Developed using Kotlin and Jetpack Compose, this utility offers comprehensive real-time monitoring and tuning capabilities for CPU performance, thermal management, and battery statistics. It is specifically optimized for the Poco F4 (munch) utilizing the N0Kontzzz custom kernel.
-
 
 ## Features
 
@@ -180,11 +182,5 @@ Contributions are welcome. Please feel free to fork the repository, submit issue
 - **[Xtra Kernel Manager](https://github.com/Gustyx-Power/Xtra-Kernel-Manager)** — The foundational project for this application.
 - **[Danda](https://github.com/Danda420)** — For significant contributions to development and insights into Android system internals.
 - **[RvKernel Manager](https://github.com/Rve27/RvKernel-Manager)** —  Provided inspiration for specific features and implementation references.
-- **Poco F4 Community** —  For ongoing support and feedback.
----
-
-## Disclaimer
-
-> This application executes advanced system-level operations that may impact device stability. Use is at your own risk. The developers assume no responsibility for potential issues resulting from improper configuration.
-
+- Poco F4 Community —  For ongoing support and feedback.
 ---
