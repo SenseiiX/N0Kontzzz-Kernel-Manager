@@ -629,6 +629,8 @@
     <string name="error_backup">Pencadangan gagal</string>
     <string name="error_restore">Pemulihan gagal</string>
     <string name="permission_storage_required">Izin penyimpanan diperlukan untuk pencadangan/pemulihan</string>
+    <string name="backup_restore_select_file_msg">Pilih file cadangan untuk melanjutkan</string>
+    <string name="backup_restore_select_file_btn">Pilih File</string>
 
     <!-- Dexopt Screen -->
     <string name="dexopt_title">Dexopt</string>
