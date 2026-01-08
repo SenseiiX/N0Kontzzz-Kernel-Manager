@@ -40,7 +40,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.window.DialogProperties
-import android.net.Uri
 import android.widget.Toast
 import android.Manifest
 import android.content.pm.PackageManager

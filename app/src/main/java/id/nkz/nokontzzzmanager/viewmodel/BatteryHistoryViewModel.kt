@@ -3,7 +3,6 @@ package id.nkz.nokontzzzmanager.viewmodel
 import android.app.AppOpsManager
 import android.app.usage.UsageStatsManager
 import android.content.Context
-import android.graphics.Bitmap
 import android.os.Process
 import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.ViewModel

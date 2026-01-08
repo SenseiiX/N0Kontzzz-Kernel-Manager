@@ -31,7 +31,6 @@ import id.nkz.nokontzzzmanager.ui.dialog.ChargingControlDialog
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import kotlinx.coroutines.launch
 
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalContext

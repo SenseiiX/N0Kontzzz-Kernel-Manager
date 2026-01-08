@@ -15,9 +15,6 @@ import android.content.Intent
 import androidx.core.content.ContextCompat
 import android.os.Build
 import id.nkz.nokontzzzmanager.service.ThermalService
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 
 @HiltWorker
 class RestoreSettingsWorker @AssistedInject constructor(
