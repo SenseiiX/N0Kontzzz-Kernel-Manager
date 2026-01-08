@@ -42,6 +42,23 @@ class PreferenceManager @Inject constructor(
 
         private const val KEY_TCP_CONGESTION_ALGORITHM = "tcp_congestion_algorithm"
         private const val KEY_IO_SCHEDULER = "io_scheduler"
+
+        // GPU
+        private const val KEY_GPU_GOVERNOR = "gpu_governor"
+        private const val KEY_GPU_MIN_FREQ = "gpu_min_freq"
+        private const val KEY_GPU_MAX_FREQ = "gpu_max_freq"
+        private const val KEY_GPU_POWER_LEVEL = "gpu_power_level"
+        private const val KEY_GPU_THROTTLING = "gpu_throttling"
+
+        // RAM
+        private const val KEY_ZRAM_DISKSIZE = "zram_disksize"
+        private const val KEY_ZRAM_COMPRESSION = "zram_compression"
+        private const val KEY_SWAPPINESS = "swappiness"
+        private const val KEY_DIRTY_RATIO = "dirty_ratio"
+        private const val KEY_DIRTY_BACKGROUND_RATIO = "dirty_background_ratio"
+        private const val KEY_DIRTY_WRITEBACK = "dirty_writeback"
+        private const val KEY_DIRTY_EXPIRE = "dirty_expire"
+        private const val KEY_MIN_FREE_MEMORY = "min_free_memory"
     }
 
     private fun credentialPrefs(): SharedPreferences? {
@@ -294,5 +311,120 @@ class PreferenceManager @Inject constructor(
     fun getIoScheduler(): String? {
         return credentialPrefs()?.getString(KEY_IO_SCHEDULER, null)
             ?: deviceProtectedPrefs()?.getString(KEY_IO_SCHEDULER, null)
+    }
+
+    // GPU
+    fun setGpuGovernor(governor: String?) {
+        credentialPrefs()?.edit {
+            if (governor == null) remove(KEY_GPU_GOVERNOR)
+            else putString(KEY_GPU_GOVERNOR, governor)
+        }
+    }
+
+    fun getGpuGovernor(): String? {
+        return credentialPrefs()?.getString(KEY_GPU_GOVERNOR, null)
+    }
+
+    fun setGpuMinFreq(freq: Int) {
+        credentialPrefs()?.edit { putInt(KEY_GPU_MIN_FREQ, freq) }
+    }
+
+    fun getGpuMinFreq(): Int {
+        return credentialPrefs()?.getInt(KEY_GPU_MIN_FREQ, -1) ?: -1
+    }
+
+    fun setGpuMaxFreq(freq: Int) {
+        credentialPrefs()?.edit { putInt(KEY_GPU_MAX_FREQ, freq) }
+    }
+
+    fun getGpuMaxFreq(): Int {
+        return credentialPrefs()?.getInt(KEY_GPU_MAX_FREQ, -1) ?: -1
+    }
+
+    fun setGpuPowerLevel(level: Int) {
+        credentialPrefs()?.edit { putInt(KEY_GPU_POWER_LEVEL, level) }
+    }
+
+    fun getGpuPowerLevel(): Int {
+        return credentialPrefs()?.getInt(KEY_GPU_POWER_LEVEL, -1) ?: -1
+    }
+
+    fun setGpuThrottling(enabled: Boolean) {
+        credentialPrefs()?.edit { putBoolean(KEY_GPU_THROTTLING, enabled) }
+    }
+
+    fun getGpuThrottling(): Boolean? {
+        if (credentialPrefs()?.contains(KEY_GPU_THROTTLING) == true) {
+            return credentialPrefs()?.getBoolean(KEY_GPU_THROTTLING, false)
+        }
+        return null
+    }
+
+    // RAM
+    fun setZramDisksize(size: Long) {
+        credentialPrefs()?.edit { putLong(KEY_ZRAM_DISKSIZE, size) }
+    }
+
+    fun getZramDisksize(): Long {
+        return credentialPrefs()?.getLong(KEY_ZRAM_DISKSIZE, -1L) ?: -1L
+    }
+
+    fun setZramCompression(algo: String?) {
+        credentialPrefs()?.edit {
+            if (algo == null) remove(KEY_ZRAM_COMPRESSION)
+            else putString(KEY_ZRAM_COMPRESSION, algo)
+        }
+    }
+
+    fun getZramCompression(): String? {
+        return credentialPrefs()?.getString(KEY_ZRAM_COMPRESSION, null)
+    }
+
+    fun setSwappiness(value: Int) {
+        credentialPrefs()?.edit { putInt(KEY_SWAPPINESS, value) }
+    }
+
+    fun getSwappiness(): Int {
+        return credentialPrefs()?.getInt(KEY_SWAPPINESS, -1) ?: -1
+    }
+
+    fun setDirtyRatio(value: Int) {
+        credentialPrefs()?.edit { putInt(KEY_DIRTY_RATIO, value) }
+    }
+
+    fun getDirtyRatio(): Int {
+        return credentialPrefs()?.getInt(KEY_DIRTY_RATIO, -1) ?: -1
+    }
+
+    fun setDirtyBackgroundRatio(value: Int) {
+        credentialPrefs()?.edit { putInt(KEY_DIRTY_BACKGROUND_RATIO, value) }
+    }
+
+    fun getDirtyBackgroundRatio(): Int {
+        return credentialPrefs()?.getInt(KEY_DIRTY_BACKGROUND_RATIO, -1) ?: -1
+    }
+
+    fun setDirtyWriteback(value: Int) {
+        credentialPrefs()?.edit { putInt(KEY_DIRTY_WRITEBACK, value) }
+    }
+
+    fun getDirtyWriteback(): Int {
+        return credentialPrefs()?.getInt(KEY_DIRTY_WRITEBACK, -1) ?: -1
+    }
+
+    fun setDirtyExpire(value: Int) {
+        credentialPrefs()?.edit { putInt(KEY_DIRTY_EXPIRE, value) }
+    }
+
+    fun getDirtyExpire(): Int {
+        return credentialPrefs()?.getInt(KEY_DIRTY_EXPIRE, -1) ?: -1
+    }
+
+    fun setMinFreeMemory(value: Int) {
+        credentialPrefs()?.edit { putInt(KEY_MIN_FREE_MEMORY, value) }
+    }
+
+    fun getMinFreeMemory(): Int {
+        return credentialPrefs()?.getInt(KEY_MIN_FREE_MEMORY, -1) ?: -1
     }
 }

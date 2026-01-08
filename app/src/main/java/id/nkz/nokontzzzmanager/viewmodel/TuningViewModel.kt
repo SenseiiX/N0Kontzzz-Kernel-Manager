@@ -20,12 +20,15 @@ import kotlinx.coroutines.flow.*
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
+import id.nkz.nokontzzzmanager.utils.PreferenceManager
+
 @HiltViewModel
 class TuningViewModel @Inject constructor(
     private val application: Application,
     private val repo: TuningRepository,
     private val thermalRepo: ThermalRepository,
-    private val systemRepo: SystemRepository
+    private val systemRepo: SystemRepository,
+    private val preferenceManager: PreferenceManager
 ) : AndroidViewModel(application) {
 
     private val thermalPrefs: SharedPreferences by lazy {
@@ -392,13 +395,14 @@ class TuningViewModel @Inject constructor(
 
     fun setGpuGovernor(gov: String) = viewModelScope.launch(Dispatchers.IO) {
         if (repo.setGpuGov(gov)) {
+            preferenceManager.setGpuGovernor(gov)
             repo.getGpuGov().take(1).collect { _currentGpuGovernor.value = it }
         }
     }
 
     fun setGpuMinFrequency(freqKHz: Int) = viewModelScope.launch(Dispatchers.IO) {
-        repo.setGpuMinFreq(freqKHz)
         if (repo.setGpuMinFreq(freqKHz)) {
+            preferenceManager.setGpuMinFreq(freqKHz)
             val (min, _) = repo.getGpuFreq().first()
             _currentGpuMinFreq.value = min
             fetchGpuData()
@@ -406,8 +410,8 @@ class TuningViewModel @Inject constructor(
     }
 
     fun setGpuMaxFrequency(freqKHz: Int) = viewModelScope.launch(Dispatchers.IO) {
-        repo.setGpuMaxFreq(freqKHz)
         if (repo.setGpuMaxFreq(freqKHz)) {
+            preferenceManager.setGpuMaxFreq(freqKHz)
             val (_, max) = repo.getGpuFreq().first()
             _currentGpuMaxFreq.value = max
             fetchGpuData()
@@ -416,6 +420,7 @@ class TuningViewModel @Inject constructor(
 
     fun setGpuPowerLevel(level: Float) = viewModelScope.launch(Dispatchers.IO) {
         if (repo.setGpuPowerLevel(level)) {
+            preferenceManager.setGpuPowerLevel(level.toInt())
             repo.getCurrentGpuPowerLevel().take(1).collect { _currentGpuPowerLevel.value = it }
         }
     }
@@ -423,6 +428,7 @@ class TuningViewModel @Inject constructor(
     fun toggleGpuThrottling(enabled: Boolean) = viewModelScope.launch(Dispatchers.IO) {
         val success = systemRepo.setGpuThrottling(enabled)
         if (success) {
+            preferenceManager.setGpuThrottling(enabled)
             _gpuThrottlingEnabled.value = enabled
         } else {
             // If failed, refresh the actual value from system
@@ -480,6 +486,7 @@ class TuningViewModel @Inject constructor(
             return@launch
         }
         if (repo.setZramDisksize(sizeBytes)) {
+            preferenceManager.setZramDisksize(sizeBytes)
             repo.getZramDisksize().take(1).collect { _zramDisksize.value = it }
         }
     }
@@ -487,6 +494,7 @@ class TuningViewModel @Inject constructor(
     fun setCompression(algo: String) = viewModelScope.launch(Dispatchers.IO) {
         if (algo != _currentCompression.value) {
             if (repo.setCompressionAlgorithm(algo)) {
+                preferenceManager.setZramCompression(algo)
                 repo.getCurrentCompression().take(1).collect { _currentCompression.value = it }
             }
         }
@@ -494,36 +502,42 @@ class TuningViewModel @Inject constructor(
 
     fun setSwappiness(value: Int) = viewModelScope.launch(Dispatchers.IO) {
         if (repo.setSwappiness(value)) {
+            preferenceManager.setSwappiness(value)
             repo.getSwappiness().take(1).collect { _swappiness.value = it }
         }
     }
 
     fun setDirtyRatio(value: Int) = viewModelScope.launch(Dispatchers.IO) {
         if (repo.setDirtyRatio(value)) {
+            preferenceManager.setDirtyRatio(value)
             repo.getDirtyRatio().take(1).collect { _dirtyRatio.value = it }
         }
     }
 
     fun setDirtyBackgroundRatio(value: Int) = viewModelScope.launch(Dispatchers.IO) {
         if (repo.setDirtyBackgroundRatio(value)) {
+            preferenceManager.setDirtyBackgroundRatio(value)
             repo.getDirtyBackgroundRatio().take(1).collect { _dirtyBackgroundRatio.value = it }
         }
     }
 
     fun setDirtyWriteback(value: Int) = viewModelScope.launch(Dispatchers.IO) {
         if (repo.setDirtyWriteback(value * 100)) {
+            preferenceManager.setDirtyWriteback(value)
             repo.getDirtyWriteback().take(1).collect { _dirtyWriteback.value = it }
         }
     }
 
     fun setDirtyExpireCentisecs(value: Int) = viewModelScope.launch(Dispatchers.IO) {
         if (repo.setDirtyExpireCentisecs(value)) {
+            preferenceManager.setDirtyExpire(value)
             repo.getDirtyExpireCentisecs().take(1).collect { _dirtyExpireCentisecs.value = it }
         }
     }
 
     fun setMinFreeMemory(value: Int) = viewModelScope.launch(Dispatchers.IO) {
         if (repo.setMinFreeMemory(value * 1024)) {
+            preferenceManager.setMinFreeMemory(value)
             repo.getMinFreeMemory().take(1).collect { _minFreeMemory.value = it }
         }
     }
