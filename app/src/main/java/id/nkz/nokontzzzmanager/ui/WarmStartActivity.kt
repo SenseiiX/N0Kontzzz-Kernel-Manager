@@ -1,7 +1,6 @@
 package id.nkz.nokontzzzmanager.ui
 
 import android.app.Activity
-import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import id.nkz.nokontzzzmanager.service.BatteryMonitorService

@@ -40,6 +40,7 @@ import id.nkz.nokontzzzmanager.data.repository.BatteryGraphRepository
 import id.nkz.nokontzzzmanager.data.repository.SystemRepository
 import id.nkz.nokontzzzmanager.data.database.BatteryGraphEntry
 import id.nkz.nokontzzzmanager.utils.PreferenceManager
+import androidx.core.graphics.createBitmap
 
 @AndroidEntryPoint
 class BatteryMonitorService : Service() {
@@ -96,7 +97,7 @@ class BatteryMonitorService : Service() {
 
     // Persistence
     private val prefs by lazy {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && !isDeviceProtectedStorage) {
+        if (!isDeviceProtectedStorage) {
             createDeviceProtectedStorageContext().getSharedPreferences("battery_monitor_prefs",
                 MODE_PRIVATE
             )
@@ -117,11 +118,8 @@ class BatteryMonitorService : Service() {
         try {
             if (Build.VERSION.SDK_INT >= 34) {
                 startForeground(notificationId, initialNotification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                startForeground(notificationId, initialNotification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
-            } else {
+            } else
                 startForeground(notificationId, initialNotification)
-            }
         } catch (e: Exception) {
             // Prevent crash if FGS is blocked
             stopSelf()
@@ -622,12 +620,8 @@ class BatteryMonitorService : Service() {
     }
 
     private fun isUserUnlocked(context: Context): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            val um = context.getSystemService(USER_SERVICE) as android.os.UserManager
-            um.isUserUnlocked
-        } else {
-            true
-        }
+        val um = context.getSystemService(USER_SERVICE) as android.os.UserManager
+        return um.isUserUnlocked
     }
 
     private fun checkChargingControl(level: Int, plugged: Boolean) {
@@ -717,7 +711,7 @@ class BatteryMonitorService : Service() {
         startLevel: Int,
         nowElapsed: Long,
         currentChargeUah: Long,
-        currentLevel: Int
+        currentLevel: Int,
     ): String {
         val elapsedMs = nowElapsed - startTimeMs
         if (elapsedMs <= 0L) return "0.0%/h"
@@ -788,7 +782,7 @@ class BatteryMonitorService : Service() {
 
     private fun createBatteryIcon(level: Int): IconCompat {
         val size = 24 * 3 // 72px for xhdpi approx
-        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val bitmap = createBitmap(size, size)
         val canvas = Canvas(bitmap)
         val paint = Paint().apply {
             color = Color.WHITE
@@ -840,15 +834,13 @@ class BatteryMonitorService : Service() {
     }
 
     private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                channelId,
-                "Battery Monitor",
-                NotificationManager.IMPORTANCE_LOW
-            )
-            channel.description = "Menampilkan status baterai realtime"
-            notificationManager.createNotificationChannel(channel)
-        }
+        val channel = NotificationChannel(
+            channelId,
+            "Battery Monitor",
+            NotificationManager.IMPORTANCE_LOW
+        )
+        channel.description = "Menampilkan status baterai realtime"
+        notificationManager.createNotificationChannel(channel)
     }
 
     private fun updateNotification(stats: BatteryData) {
@@ -912,7 +904,7 @@ class BatteryMonitorService : Service() {
             .putLong("off_percent_drop_bits", java.lang.Double.doubleToRawLongBits(offPercentDrop))
         
         if (sync) {
-            editor.commit()
+            editor.apply()
         } else {
             editor.apply()
         }
@@ -984,9 +976,7 @@ class BatteryMonitorService : Service() {
         fun start(context: Context, isBoot: Boolean = false) {
             val intent = Intent(context, BatteryMonitorService::class.java)
             if (isBoot) intent.action = ACTION_BOOT_START
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-                context.startForegroundService(intent)
-            else context.startService(intent)
+            context.startForegroundService(intent)
         }
 
         fun stop(context: Context) {
@@ -995,16 +985,12 @@ class BatteryMonitorService : Service() {
 
         fun reset(context: Context) {
             val intent = Intent(context, BatteryMonitorService::class.java).apply { action = ACTION_RESET }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-                context.startForegroundService(intent)
-            else context.startService(intent)
+            context.startForegroundService(intent)
         }
 
         fun updateIcon(context: Context) {
             val intent = Intent(context, BatteryMonitorService::class.java).apply { action = ACTION_UPDATE_ICON }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-                context.startForegroundService(intent)
-            else context.startService(intent)
+            context.startForegroundService(intent)
         }
     }
 
@@ -1019,6 +1005,6 @@ class BatteryMonitorService : Service() {
         val screenOnTime: String = "-",
         val elapsed: String = "-",
         val uptime: String = "-",
-        val deepSleep: String = "-"
+        val deepSleep: String = "-",
     )
 }

@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
 import android.os.Build
+import android.util.Log
 import id.nkz.nokontzzzmanager.data.model.MemoryInfo
 import id.nkz.nokontzzzmanager.data.model.RealtimeAggregatedInfo
 import id.nkz.nokontzzzmanager.data.model.RealtimeCpuInfo
@@ -1029,6 +1030,7 @@ class SystemRepository @Inject constructor(
                         val exitCode = process.waitFor()
 
                         if (errorOutput.isNotEmpty()) {
+                            Log.w("SystemRepository", "KSU Command Error: $errorOutput")
                         }
 
                         reader.close()
@@ -1404,7 +1406,7 @@ class SystemRepository @Inject constructor(
     }
 
     fun getIoScheduler(): String {
-        return getCurrentIoScheduler() ?: "N/A"
+        return getCurrentIoScheduler()
     }
 
     fun setIoScheduler(scheduler: String): Boolean {

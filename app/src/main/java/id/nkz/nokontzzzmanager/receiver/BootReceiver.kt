@@ -134,11 +134,9 @@ class BootReceiver : BroadcastReceiver() {
     }
 
     private fun isBatteryMonitorEnabled(context: Context): Boolean {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            val deviceContext = context.createDeviceProtectedStorageContext()
-            val dpPrefs = deviceContext.getSharedPreferences("nkm_preferences", Context.MODE_PRIVATE)
-            if (dpPrefs.getBoolean("battery_monitor_enabled", false)) return true
-        }
+        val deviceContext = context.createDeviceProtectedStorageContext()
+        val dpPrefs = deviceContext.getSharedPreferences("nkm_preferences", Context.MODE_PRIVATE)
+        if (dpPrefs.getBoolean("battery_monitor_enabled", false)) return true
         return try {
             context.getSharedPreferences("nkm_preferences", Context.MODE_PRIVATE)
                 .getBoolean("battery_monitor_enabled", false)

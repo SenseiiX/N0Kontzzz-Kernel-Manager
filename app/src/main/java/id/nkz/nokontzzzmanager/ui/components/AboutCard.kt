@@ -213,10 +213,13 @@ fun AboutCard(
                     val scrollState = rememberScrollState()
                     var isScrollbarVisible by remember { mutableStateOf(true) }
                     
-                    LaunchedEffect(scrollState.value) {
-                        isScrollbarVisible = true
-                        delay(1000) // Hide scrollbar after 1 second of inactivity
-                        isScrollbarVisible = false
+                    LaunchedEffect(scrollState) {
+                        snapshotFlow { scrollState.value }
+                            .collect {
+                                isScrollbarVisible = true
+                                delay(1000) // Hide scrollbar after 1 second of inactivity
+                                isScrollbarVisible = false
+                            }
                     }
                     
                     Box(
@@ -315,16 +318,22 @@ fun AboutCard(
                             }
                             
                             // Thumb - separate element that can be positioned independently
-                            Box(
-                                modifier = Modifier
-                                    .align(Alignment.TopEnd) // Position at top-right of parent Box
-                                    .offset(y = if (scrollState.maxValue > 0) {
+                            val thumbOffset by remember {
+                                derivedStateOf {
+                                    if (scrollState.maxValue > 0) {
                                         val trackHeight = 400f // Total height of the scrollbar track
                                         val thumbHeight = 30f // Height of the thumb
                                         val availableTrackHeight = trackHeight - thumbHeight
                                         val ratio = scrollState.value.toFloat() / scrollState.maxValue
                                         (availableTrackHeight * ratio).dp
-                                    } else 0.dp)
+                                    } else 0.dp
+                                }
+                            }
+
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd) // Position at top-right of parent Box
+                                    .offset(y = thumbOffset)
                                     .width(6.dp)
                                     .height(30.dp) // Fixed height for thumb
                             ) {

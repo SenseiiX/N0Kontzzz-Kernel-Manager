@@ -190,7 +190,9 @@ class ThermalRepository @Inject constructor(
             if (lastMode != 0) {
                 setThermalModeIndex(lastMode).collect { success ->
                     if (success) {
+                        Log.i(TAG, "Successfully restored thermal mode: $lastMode")
                     } else {
+                        Log.e(TAG, "Failed to restore thermal mode: $lastMode")
                     }
                 }
             }
