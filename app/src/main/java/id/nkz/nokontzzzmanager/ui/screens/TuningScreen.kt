@@ -279,19 +279,28 @@ fun PerformanceModeCard(
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Default.Speed,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.secondary
-                )
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(16.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Speed,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
                 Text(
                     text = stringResource(id = R.string.tuning_feature_performance_mode_title),
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp
-                    )
+                    ),
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
 
@@ -352,26 +361,38 @@ fun PerformanceModeCard(
                                 .fillMaxWidth()
                                 .padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
                             val contentAlpha = if (isEnabled) 1f else 0.38f
+                            val baseColor = when (mode) {
+                                "Powersave" -> powersaveBlue
+                                "Balanced" -> balancedGreen
+                                "Performance" -> performanceRed
+                                else -> MaterialTheme.colorScheme.primary
+                            }
 
-                            Icon(
-                                imageVector = when (mode) {
-                                    "Powersave" -> Icons.Default.BatterySaver
-                                    "Balanced" -> Icons.Default.Balance
-                                    "Performance" -> Icons.Default.FlashOn
-                                    else -> Icons.Default.Speed
-                                },
-                                contentDescription = null,
-                                modifier = Modifier.size(24.dp),
-                                tint = when (mode) {
-                                    "Powersave" -> powersaveBlue
-                                    "Balanced" -> balancedGreen
-                                    "Performance" -> performanceRed
-                                    else -> MaterialTheme.colorScheme.primary
-                                }.copy(alpha = contentAlpha)
-                            )
+                            // Icon with themed background
+                            Box(
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .background(
+                                        color = baseColor.copy(alpha = if (isEnabled) 0.2f else 0.05f),
+                                        shape = RoundedCornerShape(10.dp)
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = when (mode) {
+                                        "Powersave" -> Icons.Default.BatterySaver
+                                        "Balanced" -> Icons.Default.Balance
+                                        "Performance" -> Icons.Default.FlashOn
+                                        else -> Icons.Default.Speed
+                                    },
+                                    contentDescription = null,
+                                    modifier = Modifier.size(20.dp),
+                                    tint = baseColor.copy(alpha = contentAlpha)
+                                )
+                            }
 
                             Column(
                                 modifier = Modifier.weight(1f)
