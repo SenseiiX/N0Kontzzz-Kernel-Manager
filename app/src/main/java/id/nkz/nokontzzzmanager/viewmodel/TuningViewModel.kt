@@ -61,6 +61,38 @@ class TuningViewModel @Inject constructor(
     private val _currentCpuGovernors = mutableMapOf<String, MutableStateFlow<String>>()
     private val _currentCpuFrequencies = mutableMapOf<String, MutableStateFlow<Pair<Int, Int>>>()
 
+    // Initialize these eagerly to ensure non-null flows for combine
+    init {
+        cpuClusters.forEach { cluster ->
+            _currentCpuGovernors.getOrPut(cluster) { MutableStateFlow("...") }
+        }
+    }
+
+    // Logic to validate active performance mode based on real-time governor state
+    val activePerformanceMode: StateFlow<String?> = combine(
+        getCpuGov("cpu0"),
+        getCpuGov("cpu4"),
+        getCpuGov("cpu7")
+    ) { gov0, gov4, gov7 ->
+        // Check if governors are still loading
+        if (gov0 == "..." || gov4 == "..." || gov7 == "...") return@combine null
+
+        val governors = listOf(gov0, gov4, gov7)
+        val uniqueGovs = governors.distinct()
+
+        // Valid only if all clusters share the same governor
+        if (uniqueGovs.size == 1) {
+            when (uniqueGovs.first()) {
+                "powersave" -> "Powersave"
+                "schedutil" -> "Balanced"
+                "performance" -> "Performance"
+                else -> null // Default kernel governor or other custom governor -> No mode active
+            }
+        } else {
+            null // Mixed governors (Manual per-cluster changes) -> No mode active
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
     /* ---------------- GPU ---------------- */
     private val _availableGpuGovernors = MutableStateFlow<List<String>>(emptyList())
     val availableGpuGovernors: StateFlow<List<String>> = _availableGpuGovernors.asStateFlow()
@@ -164,7 +196,7 @@ class TuningViewModel @Inject constructor(
     /* ---------------- Init ---------------- */
     init {
         Log.d("TuningVM_Init", "ViewModel initializing...")
-        initializeCpuStateFlows()
+        // initializeCpuStateFlows() // Removed as it is handled in the field declaration init
         fetchDynamicCpuClusters()
         Log.d("TuningVM_Init", "ViewModel initialization complete.")
     }
@@ -269,13 +301,7 @@ class TuningViewModel @Inject constructor(
     }
 
     /* ---------------- CPU ---------------- */
-    private fun initializeCpuStateFlows() {
-        Log.d("TuningVM_Init", "Initializing CPU StateFlows for clusters: $cpuClusters")
-        cpuClusters.forEach { cluster ->
-            _currentCpuGovernors.getOrPut(cluster) { MutableStateFlow("...") }
-            _currentCpuFrequencies.getOrPut(cluster) { MutableStateFlow(0 to 0) }
-        }
-    }
+    // private fun initializeCpuStateFlows() { ... } // Removed
 
     private suspend fun fetchAllCpuData() {
         Log.d("TuningVM_CPU", "Fetching all CPU data...")

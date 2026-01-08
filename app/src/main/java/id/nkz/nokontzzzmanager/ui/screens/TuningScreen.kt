@@ -240,8 +240,9 @@ fun PerformanceModeCard(
     viewModel: TuningViewModel,
     blur: Boolean = true
 ) {
-    // Collect the performance mode from the ViewModel to make it survive recompositions
-    val performanceMode by viewModel.performanceMode.collectAsState()
+    // Collect the ACTIVE performance mode which reflects the real system state
+    // If user changes governor manually or system uses default, this will be null
+    val activePerformanceMode by viewModel.activePerformanceMode.collectAsState()
     val availableGovernors by viewModel.generalAvailableCpuGovernors.collectAsState()
 
     val isPowersaveAvailable = remember(availableGovernors) {
@@ -345,9 +346,9 @@ fun PerformanceModeCard(
                             },
                         colors = CardDefaults.cardColors(
                             containerColor = when (mode) {
-                                "Powersave" -> if (performanceMode == mode) powersaveBlue.copy(alpha = 0.15f) else powersaveBlue.copy(alpha = 0.05f)
-                                "Balanced" -> if (performanceMode == mode) balancedGreen.copy(alpha = 0.15f) else balancedGreen.copy(alpha = 0.05f)
-                                "Performance" -> if (performanceMode == mode) performanceRed.copy(alpha = 0.15f) else performanceRed.copy(alpha = 0.05f)
+                                "Powersave" -> if (activePerformanceMode == mode) powersaveBlue.copy(alpha = 0.15f) else powersaveBlue.copy(alpha = 0.05f)
+                                "Balanced" -> if (activePerformanceMode == mode) balancedGreen.copy(alpha = 0.15f) else balancedGreen.copy(alpha = 0.05f)
+                                "Performance" -> if (activePerformanceMode == mode) performanceRed.copy(alpha = 0.15f) else performanceRed.copy(alpha = 0.05f)
                                 else -> MaterialTheme.colorScheme.surface
                             }
                         ).run {
@@ -401,11 +402,11 @@ fun PerformanceModeCard(
                                 Text(
                                     text = mode,
                                     style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = if (performanceMode == mode) FontWeight.Bold else FontWeight.Medium,
+                                    fontWeight = if (activePerformanceMode == mode) FontWeight.Bold else FontWeight.Medium,
                                     color = when (mode) {
-                                        "Powersave" -> if (performanceMode == mode) powersaveBlue else MaterialTheme.colorScheme.onSurface
-                                        "Balanced" -> if (performanceMode == mode) balancedGreen else MaterialTheme.colorScheme.onSurface
-                                        "Performance" -> if (performanceMode == mode) performanceRed else MaterialTheme.colorScheme.onSurface
+                                        "Powersave" -> if (activePerformanceMode == mode) powersaveBlue else MaterialTheme.colorScheme.onSurface
+                                        "Balanced" -> if (activePerformanceMode == mode) balancedGreen else MaterialTheme.colorScheme.onSurface
+                                        "Performance" -> if (activePerformanceMode == mode) performanceRed else MaterialTheme.colorScheme.onSurface
                                         else -> MaterialTheme.colorScheme.onSurface
                                     }.copy(alpha = contentAlpha)
                                 )
@@ -434,7 +435,7 @@ fun PerformanceModeCard(
                             }
 
                             // Checkmark for selected mode
-                            if (performanceMode == mode) {
+                            if (activePerformanceMode == mode) {
                                 Icon(
                                     imageVector = Icons.Default.CheckCircle,
                                     contentDescription = stringResource(id = R.string.common_selected),
@@ -453,7 +454,7 @@ fun PerformanceModeCard(
             }
 
             AnimatedVisibility(
-                visible = performanceMode != "Balanced",
+                visible = activePerformanceMode != null && activePerformanceMode != "Balanced",
                 enter = fadeIn(animationSpec = tween(300)) + expandVertically(animationSpec = tween(300)),
                 exit = fadeOut(animationSpec = tween(300)) + shrinkVertically(animationSpec = tween(300))
             ) {
@@ -484,7 +485,7 @@ fun PerformanceModeCard(
                             )
                         }
                         Text(
-                            text = stringResource(id = R.string.changed_cpu_governor_desc, governorMappings[performanceMode] ?: "schedutil"),
+                            text = stringResource(id = R.string.changed_cpu_governor_desc, governorMappings[activePerformanceMode] ?: "schedutil"),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
