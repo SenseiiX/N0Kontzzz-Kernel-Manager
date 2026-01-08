@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -824,10 +825,10 @@ fun SettingItemCard(
             // Icon with themed background
             Box(
                 modifier = Modifier
-                    .size(36.dp)
+                    .size(42.dp)
                     .background(
                         color = if (enabled) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
-                        shape = RoundedCornerShape(10.dp)
+                        shape = CircleShape
                     ),
                 contentAlignment = Alignment.Center
             ) {
