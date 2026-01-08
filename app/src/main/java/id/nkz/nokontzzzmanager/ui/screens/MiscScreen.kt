@@ -10,6 +10,7 @@ import android.os.Build
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -404,10 +405,10 @@ fun ResetNetworkStorageCard(
                 // Icon with themed background
                 Box(
                     modifier = Modifier
-                        .size(36.dp)
+                        .size(42.dp)
                         .background(
                             color = MaterialTheme.colorScheme.errorContainer,
-                            shape = RoundedCornerShape(10.dp)
+                            shape = CircleShape
                         ),
                     contentAlignment = Alignment.Center
                 ) {
@@ -476,10 +477,10 @@ fun KgslSkipZeroingCard(
                 // Icon with themed background
                 Box(
                     modifier = Modifier
-                        .size(36.dp)
+                        .size(42.dp)
                         .background(
                             color = if (featureAvailable) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
-                            shape = RoundedCornerShape(10.dp)
+                            shape = CircleShape
                         ),
                     contentAlignment = Alignment.Center
                 ) {
@@ -522,7 +523,6 @@ fun KgslSkipZeroingCard(
                             Icon(
                                 imageVector = Icons.Default.Check,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onPrimary,
                                 modifier = Modifier.size(SwitchDefaults.IconSize),
                             )
                         }
@@ -531,7 +531,6 @@ fun KgslSkipZeroingCard(
                             Icon(
                                 imageVector = Icons.Default.Close,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.inverseOnSurface,
                                 modifier = Modifier.size(SwitchDefaults.IconSize),
                             )
                         }
@@ -611,10 +610,10 @@ fun AvoidDirtyPteCard(
                 // Icon with themed background
                 Box(
                     modifier = Modifier
-                        .size(36.dp)
+                        .size(42.dp)
                         .background(
                             color = if (featureAvailable) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
-                            shape = RoundedCornerShape(10.dp)
+                            shape = CircleShape
                         ),
                     contentAlignment = Alignment.Center
                 ) {
@@ -657,7 +656,6 @@ fun AvoidDirtyPteCard(
                             Icon(
                                 imageVector = Icons.Default.Check,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onPrimary,
                                 modifier = Modifier.size(SwitchDefaults.IconSize),
                             )
                         }
@@ -666,7 +664,6 @@ fun AvoidDirtyPteCard(
                             Icon(
                                 imageVector = Icons.Default.Close,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.inverseOnSurface,
                                 modifier = Modifier.size(SwitchDefaults.IconSize),
                             )
                         }
@@ -738,10 +735,10 @@ fun AppProfilesCard(
                 // Icon with themed background
                 Box(
                     modifier = Modifier
-                        .size(36.dp)
+                        .size(42.dp)
                         .background(
                             color = MaterialTheme.colorScheme.primaryContainer,
-                            shape = RoundedCornerShape(10.dp)
+                            shape = CircleShape
                         ),
                     contentAlignment = Alignment.Center
                 ) {
@@ -808,10 +805,10 @@ fun BatteryMonitorResetCard(
                 // Icon with themed background
                 Box(
                     modifier = Modifier
-                        .size(36.dp)
+                        .size(42.dp)
                         .background(
                             color = MaterialTheme.colorScheme.primaryContainer,
-                            shape = RoundedCornerShape(10.dp)
+                            shape = CircleShape
                         ),
                     contentAlignment = Alignment.Center
                 ) {
@@ -871,10 +868,10 @@ fun BatteryMonitorAutoResetCard(
                 // Icon with themed background
                 Box(
                     modifier = Modifier
-                        .size(36.dp)
+                        .size(42.dp)
                         .background(
                             color = MaterialTheme.colorScheme.primaryContainer,
-                            shape = RoundedCornerShape(10.dp)
+                            shape = CircleShape
                         ),
                     contentAlignment = Alignment.Center
                 ) {
@@ -935,10 +932,10 @@ fun BatteryMonitorCard(
                 // Icon with themed background
                 Box(
                     modifier = Modifier
-                        .size(36.dp)
+                        .size(42.dp)
                         .background(
                             color = MaterialTheme.colorScheme.primaryContainer,
-                            shape = RoundedCornerShape(10.dp)
+                            shape = CircleShape
                         ),
                     contentAlignment = Alignment.Center
                 ) {
@@ -972,7 +969,6 @@ fun BatteryMonitorCard(
                             Icon(
                                 imageVector = Icons.Default.Check,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onPrimary,
                                 modifier = Modifier.size(SwitchDefaults.IconSize),
                             )
                         }
@@ -981,7 +977,6 @@ fun BatteryMonitorCard(
                             Icon(
                                 imageVector = Icons.Default.Close,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.inverseOnSurface,
                                 modifier = Modifier.size(SwitchDefaults.IconSize),
                             )
                         }
@@ -1024,10 +1019,10 @@ fun TcpCongestionControlCard(
                 // Icon with themed background
                 Box(
                     modifier = Modifier
-                        .size(36.dp)
+                        .size(42.dp)
                         .background(
                             color = MaterialTheme.colorScheme.primaryContainer,
-                            shape = RoundedCornerShape(10.dp)
+                            shape = CircleShape
                         ),
                     contentAlignment = Alignment.Center
                 ) {
@@ -1106,10 +1101,10 @@ fun IoSchedulerCard(
                 // Icon with themed background
                 Box(
                     modifier = Modifier
-                        .size(36.dp)
+                        .size(42.dp)
                         .background(
                             color = MaterialTheme.colorScheme.primaryContainer,
-                            shape = RoundedCornerShape(10.dp)
+                            shape = CircleShape
                         ),
                     contentAlignment = Alignment.Center
                 ) {
@@ -1190,10 +1185,10 @@ fun BypassChargingCard(
                 // Icon with themed background
                 Box(
                     modifier = Modifier
-                        .size(36.dp)
+                        .size(42.dp)
                         .background(
                             color = if (featureAvailable) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
-                            shape = RoundedCornerShape(10.dp)
+                            shape = CircleShape
                         ),
                     contentAlignment = Alignment.Center
                 ) {
@@ -1236,7 +1231,6 @@ fun BypassChargingCard(
                             Icon(
                                 imageVector = Icons.Default.Check,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onPrimary,
                                 modifier = Modifier.size(SwitchDefaults.IconSize),
                             )
                         }
@@ -1245,7 +1239,6 @@ fun BypassChargingCard(
                             Icon(
                                 imageVector = Icons.Default.Close,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.inverseOnSurface,
                                 modifier = Modifier.size(SwitchDefaults.IconSize),
                             )
                         }
@@ -1320,10 +1313,10 @@ fun ChargingControlCard(
                 // Icon with themed background
                 Box(
                     modifier = Modifier
-                        .size(36.dp)
+                        .size(42.dp)
                         .background(
                             color = if (isBatteryMonitorEnabled) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
-                            shape = RoundedCornerShape(10.dp)
+                            shape = CircleShape
                         ),
                     contentAlignment = Alignment.Center
                 ) {
@@ -1388,10 +1381,10 @@ fun BatteryHistoryCard(
                 // Icon with themed background
                 Box(
                     modifier = Modifier
-                        .size(36.dp)
+                        .size(42.dp)
                         .background(
                             color = MaterialTheme.colorScheme.primaryContainer,
-                            shape = RoundedCornerShape(10.dp)
+                            shape = CircleShape
                         ),
                     contentAlignment = Alignment.Center
                 ) {
@@ -1472,10 +1465,10 @@ fun ForceFastChargeCard(
                 // Icon with themed background
                 Box(
                     modifier = Modifier
-                        .size(36.dp)
+                        .size(42.dp)
                         .background(
                             color = if (featureAvailable) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
-                            shape = RoundedCornerShape(10.dp)
+                            shape = CircleShape
                         ),
                     contentAlignment = Alignment.Center
                 ) {
@@ -1518,7 +1511,6 @@ fun ForceFastChargeCard(
                             Icon(
                                 imageVector = Icons.Default.Check,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onPrimary,
                                 modifier = Modifier.size(SwitchDefaults.IconSize),
                             )
                         }
@@ -1527,7 +1519,6 @@ fun ForceFastChargeCard(
                             Icon(
                                 imageVector = Icons.Default.Close,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.inverseOnSurface,
                                 modifier = Modifier.size(SwitchDefaults.IconSize),
                             )
                         }
@@ -1599,10 +1590,10 @@ fun ProcessMonitorCard(
                 // Icon with themed background
                 Box(
                     modifier = Modifier
-                        .size(36.dp)
+                        .size(42.dp)
                         .background(
                             color = MaterialTheme.colorScheme.primaryContainer,
-                            shape = RoundedCornerShape(10.dp)
+                            shape = CircleShape
                         ),
                     contentAlignment = Alignment.Center
                 ) {
@@ -1662,10 +1653,10 @@ fun DexoptCard(
                 // Icon with themed background
                 Box(
                     modifier = Modifier
-                        .size(36.dp)
+                        .size(42.dp)
                         .background(
                             color = MaterialTheme.colorScheme.primaryContainer,
-                            shape = RoundedCornerShape(10.dp)
+                            shape = CircleShape
                         ),
                     contentAlignment = Alignment.Center
                 ) {

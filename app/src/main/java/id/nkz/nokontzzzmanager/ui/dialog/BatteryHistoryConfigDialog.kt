@@ -141,7 +141,6 @@ fun BatteryHistoryConfigDialog(
                                                     Icon(
                                                         imageVector = Icons.Default.Check,
                                                         contentDescription = null,
-                                                        tint = MaterialTheme.colorScheme.primary,
                                                         modifier = Modifier.size(SwitchDefaults.IconSize),
                                                     )
                                                 }
@@ -150,7 +149,6 @@ fun BatteryHistoryConfigDialog(
                                                     Icon(
                                                         imageVector = Icons.Default.Close,
                                                         contentDescription = null,
-                                                        tint = MaterialTheme.colorScheme.inverseOnSurface,
                                                         modifier = Modifier.size(SwitchDefaults.IconSize),
                                                     )
                                                 }
@@ -183,7 +181,6 @@ fun BatteryHistoryConfigDialog(
                                                     Icon(
                                                         imageVector = Icons.Default.Check,
                                                         contentDescription = null,
-                                                        tint = MaterialTheme.colorScheme.primary,
                                                         modifier = Modifier.size(SwitchDefaults.IconSize),
                                                     )
                                                 }
@@ -192,7 +189,6 @@ fun BatteryHistoryConfigDialog(
                                                     Icon(
                                                         imageVector = Icons.Default.Close,
                                                         contentDescription = null,
-                                                        tint = MaterialTheme.colorScheme.inverseOnSurface,
                                                         modifier = Modifier.size(SwitchDefaults.IconSize),
                                                     )
                                                 }
@@ -226,7 +222,6 @@ fun BatteryHistoryConfigDialog(
                                                         Icon(
                                                             imageVector = Icons.Default.Check,
                                                             contentDescription = null,
-                                                            tint = MaterialTheme.colorScheme.primary,
                                                             modifier = Modifier.size(SwitchDefaults.IconSize),
                                                         )
                                                     }
@@ -235,7 +230,6 @@ fun BatteryHistoryConfigDialog(
                                                         Icon(
                                                             imageVector = Icons.Default.Close,
                                                             contentDescription = null,
-                                                            tint = MaterialTheme.colorScheme.inverseOnSurface,
                                                             modifier = Modifier.size(SwitchDefaults.IconSize),
                                                         )
                                                     }

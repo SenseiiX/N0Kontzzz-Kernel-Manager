@@ -3,6 +3,7 @@ package id.nkz.nokontzzzmanager.ui.components
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Memory
@@ -327,9 +328,9 @@ private fun CompactInfoCard(
             }
             
             Surface(
-                modifier = Modifier.size(36.dp),
+                modifier = Modifier.size(42.dp),
                 color = iconColor,
-                shape = RoundedCornerShape(12.dp)
+                shape = CircleShape
             ) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -342,7 +343,7 @@ private fun CompactInfoCard(
                             MaterialTheme.colorScheme.onErrorContainer
                         else 
                             MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(20.dp)
                     )
                 }
             }
@@ -426,9 +427,9 @@ private fun CompactInfoCardWithCustomShape(
             }
             
             Surface(
-                modifier = Modifier.size(36.dp),
+                modifier = Modifier.size(42.dp),
                 color = iconColor,
-                shape = RoundedCornerShape(12.dp)
+                shape = CircleShape
             ) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -441,7 +442,7 @@ private fun CompactInfoCardWithCustomShape(
                             MaterialTheme.colorScheme.onErrorContainer
                         else 
                             MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(20.dp)
                     )
                 }
             }

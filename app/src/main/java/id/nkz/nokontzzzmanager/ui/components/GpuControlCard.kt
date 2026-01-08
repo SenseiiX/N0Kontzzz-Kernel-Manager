@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.VideogameAsset
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -445,17 +446,17 @@ fun GpuControlCard(
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     }
+                                    val gpuThrottlingEnabled by tuningViewModel.gpuThrottlingEnabled.collectAsState()
                                     Switch(
-                                        checked = tuningViewModel.gpuThrottlingEnabled.collectAsState().value,
+                                        checked = gpuThrottlingEnabled,
                                         onCheckedChange = { checked ->
                                             tuningViewModel.toggleGpuThrottling(checked)
                                         },
-                                        thumbContent = if (tuningViewModel.gpuThrottlingEnabled.collectAsState().value) {
+                                        thumbContent = if (gpuThrottlingEnabled) {
                                             {
                                                 Icon(
                                                     imageVector = Icons.Default.Check,
                                                     contentDescription = null,
-                                                    tint = MaterialTheme.colorScheme.onPrimary,
                                                     modifier = Modifier.size(SwitchDefaults.IconSize),
                                                 )
                                             }
@@ -464,7 +465,6 @@ fun GpuControlCard(
                                                 Icon(
                                                     imageVector = Icons.Default.Close,
                                                     contentDescription = null,
-                                                    tint = MaterialTheme.colorScheme.inverseOnSurface,
                                                     modifier = Modifier.size(SwitchDefaults.IconSize),
                                                 )
                                             }
@@ -761,9 +761,9 @@ private fun GPUControlSection(
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Surface(
-                modifier = Modifier.size(40.dp),
+                modifier = Modifier.size(42.dp),
                 color = MaterialTheme.colorScheme.primaryContainer,
-                shape = RoundedCornerShape(12.dp)
+                shape = CircleShape
             ) {
                 Box(
                     modifier = Modifier.fillMaxSize(),

@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Memory
@@ -962,10 +963,10 @@ private fun ControlSection(
             // Icon with themed background
             Box(
                 modifier = Modifier
-                    .size(36.dp)
+                    .size(42.dp)
                     .background(
                         color = if (enabled) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
-                        shape = RoundedCornerShape(10.dp)
+                        shape = CircleShape
                     ),
                 contentAlignment = Alignment.Center
             ) {

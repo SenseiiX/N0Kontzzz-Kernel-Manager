@@ -109,9 +109,9 @@ fun ChargingControlDialog(
                                         checked = enabled,
                                         onCheckedChange = onEnabledChange,
                                         thumbContent = if (enabled) {
-                                            { Icon(Icons.Default.Check, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(SwitchDefaults.IconSize)) }
+                                            { Icon(Icons.Default.Check, null, modifier = Modifier.size(SwitchDefaults.IconSize)) }
                                         } else {
-                                            { Icon(Icons.Default.Close, null, tint = MaterialTheme.colorScheme.inverseOnSurface, modifier = Modifier.size(SwitchDefaults.IconSize)) }
+                                            { Icon(Icons.Default.Close, null, modifier = Modifier.size(SwitchDefaults.IconSize)) }
                                         }
                                     )
                                 }

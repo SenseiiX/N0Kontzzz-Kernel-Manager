@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -374,10 +375,10 @@ fun PerformanceModeCard(
                             // Icon with themed background
                             Box(
                                 modifier = Modifier
-                                    .size(36.dp)
+                                    .size(42.dp)
                                     .background(
                                         color = baseColor.copy(alpha = if (isEnabled) 0.2f else 0.05f),
-                                        shape = RoundedCornerShape(10.dp)
+                                        shape = CircleShape
                                     ),
                                 contentAlignment = Alignment.Center
                             ) {
