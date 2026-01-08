@@ -48,6 +48,16 @@ class TuningViewModel @Inject constructor(
     private val _dynamicCpuClusters = MutableStateFlow<List<String>>(emptyList())
     val dynamicCpuClusters: StateFlow<List<String>> = _dynamicCpuClusters.asStateFlow()
 
+    // UI State for card expansion
+    private val _expandedCards = MutableStateFlow<Map<String, Boolean>>(emptyMap())
+    val expandedCards: StateFlow<Map<String, Boolean>> = _expandedCards.asStateFlow()
+
+    fun toggleCardExpansion(cardId: String) {
+        val current = _expandedCards.value.toMutableMap()
+        current[cardId] = !(current[cardId] ?: false)
+        _expandedCards.value = current
+    }
+
     /* ---------------- CPU ---------------- */
     private val _performanceMode = MutableStateFlow(performancePrefs.getString(KEY_LAST_APPLIED_PERFORMANCE_MODE, "Balanced") ?: "Balanced")
     val performanceMode: StateFlow<String> = _performanceMode.asStateFlow()
@@ -66,6 +76,7 @@ class TuningViewModel @Inject constructor(
     init {
         cpuClusters.forEach { cluster ->
             _currentCpuGovernors.getOrPut(cluster) { MutableStateFlow("...") }
+            _currentCpuFrequencies.getOrPut(cluster) { MutableStateFlow(0 to 0) }
         }
     }
 
@@ -205,20 +216,55 @@ class TuningViewModel @Inject constructor(
     //<editor-fold desc="Lazy Load Functions">
     fun loadAllData() {
         viewModelScope.launch {
-            _isLoading.value = true
-            // Use coroutineScope to wait for all child coroutines to complete
-            coroutineScope {
-                launch { loadCpuData() }
-                launch { loadGpuData() }
-                launch { loadRamData() }
-                launch { loadThermalData() }
+            val everythingLoaded = isCpuDataLoaded.get() && isGpuDataLoaded.get() && isRamDataLoaded.get() && isThermalDataLoaded.get()
+
+            if (!everythingLoaded) {
+                _isLoading.value = true
+                // Use coroutineScope to wait for all child coroutines to complete
+                coroutineScope {
+                    launch { loadCpuData() }
+                    launch { loadGpuData() }
+                    launch { loadRamData() }
+                    launch { loadThermalData() }
+                }
+                _isLoading.value = false
+            } else {
+                // Just refresh values silently
+                refreshRealtimeData()
             }
-            _isLoading.value = false
+        }
+    }
+
+    private suspend fun refreshRealtimeData() {
+        withContext(Dispatchers.IO) {
+            // CPU
+            cpuClusters.forEach { cluster ->
+                launch { repo.getCpuGov(cluster).take(1).collect { _currentCpuGovernors[cluster]?.value = it } }
+                launch { repo.getCpuFreq(cluster).take(1).collect { _currentCpuFrequencies[cluster]?.value = it } }
+            }
+            refreshCoreStates()
+
+            // GPU
+            launch {
+                try {
+                    _currentGpuGovernor.value = repo.getGpuGov().first()
+                    val (min, max) = repo.getGpuFreq().first()
+                    _currentGpuMinFreq.value = min
+                    _currentGpuMaxFreq.value = max
+                    _currentGpuPowerLevel.value = repo.getCurrentGpuPowerLevel().first()
+                    _gpuThrottlingEnabled.value = systemRepo.isGpuThrottlingEnabled()
+                } catch (e: Exception) { Log.e("TuningVM", "Error refreshing GPU", e) }
+            }
+
+            // Thermal
+            fetchCurrentThermalMode()
+            
+            // RAM settings are mostly static/preference based, no need to heavy refresh
         }
     }
 
     private suspend fun loadCpuData() {
-        // if (isCpuDataLoaded.getAndSet(true)) return
+        if (isCpuDataLoaded.getAndSet(true)) return
         Log.d("TuningVM_LazyLoad", "Loading CPU data...")
         withContext(Dispatchers.IO) {
             fetchAllCpuData()
@@ -227,7 +273,7 @@ class TuningViewModel @Inject constructor(
     }
 
     private suspend fun loadGpuData() {
-        // if (isGpuDataLoaded.getAndSet(true)) return
+        if (isGpuDataLoaded.getAndSet(true)) return
         Log.d("TuningVM_LazyLoad", "Loading GPU data...")
         withContext(Dispatchers.IO) {
             launch { fetchGpuData() }
@@ -237,7 +283,7 @@ class TuningViewModel @Inject constructor(
     }
 
     private suspend fun loadRamData() {
-        // if (isRamDataLoaded.getAndSet(true)) return
+        if (isRamDataLoaded.getAndSet(true)) return
         Log.d("TuningVM_LazyLoad", "Loading RAM data...")
         withContext(Dispatchers.IO) {
             fetchRamControlData()
@@ -245,7 +291,7 @@ class TuningViewModel @Inject constructor(
     }
 
     private suspend fun loadThermalData() {
-        // if (isThermalDataLoaded.getAndSet(true)) return
+        if (isThermalDataLoaded.getAndSet(true)) return
         Log.d("TuningVM_LazyLoad", "Loading Thermal data...")
         withContext(Dispatchers.IO) {
             // Prioritize restoring the user's last saved setting.

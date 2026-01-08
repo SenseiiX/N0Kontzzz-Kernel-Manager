@@ -876,39 +876,41 @@ fun CpuClusterCard(
 
                 // Min Frequency Section (middle card - 8dp all sides)
                 val minFreqText = when {
-                    currentGovernor == "..." || currentGovernor == "Error" -> currentGovernor
-                    currentFreqPair.first == 0 && currentFreqPair.second == 0 && availableFrequenciesForCluster.isEmpty() -> stringResource(id = R.string.loading_ellipsis)
-                    currentFreqPair.first == 0 && currentFreqPair.second == -1 -> stringResource(id = R.string.error)
-                    else -> stringResource(id = R.string.cpu_freq_mhz, currentFreqPair.first / 1000)
+                    currentGovernor == "..." -> stringResource(id = R.string.loading_ellipsis)
+                    currentGovernor == "Error" -> stringResource(id = R.string.error)
+                    currentFreqPair.first > 0 -> stringResource(id = R.string.cpu_freq_mhz, currentFreqPair.first / 1000)
+                    currentFreqPair.first == -1 -> stringResource(id = R.string.error)
+                    else -> stringResource(id = R.string.loading_ellipsis)
                 }
 
                 ControlSection(
                     icon = Icons.Default.Speed,
                     title = stringResource(id = R.string.min_frequency),
                     value = minFreqText,
-                    isLoading = minFreqText == stringResource(id = R.string.loading_ellipsis) || minFreqText == stringResource(id = R.string.error),
+                    isLoading = minFreqText == stringResource(id = R.string.loading_ellipsis),
                     themeColor = MaterialTheme.colorScheme.primary,
                     onClick = onMinFrequencyClick,
-                    enabled = availableFrequenciesForCluster.isNotEmpty() || minFreqText == stringResource(id = R.string.loading_ellipsis) || minFreqText == stringResource(id = R.string.error),
+                    enabled = availableFrequenciesForCluster.isNotEmpty(),
                     cornerShape = RoundedCornerShape(4.dp)
                 )
 
                 // Max Frequency Section (middle card - 8dp all sides)
                 val maxFreqText = when {
-                    currentGovernor == "..." || currentGovernor == "Error" -> currentGovernor
-                    currentFreqPair.first == 0 && currentFreqPair.second == 0 && availableFrequenciesForCluster.isEmpty() -> stringResource(id = R.string.loading_ellipsis)
-                    currentFreqPair.first == 0 && currentFreqPair.second == -1 -> stringResource(id = R.string.error)
-                    else -> stringResource(id = R.string.cpu_freq_mhz, currentFreqPair.second / 1000)
+                    currentGovernor == "..." -> stringResource(id = R.string.loading_ellipsis)
+                    currentGovernor == "Error" -> stringResource(id = R.string.error)
+                    currentFreqPair.second > 0 -> stringResource(id = R.string.cpu_freq_mhz, currentFreqPair.second / 1000)
+                    currentFreqPair.second == -1 -> stringResource(id = R.string.error)
+                    else -> stringResource(id = R.string.loading_ellipsis)
                 }
 
                 ControlSection(
                     icon = Icons.Default.Speed,
                     title = stringResource(id = R.string.max_frequency),
                     value = maxFreqText,
-                    isLoading = maxFreqText == stringResource(id = R.string.loading_ellipsis) || maxFreqText == stringResource(id = R.string.error),
+                    isLoading = maxFreqText == stringResource(id = R.string.loading_ellipsis),
                     themeColor = MaterialTheme.colorScheme.primary,
                     onClick = onMaxFrequencyClick,
-                    enabled = availableFrequenciesForCluster.isNotEmpty() || maxFreqText == stringResource(id = R.string.loading_ellipsis) || maxFreqText == stringResource(id = R.string.error),
+                    enabled = availableFrequenciesForCluster.isNotEmpty(),
                     cornerShape = RoundedCornerShape(4.dp)
                 )
 

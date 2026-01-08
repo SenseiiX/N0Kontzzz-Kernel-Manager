@@ -333,8 +333,8 @@ class TuningRepository @Inject constructor(
     }
 
     fun getCpuFreq(cluster: String): Flow<Pair<Int, Int>> = flow {
-        val min = readShellCommand("cat ${cpuMinFreqPath.format(cluster)}").toIntOrNull() ?: 0
-        val max = readShellCommand("cat ${cpuMaxFreqPath.format(cluster)}").toIntOrNull() ?: 0
+        val min = readShellCommand("cat ${cpuMinFreqPath.format(cluster)}").toIntOrNull() ?: -1
+        val max = readShellCommand("cat ${cpuMaxFreqPath.format(cluster)}").toIntOrNull() ?: -1
         emit(min to max)
     }.flowOn(Dispatchers.IO)
 
