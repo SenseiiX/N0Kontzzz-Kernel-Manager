@@ -124,7 +124,17 @@ class MiscViewModel @Inject constructor(
             val avoidDirtyPteAvailable = systemRepository.isAvoidDirtyPteAvailable()
             _isAvoidDirtyPteAvailable.value = avoidDirtyPteAvailable
             if (avoidDirtyPteAvailable) {
-                _avoidDirtyPteEnabled.value = systemRepository.getAvoidDirtyPte()
+                val kernelState = systemRepository.getAvoidDirtyPte()
+                val userPref = preferenceManager.getAvoidDirtyPte()
+                
+                if (userPref && !kernelState) {
+                    // Self-heal: User wants enabled, but kernel is disabled (e.g. boot restore pending/failed)
+                    // Apply immediately
+                    val success = systemRepository.setAvoidDirtyPte(true)
+                    _avoidDirtyPteEnabled.value = success
+                } else {
+                    _avoidDirtyPteEnabled.value = kernelState
+                }
             } else {
                 _avoidDirtyPteEnabled.value = false
             }

@@ -32,10 +32,7 @@ class AppMonitorService : Service() {
     @Inject
     lateinit var preferenceManager: PreferenceManager
     
-    // We need to access the raw shared prefs for performance mode as it's not exposed in PreferenceManager wrapper yet
-    private val performancePrefs by lazy {
-        getSharedPreferences("performance_mode_prefs", Context.MODE_PRIVATE)
-    }
+    // Raw shared prefs removed as we now use PreferenceManager
 
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private var monitorJob: Job? = null
@@ -43,7 +40,7 @@ class AppMonitorService : Service() {
     private var isProfileApplied = false
 
     private val usageStatsManager by lazy {
-        getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
+        getSystemService(USAGE_STATS_SERVICE) as UsageStatsManager
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -135,7 +132,7 @@ class AppMonitorService : Service() {
         Log.d("AppMonitorService", "Reverting to global settings")
 
         // 1. Performance Mode
-        val globalMode = performancePrefs.getString("last_applied_performance_mode", "Balanced") ?: "Balanced"
+        val globalMode = preferenceManager.getPerformanceMode()
         applyPerformanceMode(globalMode)
 
         // 2. KGSL

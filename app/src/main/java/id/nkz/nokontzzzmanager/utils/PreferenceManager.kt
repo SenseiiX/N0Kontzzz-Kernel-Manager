@@ -63,6 +63,9 @@ class PreferenceManager @Inject constructor(
         private const val KEY_CPU_GOV_PREFIX = "cpu_gov_"
         private const val KEY_CPU_MIN_FREQ_PREFIX = "cpu_min_freq_"
         private const val KEY_CPU_MAX_FREQ_PREFIX = "cpu_max_freq_"
+
+        // Performance Mode
+        private const val KEY_PERFORMANCE_MODE = "last_applied_performance_mode"
     }
 
     private fun credentialPrefs(): SharedPreferences? {
@@ -104,10 +107,17 @@ class PreferenceManager @Inject constructor(
         credentialPrefs()?.edit {
             putBoolean(KEY_AVOID_DIRTY_PTE, enabled)
         }
+        deviceProtectedPrefs().edit {
+            putBoolean(KEY_AVOID_DIRTY_PTE, enabled)
+        }
     }
 
     fun getAvoidDirtyPte(): Boolean {
-        credentialPrefs()?.getBoolean(KEY_AVOID_DIRTY_PTE, false)?.let { return it }
+        credentialPrefs()?.let { prefs ->
+            if (prefs.contains(KEY_AVOID_DIRTY_PTE)) {
+                return prefs.getBoolean(KEY_AVOID_DIRTY_PTE, false)
+            }
+        }
         return deviceProtectedPrefs().getBoolean(KEY_AVOID_DIRTY_PTE, false)
     }
 
@@ -453,25 +463,44 @@ class PreferenceManager @Inject constructor(
     // CPU Per-cluster
     fun setCpuGov(cluster: String, gov: String) {
         credentialPrefs()?.edit { putString(KEY_CPU_GOV_PREFIX + cluster, gov) }
+        deviceProtectedPrefs().edit { putString(KEY_CPU_GOV_PREFIX + cluster, gov) }
     }
 
     fun getCpuGov(cluster: String): String? {
         return credentialPrefs()?.getString(KEY_CPU_GOV_PREFIX + cluster, null)
+            ?: deviceProtectedPrefs().getString(KEY_CPU_GOV_PREFIX + cluster, null)
     }
 
     fun setCpuMinFreq(cluster: String, freq: Int) {
         credentialPrefs()?.edit { putInt(KEY_CPU_MIN_FREQ_PREFIX + cluster, freq) }
+        deviceProtectedPrefs().edit { putInt(KEY_CPU_MIN_FREQ_PREFIX + cluster, freq) }
     }
 
     fun getCpuMinFreq(cluster: String): Int {
-        return credentialPrefs()?.getInt(KEY_CPU_MIN_FREQ_PREFIX + cluster, -1) ?: -1
+        return credentialPrefs()?.getInt(KEY_CPU_MIN_FREQ_PREFIX + cluster, -1)
+            ?.takeIf { it != -1 }
+            ?: deviceProtectedPrefs().getInt(KEY_CPU_MIN_FREQ_PREFIX + cluster, -1)
     }
 
     fun setCpuMaxFreq(cluster: String, freq: Int) {
         credentialPrefs()?.edit { putInt(KEY_CPU_MAX_FREQ_PREFIX + cluster, freq) }
+        deviceProtectedPrefs().edit { putInt(KEY_CPU_MAX_FREQ_PREFIX + cluster, freq) }
     }
 
     fun getCpuMaxFreq(cluster: String): Int {
-        return credentialPrefs()?.getInt(KEY_CPU_MAX_FREQ_PREFIX + cluster, -1) ?: -1
+        return credentialPrefs()?.getInt(KEY_CPU_MAX_FREQ_PREFIX + cluster, -1)
+            ?.takeIf { it != -1 }
+            ?: deviceProtectedPrefs().getInt(KEY_CPU_MAX_FREQ_PREFIX + cluster, -1)
+    }
+
+    // Performance Mode
+    fun setPerformanceMode(mode: String) {
+        credentialPrefs()?.edit { putString(KEY_PERFORMANCE_MODE, mode) }
+        deviceProtectedPrefs().edit { putString(KEY_PERFORMANCE_MODE, mode) }
+    }
+
+    fun getPerformanceMode(): String {
+        return credentialPrefs()?.getString(KEY_PERFORMANCE_MODE, null)
+            ?: deviceProtectedPrefs().getString(KEY_PERFORMANCE_MODE, "Balanced") ?: "Balanced"
     }
 }

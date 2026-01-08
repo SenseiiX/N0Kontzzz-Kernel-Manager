@@ -101,8 +101,7 @@ class RestoreSettingsWorker @AssistedInject constructor(
     }
 
     private fun restorePerformanceMode() {
-        val prefs = applicationContext.getSharedPreferences("performance_mode_prefs", Context.MODE_PRIVATE)
-        val mode = prefs.getString("last_applied_performance_mode", "Balanced") ?: "Balanced"
+        val mode = preferenceManager.getPerformanceMode()
         
         val governor = when (mode) {
             "Performance" -> "performance"

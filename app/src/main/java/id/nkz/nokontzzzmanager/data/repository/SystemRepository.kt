@@ -1246,7 +1246,19 @@ class SystemRepository @Inject constructor(
         val path = getAvailableAvoidDirtyPtePath()
         if (path != null) {
             val value = if (enabled) "1" else "0"
-            return writeStringToFile(path, value, "Avoid Dirty PTE")
+            // Use generic robust write approach
+            try {
+                // Ensure writable
+                rootRepository.run("chmod 666 $path")
+                // Write
+                rootRepository.run("echo \"$value\" > \"$path\"")
+                // Restore/Lock permissions (read-only to prevent reset)
+                rootRepository.run("chmod 444 $path")
+                return true
+            } catch (e: Exception) {
+                // Fallback to basic writeStringToFile if root/complex commands fail
+                return writeStringToFile(path, value, "Avoid Dirty PTE")
+            }
         }
         return false
     }
@@ -1343,7 +1355,7 @@ class SystemRepository @Inject constructor(
     }
 
     // I/O Scheduler functions
-    private fun getCurrentIoScheduler(): String? {
+    private fun getCurrentIoScheduler(): String {
         // Try multiple possible paths for different devices
         val paths = listOf(
             "/sys/block/sda/queue/scheduler",  // Common path

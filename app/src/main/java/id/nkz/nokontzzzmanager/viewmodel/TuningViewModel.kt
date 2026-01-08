@@ -35,11 +35,9 @@ class TuningViewModel @Inject constructor(
     private val thermalPrefs: SharedPreferences by lazy {
         application.getSharedPreferences("thermal_settings_prefs", Context.MODE_PRIVATE)
     }
-    private val performancePrefs: SharedPreferences by lazy {
-        application.getSharedPreferences("performance_mode_prefs", Context.MODE_PRIVATE)
-    }
+    // performancePrefs removed
     private val KEY_LAST_APPLIED_THERMAL_INDEX = "last_applied_thermal_index"
-    private val KEY_LAST_APPLIED_PERFORMANCE_MODE = "last_applied_performance_mode"
+    // KEY_LAST_APPLIED_PERFORMANCE_MODE removed
 
     val cpuClusters = listOf("cpu0", "cpu4", "cpu7")
 
@@ -59,7 +57,7 @@ class TuningViewModel @Inject constructor(
     }
 
     /* ---------------- CPU ---------------- */
-    private val _performanceMode = MutableStateFlow(performancePrefs.getString(KEY_LAST_APPLIED_PERFORMANCE_MODE, "Balanced") ?: "Balanced")
+    private val _performanceMode = MutableStateFlow(preferenceManager.getPerformanceMode())
     val performanceMode: StateFlow<String> = _performanceMode.asStateFlow()
 
     private val _coreStates = MutableStateFlow(List(8) { true })
@@ -269,6 +267,23 @@ class TuningViewModel @Inject constructor(
         withContext(Dispatchers.IO) {
             fetchAllCpuData()
             refreshCoreStates()
+            
+            // Self-healing: Check if active performance mode matches preference
+            // We need to wait a bit for flows to emit the just-fetched data
+            delay(100) 
+            val preferredMode = preferenceManager.getPerformanceMode()
+            // We can't access activePerformanceMode value directly easily as it is a Flow.
+            // But we can check the governors we just fetched.
+            val gov0 = _currentCpuGovernors["cpu0"]?.value
+            
+            // Simple check: if preferred is Performance/Powersave but we see schedutil, re-apply.
+            if (preferredMode == "Performance" && gov0 != "performance") {
+                Log.d("TuningVM_SelfHeal", "Re-applying Performance Mode")
+                onPerformanceModeChange(preferredMode)
+            } else if (preferredMode == "Powersave" && gov0 != "powersave") {
+                Log.d("TuningVM_SelfHeal", "Re-applying Powersave Mode")
+                onPerformanceModeChange(preferredMode)
+            }
         }
     }
 
@@ -418,9 +433,7 @@ class TuningViewModel @Inject constructor(
 
     fun onPerformanceModeChange(mode: String) {
         _performanceMode.value = mode
-        performancePrefs.edit {
-            putString(KEY_LAST_APPLIED_PERFORMANCE_MODE, mode)
-        }
+        preferenceManager.setPerformanceMode(mode)
         val governor = when (mode) {
             "Performance" -> "performance"
             "Powersave" -> "powersave"
@@ -696,7 +709,8 @@ class TuningViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             if (resetCpu) {
                 preferenceManager.clearCpuSettings()
-                performancePrefs.edit { remove(KEY_LAST_APPLIED_PERFORMANCE_MODE) }
+                // Performance Mode is now in main prefs, set to default
+                preferenceManager.setPerformanceMode("Balanced")
                 _performanceMode.value = "Balanced"
 
                 // Attempt to revert to safe defaults (Schedutil)
