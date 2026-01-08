@@ -499,6 +499,9 @@
     <string name="usage_time_format_min">%dm</string>
 
     <!-- App Profiles Screen -->
+    <string name="automation_title">Automation</string>
+    <string name="app_profiles_title">Per-App Profiles</string>
+    <string name="app_profiles_desc">Set custom performance, KGSL, and charging settings for specific apps</string>
     <string name="app_profiles_add_profile">Add App Profile</string>
     <string name="app_profiles_permission_required">Usage Stats permission required for App Profiles to work. Tap to enable.</string>
     <string name="app_profiles_no_profiles">No profiles configured. Tap + to add one.</string>
@@ -630,6 +633,8 @@
     <string name="backup_file_name" translatable="false">nkm_backup.json</string>
 
     <!-- Dexopt Screen -->
+    <string name="dexopt_title">Dexopt</string>
+    <string name="dexopt_desc">Optimize installed applications</string>
     <string name="dexopt_run_dexopt">Run Dexopt</string>
     <string name="dexopt_confirm_title">Run Dexopt?</string>
     <string name="dexopt_confirm_content">"This process may take a long time and consume battery. Do not close the app while it\'s running."</string>

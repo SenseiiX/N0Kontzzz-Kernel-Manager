@@ -499,7 +499,7 @@ fun GpuControlCard(
     // Min Frequency Selection Dialog
     if (showMinFreqDialog) {
         GpuFrequencySelectionDialog(
-            title = "Set Min Frequency",
+            title = stringResource(id = R.string.set_min_frequency),
             availableFrequencies = availableGpuFrequencies,
             currentFrequency = gpuMinFreq,
             onFrequencySelected = { frequency ->
@@ -515,7 +515,7 @@ fun GpuControlCard(
     // Max Frequency Selection Dialog
     if (showMaxFreqDialog) {
         GpuFrequencySelectionDialog(
-            title = "Set Max Frequency",
+            title = stringResource(id = R.string.set_max_frequency),
             availableFrequencies = availableGpuFrequencies,
             currentFrequency = gpuMaxFreq,
             onFrequencySelected = { frequency ->
