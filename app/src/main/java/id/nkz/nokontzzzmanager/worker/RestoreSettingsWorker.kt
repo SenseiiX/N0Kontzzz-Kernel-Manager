@@ -30,8 +30,8 @@ class RestoreSettingsWorker @AssistedInject constructor(
 
         restoreNetworkAndIoSettings()
         restoreMiscSettings()
-        restoreCpuSettings() // New method for per-cluster restore
         restorePerformanceMode()
+        restoreCpuSettings() // New method for per-cluster restore
         restoreGpuSettings()
         restoreRamSettings()
         restoreThermalSettings()
