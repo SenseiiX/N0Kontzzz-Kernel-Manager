@@ -247,7 +247,7 @@ class ProcessMonitorViewModel @Inject constructor(
                 val closeParenIdx = line.lastIndexOf(')')
                 if (closeParenIdx == -1) continue
                 
-                val pidStr = line.substring(0, line.indexOf('(')).trim()
+                val pidStr = line.substringBefore('(').trim()
                 val statsStr = line.substring(closeParenIdx + 2)
                 val stats = statsStr.split(" ")
                 
