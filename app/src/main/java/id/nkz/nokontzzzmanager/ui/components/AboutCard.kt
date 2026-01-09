@@ -373,10 +373,10 @@ fun DeveloperCreditItem(developer: Developer, position: Int, totalItems: Int) {
     val developerName = stringResource(id = developer.name)
     
     // Determine rounded corners based on position
-    val shape = when {
-        position == 0 && position == totalItems - 1 -> RoundedCornerShape(24.dp) // Only item
-        position == 0 -> RoundedCornerShape(24.dp, 24.dp, 4.dp, 4.dp) // First item: top corners 24dp, bottom 8dp
-        position == totalItems - 1 -> RoundedCornerShape(4.dp, 4.dp, 24.dp, 24.dp) // Last item: top corners 8dp, bottom 24dp
+    val shape = when (position) {
+        0 if position == totalItems - 1 -> RoundedCornerShape(24.dp) // Only item
+        0 -> RoundedCornerShape(24.dp, 24.dp, 4.dp, 4.dp) // First item: top corners 24dp, bottom 8dp
+        totalItems - 1 -> RoundedCornerShape(4.dp, 4.dp, 24.dp, 24.dp) // Last item: top corners 8dp, bottom 24dp
         else -> RoundedCornerShape(4.dp) // Middle items: all corners 8dp
     }
 
@@ -429,10 +429,10 @@ fun RepositoryCreditItem(repository: RepositoryContributor, position: Int, total
     val uriHandler = LocalUriHandler.current
     
     // Determine rounded corners based on position
-    val shape = when {
-        position == 0 && position == totalItems - 1 -> RoundedCornerShape(24.dp) // Only item
-        position == 0 -> RoundedCornerShape(24.dp, 24.dp, 4.dp, 4.dp) // First item: top corners 24dp, bottom 8dp
-        position == totalItems - 1 -> RoundedCornerShape(4.dp, 4.dp, 24.dp, 24.dp) // Last item: top corners 8dp, bottom 24dp
+    val shape = when (position) {
+        0 if position == totalItems - 1 -> RoundedCornerShape(24.dp) // Only item
+        0 -> RoundedCornerShape(24.dp, 24.dp, 4.dp, 4.dp) // First item: top corners 24dp, bottom 8dp
+        totalItems - 1 -> RoundedCornerShape(4.dp, 4.dp, 24.dp, 24.dp) // Last item: top corners 8dp, bottom 24dp
         else -> RoundedCornerShape(4.dp) // Middle items: all corners 8dp
     }
 
