@@ -1,17 +1,15 @@
 package id.nkz.nokontzzzmanager
 
 import android.app.Application
+import android.content.Context
+import android.util.Log
 import androidx.work.Configuration
-import androidx.work.WorkManager
 import com.topjohnwu.superuser.Shell
 import dagger.hilt.android.HiltAndroidApp
-import android.util.Log
-
-import id.nkz.nokontzzzmanager.utils.LocaleHelper
-import android.content.Context
-import javax.inject.Inject
-import id.nkz.nokontzzzmanager.utils.PreferenceManager
 import id.nkz.nokontzzzmanager.service.BatteryMonitorService
+import id.nkz.nokontzzzmanager.utils.LocaleHelper
+import id.nkz.nokontzzzmanager.utils.PreferenceManager
+import javax.inject.Inject
 
 @HiltAndroidApp
 class NkzApp : Application(), Configuration.Provider {
