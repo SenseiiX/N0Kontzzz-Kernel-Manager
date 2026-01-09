@@ -38,15 +38,6 @@ class NkzApp : Application(), Configuration.Provider {
         // Initialize theme mode - this will be managed by ThemeManager
         // The actual theme will be applied in the MainActivity based on user preference
 
-        // Inisialisasi WorkManager secara manual
-        WorkManager.initialize(
-            this,
-            Configuration.Builder()
-                .setMinimumLoggingLevel(Log.DEBUG) // Logging untuk debug
-                .build()
-        )
-        Log.d("NkzApp", "WorkManager initialized successfully")
-
         // Auto-start Battery Monitor if enabled when app process starts
         runCatching {
             if (preferenceManager.isBatteryMonitorEnabled()) {
