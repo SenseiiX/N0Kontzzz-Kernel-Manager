@@ -101,7 +101,9 @@ fun AboutCard(
                         painter = painterResource(id = R.drawable.nkm_png),
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                        modifier = Modifier.size(80.dp)
+                        modifier = Modifier
+                            .padding(12.dp)
+                            .size(48.dp)
                     )
                 }
                 Text(
