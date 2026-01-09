@@ -207,10 +207,8 @@ class SystemRepository @Inject constructor(
 
     private fun getBatteryLevelFromApi(): Int {
         val intentFilter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
-        val batteryStatusIntent = context.applicationContext.registerReceiver(null, intentFilter)
-        if (batteryStatusIntent == null) {
-            return -1
-        }
+        val batteryStatusIntent =
+            context.applicationContext.registerReceiver(null, intentFilter) ?: return -1
         val level = batteryStatusIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
         val scale = batteryStatusIntent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
         return if (level != -1 && scale != -1 && scale != 0) {
