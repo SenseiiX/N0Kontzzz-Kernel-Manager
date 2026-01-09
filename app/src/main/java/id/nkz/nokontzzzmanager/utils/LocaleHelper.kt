@@ -44,7 +44,7 @@ object LocaleHelper {
         val prefs = getSafePrefs(context)
         prefs?.edit { putString(PREF_KEY_APP_LOCALE, localeTag) }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && !context.isDeviceProtectedStorage) {
+        if (!context.isDeviceProtectedStorage) {
             val deviceContext = context.createDeviceProtectedStorageContext()
             deviceContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit {
                 putString(PREF_KEY_APP_LOCALE, localeTag)
@@ -80,9 +80,6 @@ object LocaleHelper {
     }
 
     private fun getSafePrefs(context: Context): SharedPreferences? {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-            return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        }
 
         if (context.isDeviceProtectedStorage) {
             return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
