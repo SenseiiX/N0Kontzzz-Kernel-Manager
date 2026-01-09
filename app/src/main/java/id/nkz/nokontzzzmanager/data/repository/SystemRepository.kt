@@ -1,5 +1,6 @@
 package id.nkz.nokontzzzmanager.data.repository
 
+import android.app.ActivityManager
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
@@ -39,6 +40,10 @@ import java.io.InputStreamReader
 import java.io.BufferedReader
 import javax.inject.Inject
 import javax.inject.Singleton
+import javax.microedition.khronos.egl.EGL10
+import javax.microedition.khronos.egl.EGLConfig
+import javax.microedition.khronos.egl.EGLContext
+import javax.microedition.khronos.opengles.GL10
 
 
 @Suppress("UNREACHABLE_CODE")
@@ -573,11 +578,96 @@ class SystemRepository @Inject constructor(
         }
     }
 
+    private var cachedGlVersion: String? = null
+
+    private fun getDetailedGlVersion(): String {
+        if (cachedGlVersion != null && cachedGlVersion!!.isNotEmpty()) return cachedGlVersion!!
+
+        // 1. Try basic ActivityManager first as fallback
+        var version = try {
+            val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+            activityManager.deviceConfigurationInfo.glEsVersion
+        } catch (e: Exception) {
+            ""
+        }
+
+        // 2. Try to get detailed string from EGL (e.g. "OpenGL ES 3.2 V@0530...")
+        // We run this in a try-catch block to ensure safety as EGL calls can fail on some devices
+        try {
+            val egl = EGLContext.getEGL() as EGL10
+            val display = egl.eglGetDisplay(EGL10.EGL_DEFAULT_DISPLAY)
+
+            if (display === EGL10.EGL_NO_DISPLAY) return version
+
+            val versionArray = IntArray(2)
+            if (!egl.eglInitialize(display, versionArray)) return version
+
+            val configAttribs = intArrayOf(
+                EGL10.EGL_RENDERABLE_TYPE, 4, // EGL_OPENGL_ES2_BIT
+                EGL10.EGL_SURFACE_TYPE, EGL10.EGL_PBUFFER_BIT,
+                EGL10.EGL_NONE
+            )
+
+            val configs = arrayOfNulls<EGLConfig>(1)
+            val numConfig = IntArray(1)
+            egl.eglChooseConfig(display, configAttribs, configs, 1, numConfig)
+
+            if (numConfig[0] == 0) return version
+            val config = configs[0]
+
+            val contextAttribs = intArrayOf(
+                0x3098, 2, // EGL_CONTEXT_CLIENT_VERSION, 2
+                EGL10.EGL_NONE
+            )
+
+            val ctx = egl.eglCreateContext(display, config, EGL10.EGL_NO_CONTEXT, contextAttribs)
+
+            if (ctx === EGL10.EGL_NO_CONTEXT) return version
+
+            val surfAttribs = intArrayOf(
+                EGL10.EGL_WIDTH, 1,
+                EGL10.EGL_HEIGHT, 1,
+                EGL10.EGL_NONE
+            )
+            val surface = egl.eglCreatePbufferSurface(display, config, surfAttribs)
+
+            if (surface === EGL10.EGL_NO_SURFACE) {
+                egl.eglDestroyContext(display, ctx)
+                return version
+            }
+
+            if (!egl.eglMakeCurrent(display, surface, surface, ctx)) {
+                egl.eglDestroySurface(display, surface)
+                egl.eglDestroyContext(display, ctx)
+                return version
+            }
+
+            val gl = ctx.gl as GL10
+            val fullVersion = gl.glGetString(GL10.GL_VERSION)
+
+            // Cleanup
+            egl.eglMakeCurrent(display, EGL10.EGL_NO_SURFACE, EGL10.EGL_NO_SURFACE, EGL10.EGL_NO_CONTEXT)
+            egl.eglDestroySurface(display, surface)
+            egl.eglDestroyContext(display, ctx)
+            egl.eglTerminate(display)
+
+            if (!fullVersion.isNullOrBlank()) {
+                version = fullVersion
+            }
+        } catch (e: Exception) {
+            // EGL failed, keep using the basic version
+        }
+
+        cachedGlVersion = version
+        return version
+    }
+
     private suspend fun getGpuRealtimeInternal(): RealtimeGpuInfo {
         var currentFreq = 0
         var maxFreq = 0
         var usage = 0
         val gpuModel = getGpuModel()
+        val glVersion = getDetailedGlVersion() // Use the detailed fetcher
         
         try {
             // Get current GPU frequency from TuningRepository
@@ -596,7 +686,8 @@ class SystemRepository @Inject constructor(
             usagePercentage = usage.toFloat(),
             currentFreq = currentFreq,
             maxFreq = maxFreq,
-            model = gpuModel
+            model = gpuModel,
+            glVersion = glVersion
         )
     }
     

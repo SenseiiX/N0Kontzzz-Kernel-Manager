@@ -25,6 +25,14 @@ import androidx.navigation.NavController
 import id.nkz.nokontzzzmanager.R
 import id.nkz.nokontzzzmanager.viewmodel.DexoptViewModel
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DexoptScreen(
@@ -51,70 +59,78 @@ fun DexoptScreen(
                         .background(Color.Transparent),
                     contentAlignment = Alignment.Center
                 ) {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth(0.9f)
-                            .heightIn(min = 200.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-                        shape = RoundedCornerShape(24.dp),
+                    AnimatedVisibility(
+                        visible = true,
+                        enter = fadeIn(animationSpec = spring(stiffness = Spring.StiffnessLow)) + 
+                                scaleIn(initialScale = 0.95f, animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessLow)),
+                        exit = fadeOut(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) + 
+                               scaleOut(targetScale = 0.95f, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
                     ) {
-                        Column(
-                            modifier = Modifier.padding(24.dp),
-                            verticalArrangement = Arrangement.spacedBy(20.dp)
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth(0.9f)
+                                .heightIn(min = 200.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+                            shape = RoundedCornerShape(24.dp),
                         ) {
-                            // Header
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            Column(
+                                modifier = Modifier.padding(24.dp),
+                                verticalArrangement = Arrangement.spacedBy(20.dp)
                             ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(56.dp)
-                                        .clip(RoundedCornerShape(16.dp))
-                                        .background(MaterialTheme.colorScheme.primaryContainer),
-                                    contentAlignment = Alignment.Center
+                                // Header
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(16.dp)
                                 ) {
-                                    Icon(
-                                        imageVector = Icons.Default.PlayArrow,
-                                        contentDescription = stringResource(R.string.dexopt_run_dexopt),
-                                        modifier = Modifier.size(28.dp),
-                                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                    Box(
+                                        modifier = Modifier
+                                            .size(56.dp)
+                                            .clip(RoundedCornerShape(16.dp))
+                                            .background(MaterialTheme.colorScheme.primaryContainer),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.PlayArrow,
+                                            contentDescription = stringResource(R.string.dexopt_run_dexopt),
+                                            modifier = Modifier.size(28.dp),
+                                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                        )
+                                    }
+                                    Text(
+                                        text = stringResource(R.string.dexopt_confirm_title),
+                                        style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
                                 }
+
+                                // Content
                                 Text(
-                                    text = stringResource(R.string.dexopt_confirm_title),
-                                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                                    color = MaterialTheme.colorScheme.onSurface
+                                    text = stringResource(R.string.dexopt_confirm_content),
+                                    style = MaterialTheme.typography.bodyMedium
                                 )
-                            }
 
-                            // Content
-                            Text(
-                                text = stringResource(R.string.dexopt_confirm_content),
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-
-                            // Actions
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                OutlinedButton(
-                                    onClick = { showConfirmDialog = false },
-                                    shape = RoundedCornerShape(16.dp),
-                                    modifier = Modifier.weight(1f)
+                                // Actions
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    Text(stringResource(R.string.cancel))
-                                }
-                                Button(
-                                    onClick = {
-                                        showConfirmDialog = false
-                                        viewModel.runDexopt()
-                                    },
-                                    shape = RoundedCornerShape(16.dp),
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    Text(stringResource(R.string.dexopt_start))
+                                    OutlinedButton(
+                                        onClick = { showConfirmDialog = false },
+                                        shape = RoundedCornerShape(16.dp),
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text(stringResource(R.string.cancel))
+                                    }
+                                    Button(
+                                        onClick = {
+                                            showConfirmDialog = false
+                                            viewModel.runDexopt()
+                                        },
+                                        shape = RoundedCornerShape(16.dp),
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text(stringResource(R.string.dexopt_start))
+                                    }
                                 }
                             }
                         }
@@ -229,6 +245,22 @@ fun DexoptScreen(
 
 @Composable
 fun LogPreview(logs: List<String>) {
+    // Intelligent deduplication:
+    // 1. Filter out consecutive duplicates (so "Job running..." appears once, not 10x in a row)
+    // 2. Take the last 50 logs to keep UI performant
+    val filteredLogs = remember(logs) {
+        val uniqueList = mutableListOf<String>()
+        if (logs.isNotEmpty()) {
+            uniqueList.add(logs[0])
+            for (i in 1 until logs.size) {
+                if (logs[i] != logs[i - 1]) {
+                    uniqueList.add(logs[i])
+                }
+            }
+        }
+        uniqueList.takeLast(50)
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -248,8 +280,8 @@ fun LogPreview(logs: List<String>) {
                 color = Color.Gray
             )
             
-            // Display last 10 logs
-            logs.forEach { log ->
+            // Display filtered logs
+            filteredLogs.forEach { log ->
                 Text(
                     text = log,
                     color = Color(0xFF00FF00),
