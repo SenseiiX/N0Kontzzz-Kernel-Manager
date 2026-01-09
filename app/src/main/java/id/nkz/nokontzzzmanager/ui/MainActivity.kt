@@ -196,73 +196,81 @@ class MainActivity : ComponentActivity() {
                         }
                     },
                     floatingActionButton = {
-                        if (currentRoute == "home") {
-                            var fabMenuExpanded by rememberSaveable { mutableStateOf(false) }
-                            BackHandler(fabMenuExpanded) { fabMenuExpanded = false }
+                        when (currentRoute) {
+                            "home" -> {
+                                var fabMenuExpanded by rememberSaveable { mutableStateOf(false) }
+                                BackHandler(fabMenuExpanded) { fabMenuExpanded = false }
 
-                            val fabMenuItems = remember {
-                                listOf(
-                                    Triple("power_off", R.string.power_off, Icons.Filled.PowerSettingsNew),
-                                    Triple("reboot_system", R.string.reboot_system, Icons.Filled.Refresh),
-                                    Triple("reboot_recovery", R.string.reboot_recovery, Icons.Filled.SettingsBackupRestore),
-                                    Triple("reboot_bootloader", R.string.reboot_bootloader, Icons.Filled.Build)
-                                )
-                            }
+                                val fabMenuItems = remember {
+                                    listOf(
+                                        Triple("power_off", R.string.power_off, Icons.Filled.PowerSettingsNew),
+                                        Triple("reboot_system", R.string.reboot_system, Icons.Filled.Refresh),
+                                        Triple(
+                                            "reboot_recovery",
+                                            R.string.reboot_recovery,
+                                            Icons.Filled.SettingsBackupRestore
+                                        ),
+                                        Triple("reboot_bootloader", R.string.reboot_bootloader, Icons.Filled.Build)
+                                    )
+                                }
 
-                            FloatingActionButtonMenu(
-                                expanded = fabMenuExpanded,
-                                button = {
-                                    ToggleFloatingActionButton(
-                                        checked = fabMenuExpanded,
-                                        onCheckedChange = { fabMenuExpanded = it },
-                                        containerSize = { 72.dp },
-                                    ) {
-                                        val imageVector by remember{
-                                            derivedStateOf {
-                                                if (checkedProgress > 0.5f) Icons.Filled.Close else Icons.Filled.PowerSettingsNew
+                                FloatingActionButtonMenu(
+                                    expanded = fabMenuExpanded,
+                                    button = {
+                                        ToggleFloatingActionButton(
+                                            checked = fabMenuExpanded,
+                                            onCheckedChange = { fabMenuExpanded = it },
+                                            containerSize = { 72.dp },
+                                        ) {
+                                            val imageVector by remember {
+                                                derivedStateOf {
+                                                    if (checkedProgress > 0.5f) Icons.Filled.Close else Icons.Filled.PowerSettingsNew
+                                                }
                                             }
+                                            Icon(
+                                                painter = rememberVectorPainter(imageVector),
+                                                contentDescription = stringResource(id = R.string.toggle_fab_menu),
+                                                modifier = Modifier.animateIcon({ checkedProgress })
+                                            )
                                         }
-                                        Icon(
-                                            painter = rememberVectorPainter(imageVector),
-                                            contentDescription = stringResource(id = R.string.toggle_fab_menu),
-                                            modifier = Modifier.animateIcon ({ checkedProgress })
+                                    }
+                                ) {
+                                    fabMenuItems.forEach { (action, textRes, icon) ->
+                                        val command = when (action) {
+                                            "power_off" -> "reboot -p"
+                                            "reboot_recovery" -> "reboot recovery"
+                                            "reboot_bootloader" -> "reboot bootloader"
+                                            "reboot_system" -> "reboot"
+                                            else -> ""
+                                        }
+                                        FloatingActionButtonMenuItem(
+                                            onClick = {
+                                                if (command.isNotEmpty()) {
+                                                    Runtime.getRuntime().exec(arrayOf("su", "-c", command))
+                                                }
+                                                fabMenuExpanded = false
+                                            },
+                                            icon = { Icon(icon, contentDescription = null) },
+                                            text = { Text(text = stringResource(textRes)) },
                                         )
                                     }
                                 }
-                            ) {
-                                fabMenuItems.forEach { (action, textRes, icon) ->
-                                    val command = when (action) {
-                                        "power_off" -> "reboot -p"
-                                        "reboot_recovery" -> "reboot recovery"
-                                        "reboot_bootloader" -> "reboot bootloader"
-                                        "reboot_system" -> "reboot"
-                                        else -> ""
-                                    }
-                                    FloatingActionButtonMenuItem(
-                                        onClick = {
-                                            if (command.isNotEmpty()) {
-                                                Runtime.getRuntime().exec(arrayOf("su", "-c", command))
-                                            }
-                                            fabMenuExpanded = false
-                                        },
-                                        icon = { Icon(icon, contentDescription = null) },
-                                        text = { Text(text = stringResource(textRes)) },
-                                    )
+                            }
+                            "battery_history" if batteryHistoryFabVisible.value -> {
+                                FloatingActionButton(
+                                    onClick = { batteryHistoryFabAction.value?.invoke() },
+                                    modifier = Modifier.size(72.dp) // Match HomeScreen FAB size
+                                ) {
+                                    Icon(Icons.Default.Delete, contentDescription = "Clear History")
                                 }
                             }
-                        } else if (currentRoute == "battery_history" && batteryHistoryFabVisible.value) {
-                            FloatingActionButton(
-                                onClick = { batteryHistoryFabAction.value?.invoke() },
-                                modifier = Modifier.size(72.dp) // Match HomeScreen FAB size
-                            ) {
-                                Icon(Icons.Default.Delete, contentDescription = "Clear History")
-                            }
-                        } else if (currentRoute == "process_monitor" && processMonitorFabVisible.value) {
-                            FloatingActionButton(
-                                onClick = { processMonitorFabAction.value?.invoke() },
-                                modifier = Modifier.size(72.dp)
-                            ) {
-                                Icon(Icons.Default.Settings, contentDescription = "Settings")
+                            "process_monitor" if processMonitorFabVisible.value -> {
+                                FloatingActionButton(
+                                    onClick = { processMonitorFabAction.value?.invoke() },
+                                    modifier = Modifier.size(72.dp)
+                                ) {
+                                    Icon(Icons.Default.Settings, contentDescription = "Settings")
+                                }
                             }
                         }
                     },
