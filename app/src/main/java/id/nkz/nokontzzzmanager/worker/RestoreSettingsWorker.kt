@@ -40,7 +40,7 @@ class RestoreSettingsWorker @AssistedInject constructor(
     }
 
     private fun restoreCpuSettings() {
-        val clusters = listOf("cpu0", "cpu4", "cpu7")
+        val clusters = tuningRepository.getClusterLeaders()
         clusters.forEach { cluster ->
             // Restore Governor
             preferenceManager.getCpuGov(cluster)?.let { gov ->
@@ -109,7 +109,7 @@ class RestoreSettingsWorker @AssistedInject constructor(
             else -> "schedutil"
         }
 
-        val clusters = listOf("cpu0", "cpu4", "cpu7")
+        val clusters = tuningRepository.getClusterLeaders()
         var successCount = 0
         
         clusters.forEach { cluster ->
