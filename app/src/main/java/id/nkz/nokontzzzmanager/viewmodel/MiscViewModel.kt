@@ -162,6 +162,19 @@ class MiscViewModel @Inject constructor(
 
             // Load I/O scheduler
             loadIoScheduler()
+
+            // Fix for restored backup state where permission is missing
+            if (_batteryMonitorEnabled.value && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                val granted = androidx.core.content.ContextCompat.checkSelfPermission(
+                    application,
+                    android.Manifest.permission.POST_NOTIFICATIONS
+                ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+                
+                if (!granted) {
+                    // Silently disable it so user sees "Off" and must click to trigger permission prompt
+                    toggleBatteryMonitor(false)
+                }
+            }
         }
     }
 
