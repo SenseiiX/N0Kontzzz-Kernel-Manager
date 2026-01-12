@@ -11,12 +11,11 @@ import kotlinx.coroutines.flow.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
-private val Context.thermalDataStore: DataStore<Preferences> by preferencesDataStore(name = "thermal_settings")
-
 @Singleton
 class ThermalRepository @Inject constructor(
     private val context: Context,
-    private val rootRepository: RootRepository
+    private val rootRepository: RootRepository,
+    private val thermalDataStore: DataStore<Preferences>
 ) {
     private val TAG = "ThermalRepository"
     private val thermalSysfsNode = "/sys/class/thermal/thermal_message/sconfig"
@@ -186,7 +185,7 @@ class ThermalRepository @Inject constructor(
 
     private suspend fun restoreLastThermalMode() {
         try {
-            val lastMode = context.thermalDataStore.data.first()[LAST_THERMAL_MODE] ?: 0
+            val lastMode = thermalDataStore.data.first()[LAST_THERMAL_MODE] ?: 0
             if (lastMode != 0) {
                 setThermalModeIndex(lastMode).collect { success ->
                     if (success) {
@@ -203,7 +202,7 @@ class ThermalRepository @Inject constructor(
 
     private suspend fun saveLastThermalMode(modeIndex: Int) {
         try {
-            context.thermalDataStore.edit { preferences ->
+            thermalDataStore.edit { preferences ->
                 preferences[LAST_THERMAL_MODE] = modeIndex
             }
         } catch (e: Exception) {
@@ -285,7 +284,7 @@ class ThermalRepository @Inject constructor(
             }
         }
 
-        context.thermalDataStore.edit { preferences ->
+        thermalDataStore.edit { preferences ->
             preferences[LAST_THERMAL_MODE] = modeIndex
         }
 
@@ -317,7 +316,7 @@ class ThermalRepository @Inject constructor(
         userSetMaxFreq = maxFreq
         userSetGovernor = governor
         withContext(Dispatchers.IO) {
-            context.thermalDataStore.edit { preferences ->
+            thermalDataStore.edit { preferences ->
                 preferences[USER_MAX_FREQ] = maxFreq
                 preferences[USER_GOVERNOR] = governor
             }
@@ -325,7 +324,7 @@ class ThermalRepository @Inject constructor(
     }
 
     private suspend fun restoreUserSettings() {
-        val prefs = context.thermalDataStore.data.first()
+        val prefs = thermalDataStore.data.first()
         userSetMaxFreq = prefs[USER_MAX_FREQ] ?: 0
         userSetGovernor = prefs[USER_GOVERNOR]
 
@@ -354,6 +353,6 @@ class ThermalRepository @Inject constructor(
     }
 
     suspend fun getSavedThermalMode(): Int {
-        return context.thermalDataStore.data.first()[LAST_THERMAL_MODE] ?: 0
+        return thermalDataStore.data.first()[LAST_THERMAL_MODE] ?: 0
     }
 }

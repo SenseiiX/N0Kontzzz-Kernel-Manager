@@ -28,6 +28,10 @@ class ThermalService : Service() {
     @Inject
     lateinit var thermalRepository: ThermalRepository
 
+    @Inject
+    @id.nkz.nokontzzzmanager.di.ThermalSettings
+    lateinit var thermalDataStore: DataStore<Preferences>
+
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private var monitoringJob: Job? = null
     private val TAG = "ThermalService"
@@ -35,7 +39,6 @@ class ThermalService : Service() {
     private var overlayWindow: View? = null
     private var windowManager: WindowManager? = null
 
-    private val thermalDataStore: DataStore<Preferences> by preferencesDataStore(name = "thermal_settings")
     private val LAST_THERMAL_MODE = intPreferencesKey("last_thermal_mode")
 
     companion object {

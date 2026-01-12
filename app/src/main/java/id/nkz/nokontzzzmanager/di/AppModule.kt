@@ -30,8 +30,11 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideThermalRepository(@ApplicationContext context: Context, rootRepository: RootRepository): ThermalRepository =
-        ThermalRepository(context, rootRepository)
+    fun provideThermalRepository(
+        @ApplicationContext context: Context,
+        rootRepository: RootRepository,
+        @ThermalSettings thermalDataStore: DataStore<Preferences>
+    ): ThermalRepository = ThermalRepository(context, rootRepository, thermalDataStore)
 
     @Provides
     @Singleton
@@ -46,6 +49,13 @@ object AppModule {
     @Singleton
     fun providePreferencesDataStore(@ApplicationContext context: Context): DataStore<Preferences> {
         return PreferenceDataStoreFactory.create(produceFile = { context.preferencesDataStoreFile("settings") })
+    }
+
+    @Provides
+    @Singleton
+    @ThermalSettings
+    fun provideThermalDataStore(@ApplicationContext context: Context): DataStore<Preferences> {
+        return PreferenceDataStoreFactory.create(produceFile = { context.preferencesDataStoreFile("thermal_settings") })
     }
 
     @Provides
