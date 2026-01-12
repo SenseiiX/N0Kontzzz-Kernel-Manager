@@ -382,6 +382,41 @@ class TuningRepository @Inject constructor(
         return if (count > 0) count else 8
     }
 
+    /**
+     * Dynamically identifies the leader CPU for each cluster.
+     * Returns a list of CPU identifiers (e.g., "cpu0", "cpu4", "cpu7").
+     */
+    fun getClusterLeaders(): List<String> {
+        val leaders = mutableListOf<String>()
+        val seenCpus = mutableSetOf<Int>()
+        val numCores = getNumberOfCores()
+
+        for (i in 0 until numCores) {
+            if (i in seenCpus) continue
+
+            // "cpu$i" is a new cluster leader
+            leaders.add("cpu$i")
+            seenCpus.add(i)
+
+            // Find other CPUs in this cluster to mark them as seen
+            val affectedCpusContent = readShellCommand("cat /sys/devices/system/cpu/cpu$i/cpufreq/affected_cpus")
+            if (affectedCpusContent.isNotBlank()) {
+                val clusterCpus = affectedCpusContent.split(" ")
+                    .mapNotNull { it.trim().toIntOrNull() }
+                seenCpus.addAll(clusterCpus)
+            } else {
+                // Fallback: checks related_cpus if affected_cpus is missing/empty
+                val relatedCpusContent = readShellCommand("cat /sys/devices/system/cpu/cpu$i/cpufreq/related_cpus")
+                 if (relatedCpusContent.isNotBlank()) {
+                    val clusterCpus = relatedCpusContent.split(" ")
+                        .mapNotNull { it.trim().toIntOrNull() }
+                    seenCpus.addAll(clusterCpus)
+                }
+            }
+        }
+        return leaders
+    }
+
 
     /* ----------------------------------------------------------
        GPU

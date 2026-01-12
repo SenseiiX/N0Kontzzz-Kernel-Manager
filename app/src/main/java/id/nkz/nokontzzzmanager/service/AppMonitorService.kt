@@ -155,8 +155,8 @@ class AppMonitorService : Service() {
     private suspend fun applyPerformanceMode(mode: String) {
         val governor = if (mode == "Performance") "performance" else "schedutil"
         
-        // Hardcoded clusters for this device (as seen in TuningViewModel: cpu0, cpu4, cpu7)
-        val clusterNodes = listOf("cpu0", "cpu4", "cpu7")
+        // Dynamically get cluster leaders instead of hardcoding
+        val clusterNodes = tuningRepository.getClusterLeaders()
         clusterNodes.forEach { cluster ->
              tuningRepository.setCpuGov(cluster, governor)
         }
