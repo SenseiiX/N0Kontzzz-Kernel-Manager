@@ -100,10 +100,10 @@
   Prevents the system from brute-force clearing dirty pages, theoretically improving benchmark scores and reducing overhead. *Note: This feature requires kernel support and may occasionally impact ZRAM consistency.*
 
 - **TCP Congestion Control**
-  Optimize network data throughput by selecting from available TCP congestion control algorithms (e.g., BBR, Cubic, Reno). Custom selections are persisted and automatically reapplied on boot.
+  Optimize network data throughput by selecting from available TCP congestion control algorithms (e.g., BBR, Cubic, Reno). Custom selections are reset upon reboot by default, but can be persisted using the **Apply on Boot** switch.
 
 - **I/O Scheduler Tuning**
-  Optimize storage read/write performance by choosing the most suitable kernel I/O scheduler for your workload. Preferences are saved and restored on system startup.
+  Optimize storage read/write performance by choosing the most suitable kernel I/O scheduler for your workload. Preferences return to system defaults after a restart unless the **Apply on Boot** option is enabled.
 
 - **Dexopt (App Optimization)**
   Manually trigger Android's Dalvik Executable Optimization process to improve application launch speeds and overall system smoothness.
