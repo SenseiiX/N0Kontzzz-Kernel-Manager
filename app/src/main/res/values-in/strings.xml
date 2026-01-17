@@ -156,9 +156,11 @@
     <!-- TcpCongestionDialog -->
     <string name="tcp_congestion_control">Kontrol TCP Congestion</string>
     <string name="tcp_congestion">TCP Congestion</string>
-    <string name="reset_network_io_title">Reset Jaringan &amp; Penyimpanan</string>
-    <string name="reset_network_io_desc">Hapus pengaturan TCP congestion dan I/O scheduler yang tersimpan. Default sistem akan diterapkan pada reboot berikutnya.</string>
-    <string name="reset_network_io_toast">Pengaturan direset. Reboot untuk menerapkan default sistem.</string>
+
+    <string name="apply_on_boot_title">Terapkan saat Boot</string>
+    <string name="apply_on_boot_desc">Secara otomatis terapkan pengaturan TCP dan I/O yang tersimpan setelah reboot</string>
+    <string name="apply_on_boot_active">Terapkan saat Boot Aktif</string>
+    <string name="apply_on_boot_active_desc">Pengaturan jaringan dan penyimpanan saat ini diterapkan pada setiap reboot. \n\nCatatan: Direkomendasikan untuk menonaktifkan opsi ini sebelum mengganti kernel guna menghindari penerapan nilai yang tidak kompatibel.</string>
 
     <!-- MiscScreen -->
     <string name="avoid_dirty_pte">Avoid Dirty PTE</string>

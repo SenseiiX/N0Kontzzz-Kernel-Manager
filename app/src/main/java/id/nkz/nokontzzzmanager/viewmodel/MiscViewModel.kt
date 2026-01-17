@@ -60,6 +60,9 @@ class MiscViewModel @Inject constructor(
     private val _availableIoSchedulers = MutableStateFlow<List<String>>(emptyList())
     val availableIoSchedulers: StateFlow<List<String>> = _availableIoSchedulers.asStateFlow()
 
+    private val _applyNetworkStorageOnBoot = MutableStateFlow(preferenceManager.isApplyNetworkStorageOnBoot())
+    val applyNetworkStorageOnBoot: StateFlow<Boolean> = _applyNetworkStorageOnBoot.asStateFlow()
+
     private val _batteryMonitorEnabled = MutableStateFlow(preferenceManager.isBatteryMonitorEnabled())
     val batteryMonitorEnabled: StateFlow<Boolean> = _batteryMonitorEnabled.asStateFlow()
 
@@ -355,15 +358,8 @@ class MiscViewModel @Inject constructor(
         preferenceManager.setChargingControlResumeLevel(level)
     }
 
-    fun resetNetworkAndIoSettings() {
-        viewModelScope.launch {
-            // Clear preferences so they don't apply on boot
-            preferenceManager.setTcpCongestionAlgorithm(null)
-            preferenceManager.setIoScheduler(null)
-            
-            // Note: We don't change runtime values here because we don't know the original system defaults.
-            // The user will need to reboot to restore system defaults fully.
-            // Alternatively, we could try to set "cubic" and "cfq" if we wanted to be aggressive.
-        }
+    fun setApplyNetworkStorageOnBoot(enabled: Boolean) {
+        _applyNetworkStorageOnBoot.value = enabled
+        preferenceManager.setApplyNetworkStorageOnBoot(enabled)
     }
 }

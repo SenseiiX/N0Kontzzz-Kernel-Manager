@@ -41,6 +41,8 @@ class PreferenceManager @Inject constructor(
 
         private const val KEY_TCP_CONGESTION_ALGORITHM = "tcp_congestion_algorithm"
         private const val KEY_IO_SCHEDULER = "io_scheduler"
+        private const val KEY_APPLY_NETWORK_STORAGE_ON_BOOT = "apply_network_storage_on_boot"
+        private const val KEY_LAST_APPLIED_BOOT_ID = "last_applied_boot_id"
 
         // GPU
         private const val KEY_GPU_GOVERNOR = "gpu_governor"
@@ -308,6 +310,26 @@ class PreferenceManager @Inject constructor(
     fun getIoScheduler(): String? {
         return credentialPrefs()?.getString(KEY_IO_SCHEDULER, null)
             ?: deviceProtectedPrefs().getString(KEY_IO_SCHEDULER, null)
+    }
+
+    fun setApplyNetworkStorageOnBoot(enabled: Boolean) {
+        credentialPrefs()?.edit { putBoolean(KEY_APPLY_NETWORK_STORAGE_ON_BOOT, enabled) }
+        deviceProtectedPrefs().edit { putBoolean(KEY_APPLY_NETWORK_STORAGE_ON_BOOT, enabled) }
+    }
+
+    fun isApplyNetworkStorageOnBoot(): Boolean {
+        return credentialPrefs()?.getBoolean(KEY_APPLY_NETWORK_STORAGE_ON_BOOT, false)
+            ?: deviceProtectedPrefs().getBoolean(KEY_APPLY_NETWORK_STORAGE_ON_BOOT, false)
+    }
+
+    fun setLastAppliedBootId(bootId: String) {
+        credentialPrefs()?.edit { putString(KEY_LAST_APPLIED_BOOT_ID, bootId) }
+        deviceProtectedPrefs().edit { putString(KEY_LAST_APPLIED_BOOT_ID, bootId) }
+    }
+
+    fun getLastAppliedBootId(): String? {
+        return credentialPrefs()?.getString(KEY_LAST_APPLIED_BOOT_ID, null)
+            ?: deviceProtectedPrefs().getString(KEY_LAST_APPLIED_BOOT_ID, null)
     }
 
     // GPU

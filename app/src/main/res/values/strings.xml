@@ -155,9 +155,11 @@
     <!-- TcpCongestionDialog -->
     <string name="tcp_congestion_control">TCP Congestion Control</string>
     <string name="tcp_congestion">TCP Congestion</string>
-    <string name="reset_network_io_title">Reset Network &amp; Storage</string>
-    <string name="reset_network_io_desc">Clear saved TCP congestion and I/O scheduler settings. System defaults will apply on next reboot.</string>
-    <string name="reset_network_io_toast">Settings reset. Reboot to apply system defaults.</string>
+
+    <string name="apply_on_boot_title">Apply on Boot</string>
+    <string name="apply_on_boot_desc">Automatically apply saved TCP and I/O settings after reboot</string>
+    <string name="apply_on_boot_active">Apply on Boot Active</string>
+    <string name="apply_on_boot_active_desc">Network and storage settings are currently being applied on every boot. \n\nNote: It is recommended to disable this before changing kernels to avoid applying incompatible settings.</string>
 
     <!-- MiscScreen -->
     <string name="avoid_dirty_pte">Avoid Dirty PTE</string>

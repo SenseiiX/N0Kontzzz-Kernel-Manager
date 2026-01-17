@@ -14,6 +14,7 @@ import id.nkz.nokontzzzmanager.utils.PreferenceManager
 import android.content.Intent
 import androidx.core.content.ContextCompat
 import id.nkz.nokontzzzmanager.service.ThermalService
+import kotlinx.coroutines.delay
 
 @HiltWorker
 class RestoreSettingsWorker @AssistedInject constructor(
@@ -58,19 +59,46 @@ class RestoreSettingsWorker @AssistedInject constructor(
         }
     }
 
-    private fun restoreNetworkAndIoSettings() {
+    private suspend fun restoreNetworkAndIoSettings() {
+        if (!preferenceManager.isApplyNetworkStorageOnBoot()) {
+            Log.d("RestoreSettingsWorker", "Skipping Network & IO restore (disabled by user)")
+            return
+        }
+
         // Restore TCP Congestion Algorithm
         val savedTcpAlgo = preferenceManager.getTcpCongestionAlgorithm()
         if (!savedTcpAlgo.isNullOrEmpty()) {
-            val success = systemRepository.setTcpCongestionAlgorithm(savedTcpAlgo)
-            Log.d("RestoreSettingsWorker", "Restored TCP Congestion to $savedTcpAlgo: $success")
+            var success = false
+            for (i in 1..5) {
+                if (systemRepository.setTcpCongestionAlgorithm(savedTcpAlgo)) {
+                    success = true
+                    Log.d("RestoreSettingsWorker", "Restored TCP Congestion to $savedTcpAlgo: success")
+                    break
+                }
+                Log.d("RestoreSettingsWorker", "Failed to restore TCP Congestion (attempt $i), retrying...")
+                delay(2000)
+            }
+            if (!success) {
+                Log.e("RestoreSettingsWorker", "Failed to restore TCP Congestion to $savedTcpAlgo after 5 attempts")
+            }
         }
 
         // Restore I/O Scheduler
         val savedIoScheduler = preferenceManager.getIoScheduler()
         if (!savedIoScheduler.isNullOrEmpty()) {
-            val success = systemRepository.setIoScheduler(savedIoScheduler)
-            Log.d("RestoreSettingsWorker", "Restored I/O Scheduler to $savedIoScheduler: $success")
+            var success = false
+            for (i in 1..5) {
+                if (systemRepository.setIoScheduler(savedIoScheduler)) {
+                    success = true
+                    Log.d("RestoreSettingsWorker", "Restored I/O Scheduler to $savedIoScheduler: success")
+                    break
+                }
+                Log.d("RestoreSettingsWorker", "Failed to restore I/O Scheduler (attempt $i), retrying...")
+                delay(2000)
+            }
+            if (!success) {
+                Log.e("RestoreSettingsWorker", "Failed to restore I/O Scheduler to $savedIoScheduler after 5 attempts")
+            }
         }
     }
 

@@ -68,6 +68,7 @@ fun MiscScreen(
     val availableTcpAlgorithms by viewModel.availableTcpCongestionAlgorithms.collectAsStateWithLifecycle()
     val ioScheduler by viewModel.ioScheduler.collectAsStateWithLifecycle()
     val availableIoSchedulers by viewModel.availableIoSchedulers.collectAsStateWithLifecycle()
+    val applyNetworkStorageOnBoot by viewModel.applyNetworkStorageOnBoot.collectAsStateWithLifecycle()
 
     val autoResetOnReboot by viewModel.autoResetOnReboot.collectAsStateWithLifecycle()
     val autoResetOnCharging by viewModel.autoResetOnCharging.collectAsStateWithLifecycle()
@@ -365,11 +366,12 @@ fun MiscScreen(
             )
         }
         
-        // Reset Network & Storage
+        // Apply Network & Storage on Boot
         item {
-            ResetNetworkStorageCard(
-                onReset = {
-                    viewModel.resetNetworkAndIoSettings()
+            NetworkStorageOnBootCard(
+                applyOnBoot = applyNetworkStorageOnBoot,
+                onToggle = { enabled ->
+                    viewModel.setApplyNetworkStorageOnBoot(enabled)
                 }
             )
         }
@@ -380,12 +382,10 @@ fun MiscScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ResetNetworkStorageCard(
-    onReset: () -> Unit
+fun NetworkStorageOnBootCard(
+    applyOnBoot: Boolean,
+    onToggle: (Boolean) -> Unit
 ) {
-    val context = LocalContext.current
-    val toastMessage = stringResource(R.string.reset_network_io_toast)
-
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = 24.dp, bottomEnd = 24.dp),
@@ -393,8 +393,7 @@ fun ResetNetworkStorageCard(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         ),
         onClick = {
-            onReset()
-            Toast.makeText(context, toastMessage, Toast.LENGTH_SHORT).show()
+            onToggle(!applyOnBoot)
         }
     ) {
         Column(
@@ -411,37 +410,90 @@ fun ResetNetworkStorageCard(
                     modifier = Modifier
                         .size(42.dp)
                         .background(
-                            color = MaterialTheme.colorScheme.errorContainer,
+                            color = if (applyOnBoot) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
                             shape = CircleShape
                         ),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.RestartAlt,
+                        imageVector = Icons.Default.Save,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onErrorContainer,
+                        tint = if (applyOnBoot) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(20.dp)
                     )
                 }
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = stringResource(id = R.string.reset_network_io_title),
+                        text = stringResource(id = R.string.apply_on_boot_title),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = stringResource(id = R.string.reset_network_io_desc),
+                        text = stringResource(id = R.string.apply_on_boot_desc),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                Icon(
-                    imageVector = Icons.Default.Refresh,
-                    contentDescription = "Reset",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+
+                Switch(
+                    checked = applyOnBoot,
+                    onCheckedChange = null,
+                    thumbContent = if (applyOnBoot) {
+                        {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = null,
+                                modifier = Modifier.size(SwitchDefaults.IconSize),
+                            )
+                        }
+                    } else {
+                        {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = null,
+                                modifier = Modifier.size(SwitchDefaults.IconSize),
+                            )
+                        }
+                    }
                 )
+            }
+            
+            if (applyOnBoot) {
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Info,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = stringResource(id = R.string.apply_on_boot_active),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                        Text(
+                            text = stringResource(id = R.string.apply_on_boot_active_desc),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
             }
         }
     }

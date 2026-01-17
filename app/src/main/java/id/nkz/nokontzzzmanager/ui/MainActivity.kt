@@ -57,6 +57,7 @@ import androidx.activity.compose.BackHandler
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import android.Manifest
+import androidx.activity.viewModels
 
 import androidx.compose.material3.ToggleFloatingActionButtonDefaults.animateIcon
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -64,11 +65,14 @@ import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.unit.dp
 
 import id.nkz.nokontzzzmanager.utils.LocaleHelper
+import id.nkz.nokontzzzmanager.viewmodel.MainViewModel
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    private val mainViewModel: MainViewModel by viewModels()
 
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(LocaleHelper.applyLanguage(newBase))
@@ -108,6 +112,9 @@ class MainActivity : ComponentActivity() {
         installSplashScreen()
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+
+        // Trigger failsafe restore for network & storage settings
+        mainViewModel.runFailsafeNetworkStorageRestore()
 
         // Initialize batteryOptChecker regardless of root status for consistency
         batteryOptChecker = BatteryOptimizationChecker(this)

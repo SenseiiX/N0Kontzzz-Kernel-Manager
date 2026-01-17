@@ -913,6 +913,10 @@ class SystemRepository @Inject constructor(
         return runBlocking { getCachedSystemInfo() }
     }
 
+    fun getBootId(): String? {
+        return readFileToString("/proc/sys/kernel/random/boot_id", "Boot ID")
+    }
+
     fun getKernelInfo(): KernelInfo {
 
         // Get kernel version
