@@ -10,6 +10,7 @@ data class SystemInfo(
     val androidVersion: String,
     val sdk: Int,
     val soc: String,
+    val board: String = "",
     val fingerprint: String,
     // Display Information
     val screenResolution: String,

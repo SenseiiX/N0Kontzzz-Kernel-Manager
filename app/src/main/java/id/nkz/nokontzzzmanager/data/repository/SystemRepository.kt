@@ -732,6 +732,9 @@ class SystemRepository @Inject constructor(
 
         // Improved SoC detection with multiple property sources
         var socName = VALUE_UNKNOWN
+        var manufacturer: String? = null
+        var model: String? = null
+        
         try {
             // Try multiple property sources for SoC detection
             val socProperties = listOf(
@@ -742,9 +745,6 @@ class SystemRepository @Inject constructor(
                 "ro.board.platform" to null,
                 "vendor.product.cpu" to null
             )
-
-            var manufacturer: String? = null
-            var model: String? = null
 
             // Try each property pair
             for ((manufacturerProp, modelProp) in socProperties) {
@@ -831,6 +831,7 @@ class SystemRepository @Inject constructor(
             sdk = Build.VERSION.SDK_INT,
             fingerprint = Build.FINGERPRINT ?: VALUE_UNKNOWN,
             soc = socName,
+            board = model ?: VALUE_UNKNOWN,
             screenResolution = displayInfo.resolution,
             displayTechnology = displayInfo.technology,
             refreshRate = displayInfo.refreshRate,
@@ -839,11 +840,6 @@ class SystemRepository @Inject constructor(
     }
 
     private fun getSystemProperty(property: String): String? {
-        // Hardcoded value for Qualcomm® Snapdragon™ 870
-        if (property in listOf("ro.soc.manufacturer", "ro.hardware", "ro.product.board", "ro.chipname", "ro.board.platform", "vendor.product.cpu")) {
-            return "Qualcomm® Snapdragon™ 870"
-        }
-        
         return try {
             val process = Runtime.getRuntime().exec("getprop $property")
             val result = BufferedReader(InputStreamReader(process.inputStream)).readLine()?.trim()

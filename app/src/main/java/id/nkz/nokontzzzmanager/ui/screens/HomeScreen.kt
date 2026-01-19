@@ -128,8 +128,13 @@ fun HomeScreen(
                 val clusters = cpuClusters
                 if (clusters != null) {
                     val socNameToDisplay = currentSystemInfo?.soc?.takeIf { it.isNotBlank() && it != stringResource(id = R.string.common_unknown_value) } ?: cpuInfo.soc.takeIf { it.isNotBlank() && it != stringResource(id = R.string.unknown_soc) && it != stringResource(id = R.string.common_na) } ?: stringResource(id = R.string.cpu_cpu_label)
+                    val board = currentSystemInfo?.board ?: ""
+                    val deviceCodename = currentSystemInfo?.codename ?: ""
+                    
                     CpuCard(
                         soc = socNameToDisplay,
+                        board = board,
+                        deviceCodename = deviceCodename,
                         info = cpuInfo,
                         clusters = clusters,
                         graphData = graphData,

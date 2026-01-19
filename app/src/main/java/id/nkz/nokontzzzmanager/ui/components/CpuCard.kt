@@ -34,6 +34,8 @@ const val MAX_HISTORY_POINTS_GRAPH = 50
 @Composable
 fun CpuCard(
     soc: String,
+    board: String,
+    deviceCodename: String,
     info: RealtimeCpuInfo,
     clusters: ImmutableList<CpuCluster>,
     graphData: GraphData,
@@ -57,7 +59,7 @@ fun CpuCard(
                 .padding(16.dp, 12.dp, 16.dp, 0.dp), // Consistent padding
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            CpuHeaderSection(soc = soc, info = info)
+            CpuHeaderSection(soc = soc, board = board, deviceCodename = deviceCodename, info = info)
 
             if (info.freqs.isNotEmpty()) {
                 CpuCoresSection(info = info, clusters = clusters)
@@ -86,13 +88,12 @@ fun CpuCard(
 @Composable
 private fun CpuHeaderSection(
     soc: String,
+    board: String,
+    deviceCodename: String,
     info: RealtimeCpuInfo
 ) {
-    val detectedBoard = remember { getSystemProperty("ro.soc.model") }
-    val deviceCodename = remember { getSystemProperty("ro.product.device") }
-
-    val displaySoc = remember(detectedBoard, deviceCodename) {
-        when (detectedBoard.uppercase()) {
+    val displaySoc = remember(board, deviceCodename) {
+        when (board.uppercase()) {
             "SM8250" -> {
                 // Check for known 870 devices that might report as SM8250
                 if (deviceCodename.lowercase() in listOf("munch", "alioth")) {
@@ -148,16 +149,6 @@ private fun CpuHeaderSection(
                 tint = MaterialTheme.colorScheme.onSecondaryContainer
             )
         }
-    }
-}
-
-private fun getSystemProperty(key: String): String {
-    return try {
-        val clazz = Class.forName("android.os.SystemProperties")
-        val method = clazz.getDeclaredMethod("get", String::class.java)
-        method.invoke(null, key) as String
-    } catch (e: Exception) {
-        ""
     }
 }
 
