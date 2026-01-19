@@ -90,6 +90,25 @@ private fun CpuHeaderSection(
     soc: String,
     info: RealtimeCpuInfo
 ) {
+    val detectedBoard = remember { getSystemProperty("ro.soc.model") }
+    val deviceCodename = remember { getSystemProperty("ro.product.device") }
+
+    val displaySoc = remember(detectedBoard, deviceCodename) {
+        when (detectedBoard.uppercase()) {
+            "SM8250" -> {
+                // Check for known 870 devices that might report as SM8250
+                if (deviceCodename.lowercase() in listOf("munch", "alioth")) {
+                    "Qualcomm® Snapdragon™ 870 5G & SM8250-AC"
+                } else {
+                    "Qualcomm® Snapdragon™ 865 5G & SM8250"
+                }
+            }
+            "SM8250-AB" -> "Qualcomm® Snapdragon™ 865+ 5G & SM8250-AB"
+            "SM8250-AC" -> "Qualcomm® Snapdragon™ 870 5G & SM8250-AC"
+            else -> "Definitely not Kona family"
+        }
+    }
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -97,9 +116,7 @@ private fun CpuHeaderSection(
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = soc.takeIf { it.isNotBlank() && it != "Unknown SoC" && it != "N/A" }
-                    ?: info.soc.takeIf { it.isNotBlank() && it != "Unknown SoC" && it != "N/A" }
-                    ?: stringResource(R.string.central_proccessing_unit_cpu),
+                text = displaySoc,
                 style = MaterialTheme.typography.headlineSmall, // M3 Typography
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -133,6 +150,16 @@ private fun CpuHeaderSection(
                 tint = MaterialTheme.colorScheme.onSecondaryContainer
             )
         }
+    }
+}
+
+private fun getSystemProperty(key: String): String {
+    return try {
+        val clazz = Class.forName("android.os.SystemProperties")
+        val method = clazz.getDeclaredMethod("get", String::class.java)
+        method.invoke(null, key) as String
+    } catch (e: Exception) {
+        ""
     }
 }
 
