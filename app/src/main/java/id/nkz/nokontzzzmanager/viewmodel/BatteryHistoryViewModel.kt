@@ -67,7 +67,7 @@ class BatteryHistoryViewModel @Inject constructor(
             val allEntries = repository.getAllEntries().firstOrNull() ?: emptyList()
 
             val startTime = when (_filter.value) {
-                HistoryFilter.LAST_24_HOURS, HistoryFilter.PER_CYCLE -> now - 24 * 60 * 60 * 1000
+                HistoryFilter.LAST_24_HOURS -> now - 24 * 60 * 60 * 1000
                 HistoryFilter.SINCE_UNPLUGGED -> {
                     val lastChargeIndex = allEntries.indexOfLast { it.isCharging }
                     if (lastChargeIndex != -1 && lastChargeIndex < allEntries.size - 1) {
@@ -75,6 +75,10 @@ class BatteryHistoryViewModel @Inject constructor(
                     } else {
                         now - 24 * 60 * 60 * 1000
                     }
+                }
+                HistoryFilter.PER_CYCLE -> {
+                    val lastFullChargeEntry = allEntries.lastOrNull { it.batteryLevel >= 90 }
+                    lastFullChargeEntry?.timestamp ?: (now - 24 * 60 * 60 * 1000)
                 }
             }
 
@@ -179,7 +183,13 @@ class BatteryHistoryViewModel @Inject constructor(
                 }
             }
             HistoryFilter.PER_CYCLE -> {
-                entries
+                val lastFullChargeIndex = entries.indexOfLast { it.batteryLevel >= 90 }
+                if (lastFullChargeIndex != -1) {
+                    entries.subList(lastFullChargeIndex, entries.size)
+                } else {
+                    val twentyFourHoursAgo = now - (24 * 60 * 60 * 1000)
+                    entries.filter { it.timestamp >= twentyFourHoursAgo }
+                }
             }
         }
     }.stateIn(
