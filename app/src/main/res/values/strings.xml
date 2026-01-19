@@ -629,4 +629,15 @@
     <string name="copied_to_clipboard">Copied to clipboard</string>
     <string name="unknown_vendor">Unknown Vendor</string>
     <string name="unknown">Unknown</string>
+    
+    <!-- Boot Settings -->
+    <string name="boot_settings_title">Set on Boot</string>
+    <string name="boot_settings_desc">Configure which settings persist after reboot</string>
+    <string name="boot_settings_dialog_title">Apply on Boot</string>
+    <string name="boot_settings_dialog_desc">Select which tuning modules should be automatically reapplied when the device boots.</string>
+    <string name="boot_settings_performance">Performance Mode</string>
+    <string name="boot_settings_cpu">CPU Control</string>
+    <string name="boot_settings_gpu">GPU Control</string>
+    <string name="boot_settings_thermal">Thermal Control</string>
+    <string name="boot_settings_ram">RAM Control</string>
 </resources>

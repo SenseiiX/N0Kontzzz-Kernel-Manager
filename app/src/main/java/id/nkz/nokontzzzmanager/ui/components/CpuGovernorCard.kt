@@ -10,6 +10,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.draw.scale
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background

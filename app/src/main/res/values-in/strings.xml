@@ -628,4 +628,15 @@
     <string name="copied_to_clipboard">Disalin ke papan klip</string>
     <string name="unknown_vendor">Vendor Tidak Diketahui</string>
     <string name="unknown">Tidak Diketahui</string>
+
+    <!-- Boot Settings -->
+    <string name="boot_settings_title">Terapkan saat Boot</string>
+    <string name="boot_settings_desc">Konfigurasi pengaturan mana yang tersimpan setelah reboot</string>
+    <string name="boot_settings_dialog_title">Terapkan saat Boot</string>
+    <string name="boot_settings_dialog_desc">Pilih modul tuning mana yang harus diterapkan kembali secara otomatis saat perangkat dinyalakan.</string>
+    <string name="boot_settings_performance">Mode Performa</string>
+    <string name="boot_settings_cpu">Kontrol CPU</string>
+    <string name="boot_settings_gpu">Kontrol GPU</string>
+    <string name="boot_settings_thermal">Kontrol Termal</string>
+    <string name="boot_settings_ram">Kontrol RAM</string>
 </resources>

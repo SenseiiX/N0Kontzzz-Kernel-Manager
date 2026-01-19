@@ -56,6 +56,47 @@ class TuningViewModel @Inject constructor(
         _expandedCards.value = current
     }
 
+    // Set on Boot StateFlows
+    private val _applyPerformanceModeOnBoot = MutableStateFlow(preferenceManager.isApplyPerformanceModeOnBoot())
+    val applyPerformanceModeOnBoot: StateFlow<Boolean> = _applyPerformanceModeOnBoot.asStateFlow()
+
+    private val _applyCpuOnBoot = MutableStateFlow(preferenceManager.isApplyCpuOnBoot())
+    val applyCpuOnBoot: StateFlow<Boolean> = _applyCpuOnBoot.asStateFlow()
+
+    private val _applyGpuOnBoot = MutableStateFlow(preferenceManager.isApplyGpuOnBoot())
+    val applyGpuOnBoot: StateFlow<Boolean> = _applyGpuOnBoot.asStateFlow()
+
+    private val _applyThermalOnBoot = MutableStateFlow(preferenceManager.isApplyThermalOnBoot())
+    val applyThermalOnBoot: StateFlow<Boolean> = _applyThermalOnBoot.asStateFlow()
+
+    private val _applyRamOnBoot = MutableStateFlow(preferenceManager.isApplyRamOnBoot())
+    val applyRamOnBoot: StateFlow<Boolean> = _applyRamOnBoot.asStateFlow()
+
+    fun toggleApplyPerformanceModeOnBoot(enabled: Boolean) {
+        preferenceManager.setApplyPerformanceModeOnBoot(enabled)
+        _applyPerformanceModeOnBoot.value = enabled
+    }
+
+    fun toggleApplyCpuOnBoot(enabled: Boolean) {
+        preferenceManager.setApplyCpuOnBoot(enabled)
+        _applyCpuOnBoot.value = enabled
+    }
+
+    fun toggleApplyGpuOnBoot(enabled: Boolean) {
+        preferenceManager.setApplyGpuOnBoot(enabled)
+        _applyGpuOnBoot.value = enabled
+    }
+
+    fun toggleApplyThermalOnBoot(enabled: Boolean) {
+        preferenceManager.setApplyThermalOnBoot(enabled)
+        _applyThermalOnBoot.value = enabled
+    }
+
+    fun toggleApplyRamOnBoot(enabled: Boolean) {
+        preferenceManager.setApplyRamOnBoot(enabled)
+        _applyRamOnBoot.value = enabled
+    }
+
     /* ---------------- CPU ---------------- */
     private val _performanceMode = MutableStateFlow(preferenceManager.getPerformanceMode())
     val performanceMode: StateFlow<String> = _performanceMode.asStateFlow()
@@ -731,9 +772,16 @@ class TuningViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             if (resetCpu) {
                 preferenceManager.clearCpuSettings()
+                // Reset set on boot for CPU
+                preferenceManager.setApplyCpuOnBoot(false)
+                _applyCpuOnBoot.value = false
+                
                 // Performance Mode is now in main prefs, set to default
                 preferenceManager.setPerformanceMode("Balanced")
                 _performanceMode.value = "Balanced"
+                // Reset set on boot for Performance Mode
+                preferenceManager.setApplyPerformanceModeOnBoot(false)
+                _applyPerformanceModeOnBoot.value = false
 
                 // Attempt to revert to safe defaults (Schedutil)
                 val availableGovs = _generalAvailableCpuGovernors.value
@@ -748,10 +796,17 @@ class TuningViewModel @Inject constructor(
 
             if (resetGpu) {
                 preferenceManager.clearGpuSettings()
+                // Reset set on boot for GPU
+                preferenceManager.setApplyGpuOnBoot(false)
+                _applyGpuOnBoot.value = false
             }
 
             if (resetThermal) {
                 thermalPrefs.edit { remove(KEY_LAST_APPLIED_THERMAL_INDEX) }
+                // Reset set on boot for Thermal
+                preferenceManager.setApplyThermalOnBoot(false)
+                _applyThermalOnBoot.value = false
+
                 // Try to find Dynamic (10) or Balanced (0)
                 val profiles = thermalRepo.getSupportedThermalProfiles().first()
                 val defaultProfile = profiles.find { it.index == 10 } ?: profiles.find { it.index == 0 }
@@ -763,6 +818,10 @@ class TuningViewModel @Inject constructor(
 
             if (resetRam) {
                 preferenceManager.clearRamSettings()
+                // Reset set on boot for RAM
+                preferenceManager.setApplyRamOnBoot(false)
+                _applyRamOnBoot.value = false
+
                 // Reset Swappiness to standard default 60
                 if (repo.setSwappiness(60)) {
                     repo.getSwappiness().take(1).collect { _swappiness.value = it }

@@ -44,6 +44,13 @@ class PreferenceManager @Inject constructor(
         private const val KEY_APPLY_NETWORK_STORAGE_ON_BOOT = "apply_network_storage_on_boot"
         private const val KEY_LAST_APPLIED_BOOT_ID = "last_applied_boot_id"
 
+        // Set on Boot Keys
+        private const val KEY_APPLY_PERFORMANCE_MODE_ON_BOOT = "apply_performance_mode_on_boot"
+        private const val KEY_APPLY_CPU_ON_BOOT = "apply_cpu_on_boot"
+        private const val KEY_APPLY_GPU_ON_BOOT = "apply_gpu_on_boot"
+        private const val KEY_APPLY_THERMAL_ON_BOOT = "apply_thermal_on_boot"
+        private const val KEY_APPLY_RAM_ON_BOOT = "apply_ram_on_boot"
+
         // GPU
         private const val KEY_GPU_GOVERNOR = "gpu_governor"
         private const val KEY_GPU_MIN_FREQ = "gpu_min_freq"
@@ -330,6 +337,57 @@ class PreferenceManager @Inject constructor(
     fun getLastAppliedBootId(): String? {
         return credentialPrefs()?.getString(KEY_LAST_APPLIED_BOOT_ID, null)
             ?: deviceProtectedPrefs().getString(KEY_LAST_APPLIED_BOOT_ID, null)
+    }
+
+    // Set on Boot Methods
+    fun setApplyPerformanceModeOnBoot(enabled: Boolean) {
+        credentialPrefs()?.edit { putBoolean(KEY_APPLY_PERFORMANCE_MODE_ON_BOOT, enabled) }
+        deviceProtectedPrefs().edit { putBoolean(KEY_APPLY_PERFORMANCE_MODE_ON_BOOT, enabled) }
+    }
+
+    fun isApplyPerformanceModeOnBoot(): Boolean {
+        return credentialPrefs()?.getBoolean(KEY_APPLY_PERFORMANCE_MODE_ON_BOOT, false)
+            ?: deviceProtectedPrefs().getBoolean(KEY_APPLY_PERFORMANCE_MODE_ON_BOOT, false)
+    }
+
+    fun setApplyCpuOnBoot(enabled: Boolean) {
+        credentialPrefs()?.edit { putBoolean(KEY_APPLY_CPU_ON_BOOT, enabled) }
+        deviceProtectedPrefs().edit { putBoolean(KEY_APPLY_CPU_ON_BOOT, enabled) }
+    }
+
+    fun isApplyCpuOnBoot(): Boolean {
+        return credentialPrefs()?.getBoolean(KEY_APPLY_CPU_ON_BOOT, false)
+            ?: deviceProtectedPrefs().getBoolean(KEY_APPLY_CPU_ON_BOOT, false)
+    }
+
+    fun setApplyGpuOnBoot(enabled: Boolean) {
+        credentialPrefs()?.edit { putBoolean(KEY_APPLY_GPU_ON_BOOT, enabled) }
+        deviceProtectedPrefs().edit { putBoolean(KEY_APPLY_GPU_ON_BOOT, enabled) }
+    }
+
+    fun isApplyGpuOnBoot(): Boolean {
+        return credentialPrefs()?.getBoolean(KEY_APPLY_GPU_ON_BOOT, false)
+            ?: deviceProtectedPrefs().getBoolean(KEY_APPLY_GPU_ON_BOOT, false)
+    }
+
+    fun setApplyThermalOnBoot(enabled: Boolean) {
+        credentialPrefs()?.edit { putBoolean(KEY_APPLY_THERMAL_ON_BOOT, enabled) }
+        deviceProtectedPrefs().edit { putBoolean(KEY_APPLY_THERMAL_ON_BOOT, enabled) }
+    }
+
+    fun isApplyThermalOnBoot(): Boolean {
+        return credentialPrefs()?.getBoolean(KEY_APPLY_THERMAL_ON_BOOT, false)
+            ?: deviceProtectedPrefs().getBoolean(KEY_APPLY_THERMAL_ON_BOOT, false)
+    }
+
+    fun setApplyRamOnBoot(enabled: Boolean) {
+        credentialPrefs()?.edit { putBoolean(KEY_APPLY_RAM_ON_BOOT, enabled) }
+        deviceProtectedPrefs().edit { putBoolean(KEY_APPLY_RAM_ON_BOOT, enabled) }
+    }
+
+    fun isApplyRamOnBoot(): Boolean {
+        return credentialPrefs()?.getBoolean(KEY_APPLY_RAM_ON_BOOT, false)
+            ?: deviceProtectedPrefs().getBoolean(KEY_APPLY_RAM_ON_BOOT, false)
     }
 
     // GPU

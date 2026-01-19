@@ -22,6 +22,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -95,7 +96,7 @@ fun TuningScreen(
             IndeterminateExpressiveLoadingIndicator()
         }
     } else {
-        var showResetDialog by remember { mutableStateOf(false) }
+        var showBootSettingsDialog by remember { mutableStateOf(false) }
 
         val expandedCards by viewModel.expandedCards.collectAsState()
 
@@ -154,8 +155,8 @@ fun TuningScreen(
                 }
                 
                 item {
-                    ResetSettingsCard(
-                        onClick = { showResetDialog = true }
+                    BootSettingsCard(
+                        onClick = { showBootSettingsDialog = true }
                     )
                 }
             }
@@ -167,13 +168,10 @@ fun TuningScreen(
             )
         }
 
-        if (showResetDialog) {
-            ResetSettingsDialog(
-                onDismiss = { showResetDialog = false },
-                onReset = { cpu, gpu, thermal, ram ->
-                    viewModel.resetSettings(cpu, gpu, thermal, ram)
-                    showResetDialog = false
-                }
+        if (showBootSettingsDialog) {
+            BootSettingsDialog(
+                onDismiss = { showBootSettingsDialog = false },
+                viewModel = viewModel
             )
         }
     }
@@ -611,7 +609,7 @@ fun HeroHeader(
 }
 
 @Composable
-fun ResetSettingsCard(
+fun BootSettingsCard(
     onClick: () -> Unit
 ) {
     Card(
@@ -620,8 +618,8 @@ fun ResetSettingsCard(
             .clickable { onClick() },
         shape = RoundedCornerShape(8.dp, 8.dp, 24.dp, 24.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer,
-            contentColor = MaterialTheme.colorScheme.onErrorContainer
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
         )
     ) {
         Column(
@@ -635,30 +633,30 @@ fun ResetSettingsCard(
                 modifier = Modifier
                     .size(64.dp)
                     .background(
-                        color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.1f),
+                        color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f),
                         shape = RoundedCornerShape(16.dp)
                     ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.RestartAlt,
+                    imageVector = Icons.Default.Save,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onErrorContainer,
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
                     modifier = Modifier.size(32.dp)
                 )
             }
             
             Text(
-                text = stringResource(id = R.string.reset_to_default_title),
+                text = stringResource(id = R.string.boot_settings_title),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onErrorContainer
+                color = MaterialTheme.colorScheme.onSecondaryContainer
             )
             
             Text(
-                text = stringResource(id = R.string.reset_to_default_desc),
+                text = stringResource(id = R.string.boot_settings_desc),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f),
+                color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f),
                 textAlign = TextAlign.Center
             )
         }
@@ -667,14 +665,15 @@ fun ResetSettingsCard(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ResetSettingsDialog(
+fun BootSettingsDialog(
     onDismiss: () -> Unit,
-    onReset: (Boolean, Boolean, Boolean, Boolean) -> Unit
+    viewModel: TuningViewModel
 ) {
-    var resetCpu by remember { mutableStateOf(true) }
-    var resetGpu by remember { mutableStateOf(true) }
-    var resetThermal by remember { mutableStateOf(true) }
-    var resetRam by remember { mutableStateOf(true) }
+    val applyPerformance by viewModel.applyPerformanceModeOnBoot.collectAsState()
+    val applyCpu by viewModel.applyCpuOnBoot.collectAsState()
+    val applyGpu by viewModel.applyGpuOnBoot.collectAsState()
+    val applyThermal by viewModel.applyThermalOnBoot.collectAsState()
+    val applyRam by viewModel.applyRamOnBoot.collectAsState()
 
     BasicAlertDialog(
         onDismissRequest = onDismiss,
@@ -700,25 +699,25 @@ fun ResetSettingsDialog(
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         Box(
-                            modifier = Modifier.size(56.dp).clip(RoundedCornerShape(16.dp)).background(MaterialTheme.colorScheme.errorContainer),
+                            modifier = Modifier.size(56.dp).clip(RoundedCornerShape(16.dp)).background(MaterialTheme.colorScheme.primaryContainer),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                imageVector = Icons.Default.RestartAlt,
+                                imageVector = Icons.Default.Save,
                                 contentDescription = null,
                                 modifier = Modifier.size(28.dp),
-                                tint = MaterialTheme.colorScheme.onErrorContainer
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
                         Column {
                             Text(
-                                text = stringResource(id = R.string.reset_to_default_title),
+                                text = stringResource(id = R.string.boot_settings_dialog_title),
                                 style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                text = stringResource(id = R.string.reset_to_default_desc),
-                                style = MaterialTheme.typography.bodyMedium,
+                                text = stringResource(id = R.string.boot_settings_dialog_desc),
+                                style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
@@ -730,35 +729,34 @@ fun ResetSettingsDialog(
                     Column(
                         verticalArrangement = Arrangement.spacedBy(2.dp)
                     ) {
-                        Text(
-                            text = stringResource(id = R.string.reset_selection_title),
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
-                        
-                        ResetOptionItem(
-                            title = stringResource(id = R.string.reset_cpu),
-                            checked = resetCpu,
-                            onCheckedChange = { resetCpu = it },
+                        BootOptionItem(
+                            title = stringResource(id = R.string.boot_settings_performance),
+                            checked = applyPerformance,
+                            onCheckedChange = { viewModel.toggleApplyPerformanceModeOnBoot(it) },
                             shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 8.dp, bottomEnd = 8.dp)
                         )
-                        ResetOptionItem(
-                            title = stringResource(id = R.string.reset_gpu),
-                            checked = resetGpu,
-                            onCheckedChange = { resetGpu = it },
+                        BootOptionItem(
+                            title = stringResource(id = R.string.boot_settings_cpu),
+                            checked = applyCpu,
+                            onCheckedChange = { viewModel.toggleApplyCpuOnBoot(it) },
                             shape = RoundedCornerShape(8.dp)
                         )
-                        ResetOptionItem(
-                            title = stringResource(id = R.string.reset_thermal),
-                            checked = resetThermal,
-                            onCheckedChange = { resetThermal = it },
+                        BootOptionItem(
+                            title = stringResource(id = R.string.boot_settings_gpu),
+                            checked = applyGpu,
+                            onCheckedChange = { viewModel.toggleApplyGpuOnBoot(it) },
                             shape = RoundedCornerShape(8.dp)
                         )
-                        ResetOptionItem(
-                            title = stringResource(id = R.string.reset_ram),
-                            checked = resetRam,
-                            onCheckedChange = { resetRam = it },
+                        BootOptionItem(
+                            title = stringResource(id = R.string.boot_settings_thermal),
+                            checked = applyThermal,
+                            onCheckedChange = { viewModel.toggleApplyThermalOnBoot(it) },
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        BootOptionItem(
+                            title = stringResource(id = R.string.boot_settings_ram),
+                            checked = applyRam,
+                            onCheckedChange = { viewModel.toggleApplyRamOnBoot(it) },
                             shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = 24.dp, bottomEnd = 24.dp)
                         )
                     }
@@ -768,23 +766,12 @@ fun ResetSettingsDialog(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        OutlinedButton(
+                        Button(
                             onClick = onDismiss,
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(16.dp)
                         ) {
                             Text(stringResource(id = R.string.close))
-                        }
-                        Button(
-                            onClick = { onReset(resetCpu, resetGpu, resetThermal, resetRam) },
-                            modifier = Modifier.weight(1f),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.error,
-                                contentColor = MaterialTheme.colorScheme.onError
-                            ),
-                            shape = RoundedCornerShape(16.dp)
-                        ) {
-                            Text(stringResource(id = R.string.reset_confirmation))
                         }
                     }
                 }
@@ -794,7 +781,7 @@ fun ResetSettingsDialog(
 }
 
 @Composable
-private fun ResetOptionItem(
+private fun BootOptionItem(
     title: String,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
@@ -803,7 +790,7 @@ private fun ResetOptionItem(
     Card(
         modifier = Modifier.fillMaxWidth().clickable { onCheckedChange(!checked) },
         colors = CardDefaults.cardColors(
-            containerColor = if (checked) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f) else MaterialTheme.colorScheme.surfaceContainer
+            containerColor = if (checked) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
         ),
         shape = shape
     ) {
@@ -816,15 +803,38 @@ private fun ResetOptionItem(
         ) {
             Text(
                 text = title,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    fontWeight = if (checked) FontWeight.Bold else FontWeight.Normal
+                ),
+                color = if (checked) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
             )
-            Checkbox(
+            Switch(
                 checked = checked,
                 onCheckedChange = onCheckedChange,
-                colors = CheckboxDefaults.colors(
-                    checkedColor = MaterialTheme.colorScheme.error,
-                    uncheckedColor = MaterialTheme.colorScheme.onSurfaceVariant
+                thumbContent = if (checked) {
+                    {
+                        Icon(
+                            imageVector = Icons.Filled.Check,
+                            contentDescription = null,
+                            modifier = Modifier.size(SwitchDefaults.IconSize),
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                } else {
+                    {
+                        Icon(
+                            imageVector = Icons.Filled.Close,
+                            contentDescription = null,
+                            modifier = Modifier.size(SwitchDefaults.IconSize),
+                            tint = MaterialTheme.colorScheme.surface
+                        )
+                    }
+                },
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = MaterialTheme.colorScheme.primary,
+                    checkedTrackColor = MaterialTheme.colorScheme.surface,
+                    uncheckedThumbColor = MaterialTheme.colorScheme.outline,
+                    uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
                 )
             )
         }

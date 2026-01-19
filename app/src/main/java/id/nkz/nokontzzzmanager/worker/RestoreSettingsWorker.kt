@@ -41,6 +41,11 @@ class RestoreSettingsWorker @AssistedInject constructor(
     }
 
     private fun restoreCpuSettings() {
+        if (!preferenceManager.isApplyCpuOnBoot()) {
+            Log.d("RestoreSettingsWorker", "Skipping CPU restore (disabled by user)")
+            return
+        }
+
         val clusters = tuningRepository.getClusterLeaders()
         clusters.forEach { cluster ->
             // Restore Governor
@@ -129,6 +134,11 @@ class RestoreSettingsWorker @AssistedInject constructor(
     }
 
     private fun restorePerformanceMode() {
+        if (!preferenceManager.isApplyPerformanceModeOnBoot()) {
+            Log.d("RestoreSettingsWorker", "Skipping Performance Mode restore (disabled by user)")
+            return
+        }
+
         val mode = preferenceManager.getPerformanceMode()
         
         val governor = when (mode) {
@@ -150,6 +160,11 @@ class RestoreSettingsWorker @AssistedInject constructor(
     }
 
     private fun restoreGpuSettings() {
+        if (!preferenceManager.isApplyGpuOnBoot()) {
+            Log.d("RestoreSettingsWorker", "Skipping GPU restore (disabled by user)")
+            return
+        }
+
         // Governor
         preferenceManager.getGpuGovernor()?.let { gov ->
             if (tuningRepository.setGpuGov(gov)) {
@@ -181,6 +196,11 @@ class RestoreSettingsWorker @AssistedInject constructor(
     }
 
     private fun restoreRamSettings() {
+        if (!preferenceManager.isApplyRamOnBoot()) {
+            Log.d("RestoreSettingsWorker", "Skipping RAM restore (disabled by user)")
+            return
+        }
+
         // ZRAM Size
         val zramSize = preferenceManager.getZramDisksize()
         if (zramSize != -1L) {
@@ -230,6 +250,11 @@ class RestoreSettingsWorker @AssistedInject constructor(
     }
 
     private suspend fun restoreThermalSettings() {
+        if (!preferenceManager.isApplyThermalOnBoot()) {
+            Log.d("RestoreSettingsWorker", "Skipping Thermal restore (disabled by user)")
+            return
+        }
+
         val thermalPrefs = applicationContext.getSharedPreferences("thermal_settings_prefs", Context.MODE_PRIVATE)
         val lastSavedIndex = thermalPrefs.getInt("last_applied_thermal_index", -2)
 
