@@ -425,25 +425,35 @@ class TuningViewModel @Inject constructor(
         if (isThermalDataLoaded.getAndSet(true)) return
         Log.d("TuningVM_LazyLoad", "Loading Thermal data...")
         withContext(Dispatchers.IO) {
-            // Prioritize restoring the user's last saved setting.
-            val lastSavedIndex = thermalPrefs.getInt(KEY_LAST_APPLIED_THERMAL_INDEX, -2) // Use -2 to indicate no value saved
+            // Check if "Set on Boot" is enabled for Thermal
+            if (preferenceManager.isApplyThermalOnBoot()) {
+                // Prioritize restoring the user's last saved setting.
+                val lastSavedIndex = thermalPrefs.getInt(KEY_LAST_APPLIED_THERMAL_INDEX, -2) // Use -2 to indicate no value saved
 
-            if (lastSavedIndex != -2) {
-                // A profile was previously saved by the user. Restore it.
-                val profile = thermalRepo.availableThermalProfiles.find { it.index == lastSavedIndex }
-                if (profile != null) {
-                    // Check if current kernel mode matches
-                    val currentKernelIndex = thermalRepo.getCurrentThermalModeIndex().first()
-                    if (currentKernelIndex != lastSavedIndex) {
-                        Log.d("TuningVM_Thermal", "Restoring saved thermal profile (Self-heal): ${profile.displayName}")
-                        setThermalProfileInternal(profile, isRestoring = true)
+                if (lastSavedIndex != -2) {
+                    // A profile was previously saved by the user. Restore it.
+                    val profile = thermalRepo.availableThermalProfiles.find { it.index == lastSavedIndex }
+                    if (profile != null) {
+                        // Check if current kernel mode matches
+                        val currentKernelIndex = thermalRepo.getCurrentThermalModeIndex().first()
+                        if (currentKernelIndex != lastSavedIndex) {
+                            Log.d("TuningVM_Thermal", "Restoring saved thermal profile (Self-heal): ${profile.displayName}")
+                            setThermalProfileInternal(profile, isRestoring = true)
+                        } else {
+                            _currentThermalModeIndex.value = currentKernelIndex
+                        }
                     } else {
-                        _currentThermalModeIndex.value = currentKernelIndex
+                        fetchCurrentThermalMode()
                     }
                 } else {
+                    // No setting was ever saved by the user. Just read the current kernel state.
+                    Log.d("TuningVM_Thermal", "No saved thermal profile found. Fetching from kernel.")
                     fetchCurrentThermalMode()
                 }
             } else {
+                // Set on Boot is disabled, so we just show what the kernel currently has
+                // We do NOT restore any previous app-side preference here
+                Log.d("TuningVM_Thermal", "Set on Boot disabled. Fetching current kernel state.")
                 fetchCurrentThermalMode()
             }
         }
