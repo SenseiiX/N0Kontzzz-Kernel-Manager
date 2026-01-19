@@ -417,7 +417,7 @@
     <string name="on">ON</string>
     <string name="off">OFF</string>
     <string name="disabling_zram_wait">Disabling ZRAM, please wait…</string>
-    <string name="enabling_zram_wait">Enabling ZRAM, please wait...</string>
+    <string name="enabling_zram_wait">Enabling ZRAM, please wait…</string>
 
     <!-- SwappinessCard Batch 4 -->
     <string name="configure">Configure</string>
