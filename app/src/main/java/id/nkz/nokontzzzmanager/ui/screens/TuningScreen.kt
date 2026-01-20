@@ -775,7 +775,7 @@ fun BootSettingsDialog(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Button(
+                        OutlinedButton(
                             onClick = onDismiss,
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(16.dp)
