@@ -522,9 +522,15 @@ fun BatteryHistoryStatsCard(
 
     val avgCharge = if (chargeEntries.isNotEmpty()) chargeEntries.map { it.currentMa }.average() else 0.0
     val maxCharge = if (chargeEntries.isNotEmpty()) chargeEntries.maxOf { it.currentMa } else 0f
+
+    val avgChargeTemp = if (chargeEntries.isNotEmpty()) chargeEntries.map { it.temperature.toDouble() }.average() else 0.0
+    val maxChargeTemp = if (chargeEntries.isNotEmpty()) chargeEntries.maxOf { it.temperature } else 0f
     
     val avgDischarge = if (dischargeEntries.isNotEmpty()) dischargeEntries.map { kotlin.math.abs(it.currentMa) }.average() else 0.0
     val maxDischarge = if (dischargeEntries.isNotEmpty()) dischargeEntries.minOf { it.currentMa }.let { kotlin.math.abs(it) } else 0f
+
+    val avgDischargeTemp = if (dischargeEntries.isNotEmpty()) dischargeEntries.map { it.temperature.toDouble() }.average() else 0.0
+    val maxDischargeTemp = if (dischargeEntries.isNotEmpty()) dischargeEntries.maxOf { it.temperature } else 0f
 
     val avgActiveDrain = if (data.isNotEmpty()) data.map { it.activeDrainRate.toDouble() }.average() else 0.0
     val avgIdleDrain = if (data.isNotEmpty()) data.map { it.idleDrainRate.toDouble() }.average() else 0.0
@@ -602,11 +608,15 @@ fun BatteryHistoryStatsCard(
             if (avgCharge > 0) {
                 StatRow(label = stringResource(R.string.stats_avg_charge_speed), value = "%.0f mA".format(avgCharge))
                 StatRow(label = stringResource(R.string.stats_max_charge_speed), value = "%.0f mA".format(maxCharge))
+                StatRow(label = stringResource(R.string.stats_avg_charge_temp), value = "%.1f °C".format(avgChargeTemp))
+                StatRow(label = stringResource(R.string.stats_max_charge_temp), value = "%.1f °C".format(maxChargeTemp))
             }
             
             if (avgDischarge > 0) {
                 StatRow(label = stringResource(R.string.stats_avg_discharge_speed), value = "-%.0f mA".format(avgDischarge))
                 StatRow(label = stringResource(R.string.stats_max_discharge_speed), value = "-%.0f mA".format(maxDischarge))
+                StatRow(label = stringResource(R.string.stats_avg_discharge_temp), value = "%.1f °C".format(avgDischargeTemp))
+                StatRow(label = stringResource(R.string.stats_max_discharge_temp), value = "%.1f °C".format(maxDischargeTemp))
             }
             
             StatRow(label = stringResource(R.string.stats_avg_active_drain), value = "%.2f %%/hr".format(avgActiveDrain))
