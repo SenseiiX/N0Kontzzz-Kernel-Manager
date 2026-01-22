@@ -179,8 +179,11 @@ class TuningRepository @Inject constructor(
         if (!executeShellCommand("swapoff /dev/block/zram0 2>/dev/null || true")) overallSuccess = false
         if (!executeShellCommand("echo 1 > $zramResetPath")) overallSuccess = false
         if (!executeShellCommand("echo $newSizeBytes > $zramDisksizePath")) overallSuccess = false
-        if (!executeShellCommand("mkswap /dev/block/zram0 2>/dev/null || true")) overallSuccess = false
-        if (!executeShellCommand("swapon /dev/block/zram0 2>/dev/null || true")) overallSuccess = false
+        
+        if (newSizeBytes > 0) {
+            if (!executeShellCommand("mkswap /dev/block/zram0 2>/dev/null || true")) overallSuccess = false
+            if (!executeShellCommand("swapon /dev/block/zram0 2>/dev/null || true")) overallSuccess = false
+        }
 
         if (needsSelinuxChange) {
             setSelinuxModeInternal(true)
@@ -225,9 +228,11 @@ class TuningRepository @Inject constructor(
         // 4. Set Disksize
         if (!executeShellCommand("echo $sizeBytes > $zramDisksizePath")) overallSuccess = false
         
-        // 5. Mkswap & Swapon
-        if (!executeShellCommand("mkswap /dev/block/zram0 2>/dev/null || true")) overallSuccess = false
-        if (!executeShellCommand("swapon /dev/block/zram0 2>/dev/null || true")) overallSuccess = false
+        // 5. Mkswap & Swapon (Only if size > 0)
+        if (sizeBytes > 0) {
+            if (!executeShellCommand("mkswap /dev/block/zram0 2>/dev/null || true")) overallSuccess = false
+            if (!executeShellCommand("swapon /dev/block/zram0 2>/dev/null || true")) overallSuccess = false
+        }
 
         if (needsSelinuxChange) {
             setSelinuxModeInternal(true)

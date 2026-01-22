@@ -612,10 +612,32 @@ class TuningViewModel @Inject constructor(
     fun getAvailableCpuFrequencies(cluster: String): StateFlow<List<Int>> = _availableCpuFrequenciesPerClusterMap.map { it[cluster] ?: emptyList() }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), emptyList())
 
     fun setCpuGov(cluster: String, gov: String) = viewModelScope.launch(Dispatchers.IO) {
+        if (setCpuGovInternal(cluster, gov)) {
+            // Logic: If user manually sets a governor (Custom mode), 
+            // the global "Performance Mode" concept is no longer valid.
+            // So we disable "Performance Mode on Boot" to prevent override.
+            if (_applyPerformanceModeOnBoot.value) {
+                toggleApplyPerformanceModeOnBoot(false)
+                
+                // UX Fix: If user had "Performance Mode on Boot" enabled, it means they WANTED persistence.
+                // Since we just killed the Global Persistence, we should migrate their intent 
+                // to the Granular/Manual Persistence ("CPU on Boot").
+                // Otherwise, they might reboot and lose their new manual settings unexpectedly.
+                if (!_applyCpuOnBoot.value) {
+                    toggleApplyCpuOnBoot(true)
+                }
+            }
+        }
+    }
+
+    private suspend fun setCpuGovInternal(cluster: String, gov: String): Boolean {
         if (repo.setCpuGov(cluster, gov)) {
             preferenceManager.setCpuGov(cluster, gov)
+            // Update UI State immediately
             repo.getCpuGov(cluster).take(1).collect { _currentCpuGovernors[cluster]?.value = it }
+            return true
         }
+        return false
     }
 
     fun setCpuFreq(cluster: String, min: Int, max: Int) = viewModelScope.launch(Dispatchers.IO) {
@@ -634,9 +656,11 @@ class TuningViewModel @Inject constructor(
             "Powersave" -> "powersave"
             else -> "schedutil"
         }
-        cpuClusters.forEach { cluster ->
-            preferenceManager.setCpuGov(cluster, governor)
-            setCpuGov(cluster, governor)
+        viewModelScope.launch(Dispatchers.IO) {
+            cpuClusters.forEach { cluster ->
+                // Use internal method to avoid triggering the "Disable Boot Pref" logic
+                setCpuGovInternal(cluster, governor)
+            }
         }
     }
 
@@ -767,19 +791,23 @@ class TuningViewModel @Inject constructor(
         preferenceManager.setZramEnabledPref(enabled)
         
         try {
-            repo.setZramEnabled(enabled).collect { isEnabled ->
+            var success = false
+            if (enabled) {
+                // Optimized: Apply size and algo in one go to avoid double-reset (Zombie restart)
+                val targetSize = preferenceManager.getZramDisksize().takeIf { it > 0 } ?: repo.calculateMaxZramSize()
+                val targetAlgo = preferenceManager.getZramCompression()
+                success = repo.applyFullZramConfig(targetSize, targetAlgo)
+            } else {
+                // Disabling: Just use standard disable flow
+                repo.setZramEnabled(false).collect { success = !it }
+            }
+
+            // Refresh state regardless of path taken
+            repo.getZramEnabled().take(1).collect { isEnabled ->
                 _zramEnabled.value = isEnabled
+                // If enabled successfully, ensure displayed size is synced
                 if (isEnabled) {
-                    // When re-enabling, restore the user's preferred disk size if available
-                    val savedSize = preferenceManager.getZramDisksize()
-                    if (savedSize > 0) {
-                        if (repo.setZramDisksize(savedSize)) {
-                            repo.getZramDisksize().take(1).collect { _zramDisksize.value = it }
-                        }
-                    } else {
-                        // If no preference, just refresh the current value (likely default)
-                        repo.getZramDisksize().take(1).collect { _zramDisksize.value = it }
-                    }
+                    repo.getZramDisksize().take(1).collect { _zramDisksize.value = it }
                 }
             }
         } finally {
