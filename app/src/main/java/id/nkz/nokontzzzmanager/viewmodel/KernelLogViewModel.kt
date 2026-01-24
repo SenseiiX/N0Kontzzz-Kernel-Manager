@@ -6,9 +6,13 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import id.nkz.nokontzzzmanager.data.repository.RootRepository
 import id.nkz.nokontzzzmanager.util.ThemeManager
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -22,13 +26,32 @@ class KernelLogViewModel @Inject constructor(
     val isAmoledMode = themeManager.isAmoledMode
 
     private val _logContent = MutableStateFlow<List<String>>(emptyList())
-    val logContent: StateFlow<List<String>> = _logContent.asStateFlow()
+    // Exposed as raw content, but we will provide a filtered view
+    
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
+    // Filtered content based on search query
+    val logContent: StateFlow<List<String>> = combine(_logContent, _searchQuery) { logs, query ->
+        if (query.isBlank()) logs else logs.filter { it.contains(query, ignoreCase = true) }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
+
+    // Wait, the previous code exposed logContent as the source. 
+    // Let's keep _logContent as private source and expose filteredLogContent. 
+    // But the UI currently uses `logContent`. To minimize UI changes, I can rename the backing field.
+    
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
+    
+    private val _isPaused = MutableStateFlow(false)
+    val isPaused: StateFlow<Boolean> = _isPaused.asStateFlow()
 
     private var monitoringJob: kotlinx.coroutines.Job? = null
     private var isFirstLoad = true
@@ -38,8 +61,10 @@ class KernelLogViewModel @Inject constructor(
         
         monitoringJob = viewModelScope.launch {
             while (true) {
-                loadLogsInternal(quiet = !isFirstLoad)
-                isFirstLoad = false
+                if (!_isPaused.value) {
+                    loadLogsInternal(quiet = !isFirstLoad)
+                    isFirstLoad = false
+                }
                 kotlinx.coroutines.delay(2000) // Poll every 2 seconds
             }
         }
@@ -49,11 +74,24 @@ class KernelLogViewModel @Inject constructor(
         monitoringJob?.cancel()
         monitoringJob = null
     }
+    
+    fun togglePause() {
+        _isPaused.value = !_isPaused.value
+    }
+    
+    fun updateSearchQuery(query: String) {
+        _searchQuery.value = query
+    }
 
     fun loadLogs() {
         viewModelScope.launch {
             loadLogsInternal(quiet = false)
         }
+    }
+    
+    // Helper to get raw logs for export
+    suspend fun getRawLogs(): String {
+        return _logContent.value.joinToString("\n")
     }
 
     private suspend fun loadLogsInternal(quiet: Boolean) {
