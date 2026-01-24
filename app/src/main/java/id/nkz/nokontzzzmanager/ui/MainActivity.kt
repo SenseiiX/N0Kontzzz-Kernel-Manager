@@ -164,6 +164,9 @@ class MainActivity : ComponentActivity() {
                 val isAmoledMode by themeManager.isAmoledMode.collectAsState(initial = false)
 
                 val currentRoute = currentDestination?.route
+                
+                // State to hold actions for the TopAppBar
+                var topAppBarActions by remember { mutableStateOf<(@Composable RowScope.() -> Unit)>({}) }
 
                 // Reset TopAppBar scroll state when navigating to a new screen
                 LaunchedEffect(currentRoute) {
@@ -177,6 +180,7 @@ class MainActivity : ComponentActivity() {
                     "process_monitor" -> stringResource(id = R.string.process_monitor_title)
                     "permission_manager" -> stringResource(id = R.string.permission_manager_title)
                     "dexopt" -> "Dexopt"
+                    "kernel_log" -> stringResource(id = R.string.kernel_log_title)
                     else -> stringResource(id = R.string.n0kz_kernel_manager) // Default title for home, tuning, misc
                 }
 
@@ -185,9 +189,8 @@ class MainActivity : ComponentActivity() {
                     else -> false // Do not show for settings or other screens
                 }
                 
-                val showUnifiedTopAppBar = when (currentRoute) {
-                    else -> true
-                }
+                // UnifiedTopAppBar logic: always show except for specific cases (currently none)
+                val showUnifiedTopAppBar = true
 
                 Scaffold(
                     modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -198,7 +201,8 @@ class MainActivity : ComponentActivity() {
                                 navController = navController,
                                 showSettingsIcon = showSettingsIcon,
                                 scrollBehavior = scrollBehavior,
-                                isAmoledMode = isAmoledMode
+                                isAmoledMode = isAmoledMode,
+                                actions = topAppBarActions
                             )
                         }
                     },
@@ -437,6 +441,26 @@ class MainActivity : ComponentActivity() {
                             }
                         ) {
                             DexoptScreen(navController = navController)
+                        }
+                        composable(
+                            "kernel_log",
+                            enterTransition = {
+                                slideInHorizontally(initialOffsetX = { fullWidth -> fullWidth }, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                            },
+                            exitTransition = {
+                                slideOutHorizontally(targetOffsetX = { fullWidth -> -fullWidth }, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                            },
+                            popEnterTransition = {
+                                slideInHorizontally(initialOffsetX = { fullWidth -> -fullWidth }, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                            },
+                            popExitTransition = {
+                                slideOutHorizontally(targetOffsetX = { fullWidth -> fullWidth }, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                            }
+                        ) {
+                            KernelLogScreen(
+                                navController = navController,
+                                onSetActions = { actions -> topAppBarActions = actions }
+                            )
                         }
                     }
                 }

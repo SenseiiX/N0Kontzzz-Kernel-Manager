@@ -1,5 +1,6 @@
 package id.nkz.nokontzzzmanager.ui.components
 
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
@@ -21,7 +22,8 @@ fun UnifiedTopAppBar(
     navController: NavController? = null,
     showSettingsIcon: Boolean = false,
     scrollBehavior: TopAppBarScrollBehavior? = null,
-    isAmoledMode: Boolean = false
+    isAmoledMode: Boolean = false,
+    actions: @Composable RowScope.() -> Unit = {}
 ) {
     val surfaceColor = MaterialTheme.colorScheme.surface
     val elevation = if (isAmoledMode) 6.dp else 3.dp
@@ -57,6 +59,7 @@ fun UnifiedTopAppBar(
             }
         },
         actions = {
+            actions()
             if (showSettingsIcon && navController != null) {
                 IconButton(onClick = { 
                     val currentRoute = navController.currentBackStackEntry?.destination?.route
