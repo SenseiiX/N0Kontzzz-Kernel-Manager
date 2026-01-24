@@ -17,6 +17,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.receiveAsFlow
+
 @HiltViewModel
 class KernelLogViewModel @Inject constructor(
     private val rootRepository: RootRepository,
@@ -24,12 +27,21 @@ class KernelLogViewModel @Inject constructor(
 ) : ViewModel() {
 
     val isAmoledMode = themeManager.isAmoledMode
+    
+    private val _exportTrigger = Channel<Unit>(Channel.BUFFERED)
+    val exportTrigger = _exportTrigger.receiveAsFlow()
 
     private val _logContent = MutableStateFlow<List<String>>(emptyList())
     // Exposed as raw content, but we will provide a filtered view
     
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+    
+    private val _isSearchVisible = MutableStateFlow(false)
+    val isSearchVisible: StateFlow<Boolean> = _isSearchVisible.asStateFlow()
+
+    private val _isMenuExpanded = MutableStateFlow(false)
+    val isMenuExpanded: StateFlow<Boolean> = _isMenuExpanded.asStateFlow()
 
     // Filtered content based on search query
     val logContent: StateFlow<List<String>> = combine(_logContent, _searchQuery) { logs, query ->
@@ -81,6 +93,21 @@ class KernelLogViewModel @Inject constructor(
     
     fun updateSearchQuery(query: String) {
         _searchQuery.value = query
+    }
+    
+    fun setSearchVisible(visible: Boolean) {
+        _isSearchVisible.value = visible
+        if (!visible) _searchQuery.value = ""
+    }
+
+    fun setMenuExpanded(expanded: Boolean) {
+        _isMenuExpanded.value = expanded
+    }
+    
+    fun triggerExport() {
+        viewModelScope.launch {
+            _exportTrigger.send(Unit)
+        }
     }
 
     fun loadLogs() {

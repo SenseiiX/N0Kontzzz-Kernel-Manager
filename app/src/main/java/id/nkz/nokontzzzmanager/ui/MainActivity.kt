@@ -58,14 +58,17 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import android.Manifest
 import androidx.activity.viewModels
-
 import androidx.compose.material3.ToggleFloatingActionButtonDefaults.animateIcon
+
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.hilt.navigation.compose.hiltViewModel
 
 import id.nkz.nokontzzzmanager.utils.LocaleHelper
 import id.nkz.nokontzzzmanager.viewmodel.MainViewModel
+import id.nkz.nokontzzzmanager.viewmodel.KernelLogViewModel
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
@@ -165,8 +168,8 @@ class MainActivity : ComponentActivity() {
 
                 val currentRoute = currentDestination?.route
                 
-                // State to hold actions for the TopAppBar
-                var topAppBarActions by remember { mutableStateOf<(@Composable RowScope.() -> Unit)>({}) }
+                // Hoisted ViewModel for Kernel Log to drive TopAppBar actions
+                var kernelLogViewModel by remember { mutableStateOf<KernelLogViewModel?>(null) }
 
                 // Reset TopAppBar scroll state when navigating to a new screen
                 LaunchedEffect(currentRoute) {
@@ -202,7 +205,72 @@ class MainActivity : ComponentActivity() {
                                 showSettingsIcon = showSettingsIcon,
                                 scrollBehavior = scrollBehavior,
                                 isAmoledMode = isAmoledMode,
-                                actions = topAppBarActions
+                                actions = {
+                                    if (currentRoute == "kernel_log") {
+                                        kernelLogViewModel?.let { viewModel ->
+                                            val isSearchVisible by viewModel.isSearchVisible.collectAsStateWithLifecycle()
+                                            val isPaused by viewModel.isPaused.collectAsStateWithLifecycle()
+                                            val isMenuExpanded by viewModel.isMenuExpanded.collectAsStateWithLifecycle()
+
+                                            if (isSearchVisible) {
+                                                IconButton(onClick = { 
+                                                    viewModel.setSearchVisible(false) 
+                                                }) {
+                                                    Icon(Icons.Default.Close, contentDescription = "Close Search")
+                                                }
+                                            } else {
+                                                IconButton(onClick = { viewModel.setSearchVisible(true) }) {
+                                                    Icon(Icons.Default.Search, contentDescription = "Search")
+                                                }
+                                                
+                                                IconButton(onClick = { viewModel.togglePause() }) {
+                                                    Icon(
+                                                        imageVector = if (isPaused) Icons.Default.PlayArrow else Icons.Default.Pause,
+                                                        contentDescription = if (isPaused) "Resume" else "Pause"
+                                                    )
+                                                }
+                                                
+                                                Box {
+                                                    IconButton(onClick = { viewModel.setMenuExpanded(true) }) {
+                                                        Icon(Icons.Default.MoreVert, contentDescription = "More Options")
+                                                    }
+                                                    
+                                                    DropdownMenu(
+                                                        expanded = isMenuExpanded,
+                                                        onDismissRequest = { viewModel.setMenuExpanded(false) }
+                                                    ) {
+                                                        DropdownMenuItem(
+                                                            text = { Text(stringResource(R.string.kernel_log_clear)) },
+                                                            leadingIcon = { Icon(Icons.Default.DeleteSweep, contentDescription = null) },
+                                                            onClick = {
+                                                                viewModel.clearLogs()
+                                                                viewModel.setMenuExpanded(false)
+                                                            }
+                                                        )
+                                                        DropdownMenuItem(
+                                                            text = { Text(stringResource(R.string.kernel_log_refresh)) },
+                                                            leadingIcon = { Icon(Icons.Default.Refresh, contentDescription = null) },
+                                                            onClick = {
+                                                                viewModel.loadLogs()
+                                                                viewModel.setMenuExpanded(false)
+                                                            }
+                                                        )
+                                                         DropdownMenuItem(
+                                                            text = { Text(stringResource(R.string.kernel_log_export)) }, 
+                                                            leadingIcon = { Icon(Icons.Default.Save, contentDescription = null) },
+                                                            onClick = {
+                                                                viewModel.triggerExport()
+                                                                viewModel.setMenuExpanded(false)
+                                                            }
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        // Specific actions for other screens if needed
+                                    }
+                                }
                             )
                         }
                     },
@@ -457,10 +525,11 @@ class MainActivity : ComponentActivity() {
                                 slideOutHorizontally(targetOffsetX = { fullWidth -> fullWidth }, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
                             }
                         ) {
-                            KernelLogScreen(
-                                navController = navController,
-                                onSetActions = { actions -> topAppBarActions = actions }
-                            )
+                            val viewModel = hiltViewModel<KernelLogViewModel>()
+                            SideEffect {
+                                kernelLogViewModel = viewModel
+                            }
+                            KernelLogScreen(navController = navController, viewModel = viewModel)
                         }
                     }
                 }

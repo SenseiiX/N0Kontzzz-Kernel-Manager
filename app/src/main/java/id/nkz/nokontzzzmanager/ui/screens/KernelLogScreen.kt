@@ -31,19 +31,17 @@ import kotlinx.coroutines.launch
 @Composable
 fun KernelLogScreen(
     navController: NavController,
-    viewModel: KernelLogViewModel = hiltViewModel(),
-    onSetActions: (@Composable RowScope.() -> Unit) -> Unit
+    viewModel: KernelLogViewModel = hiltViewModel()
 ) {
     val logContent by viewModel.logContent.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     val isPaused by viewModel.isPaused.collectAsStateWithLifecycle()
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
+    val isSearchVisible by viewModel.isSearchVisible.collectAsStateWithLifecycle()
     
     val listState = rememberLazyListState()
     var isInitialLoad by remember { mutableStateOf(true) }
-    var isSearchVisible by remember { mutableStateOf(false) }
-    var isMenuExpanded by remember { mutableStateOf(false) }
     
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -65,75 +63,17 @@ fun KernelLogScreen(
             }
         }
     }
+    
+    LaunchedEffect(Unit) {
+        viewModel.exportTrigger.collect {
+            exportLauncher.launch("kernel_log_${System.currentTimeMillis()}.log")
+        }
+    }
 
     DisposableEffect(Unit) {
         viewModel.startMonitoring()
         onDispose {
             viewModel.stopMonitoring()
-            onSetActions {}
-        }
-    }
-
-    // Update actions whenever relevant state changes
-    LaunchedEffect(isSearchVisible, isPaused, isMenuExpanded) {
-        onSetActions {
-            if (isSearchVisible) {
-                // Search Bar Actions
-                IconButton(onClick = { 
-                    isSearchVisible = false 
-                    viewModel.updateSearchQuery("")
-                }) {
-                    Icon(Icons.Default.Close, contentDescription = "Close Search")
-                }
-            } else {
-                // Default Actions
-                IconButton(onClick = { isSearchVisible = true }) {
-                    Icon(Icons.Default.Search, contentDescription = "Search")
-                }
-                
-                IconButton(onClick = { viewModel.togglePause() }) {
-                    Icon(
-                        imageVector = if (isPaused) Icons.Default.PlayArrow else Icons.Default.Pause,
-                        contentDescription = if (isPaused) "Resume" else "Pause"
-                    )
-                }
-                
-                Box {
-                    IconButton(onClick = { isMenuExpanded = true }) {
-                        Icon(Icons.Default.MoreVert, contentDescription = "More Options")
-                    }
-                    
-                    DropdownMenu(
-                        expanded = isMenuExpanded,
-                        onDismissRequest = { isMenuExpanded = false }
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.kernel_log_clear)) },
-                            leadingIcon = { Icon(Icons.Default.DeleteSweep, contentDescription = null) },
-                            onClick = {
-                                viewModel.clearLogs()
-                                isMenuExpanded = false
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.kernel_log_refresh)) }, // Reload
-                            leadingIcon = { Icon(Icons.Default.Refresh, contentDescription = null) },
-                            onClick = {
-                                viewModel.loadLogs()
-                                isMenuExpanded = false
-                            }
-                        )
-                         DropdownMenuItem(
-                            text = { Text(stringResource(R.string.kernel_log_export)) }, 
-                            leadingIcon = { Icon(Icons.Default.Save, contentDescription = null) },
-                            onClick = {
-                                exportLauncher.launch("kernel_log_${System.currentTimeMillis()}.log")
-                                isMenuExpanded = false
-                            }
-                        )
-                    }
-                }
-            }
         }
     }
     
