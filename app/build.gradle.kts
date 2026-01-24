@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
     alias(libs.plugins.kotlin.serialization)
@@ -15,8 +14,8 @@ configure <com.android.build.api.dsl.ApplicationExtension> {
         applicationId = "id.nkz.nokontzzzmanager"
         minSdk = 26
         targetSdk = 36
-        versionCode = 69
-        versionName = "1.5.5"
+        versionCode = 74
+        versionName = "1.5.6"
     }
     buildTypes {
         release {
