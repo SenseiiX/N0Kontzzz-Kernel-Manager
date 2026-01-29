@@ -599,6 +599,7 @@ class MainActivity : ComponentActivity() {
         val supportedSignatures = listOf(
             "Lunar",
             "N0Kontzzz",
+            "N0kernel",
             "FusionX",
             "perf+",
             "Oxygen+"
@@ -620,6 +621,11 @@ class MainActivity : ComponentActivity() {
 
         val n0KontzzzSupportedHosts = listOf(
             "bimoalfarrabi@github.com",
+            "build-user@build-host"
+        )
+
+        val n0kernelSupportedHosts = listOf(
+            "Impqxr@github.com",
             "build-user@build-host"
         )
 
@@ -664,6 +670,10 @@ class MainActivity : ComponentActivity() {
 
                             "n0kontzzz" -> {
                                 n0KontzzzSupportedHosts.any { versionLine.contains(it, ignoreCase = true) }
+                            }
+
+                            "n0kernel" -> {
+                                n0kernelSupportedHosts.any { versionLine.contains(it, ignoreCase = true) }
                             }
 
                             "perf+" -> {
