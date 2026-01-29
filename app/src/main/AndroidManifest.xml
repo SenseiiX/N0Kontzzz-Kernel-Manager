@@ -77,9 +77,9 @@
             android:foregroundServiceType="dataSync"
             android:stopWithTask="false" />
 
-        <!-- Custom Tunable Restore Service -->
+        <!-- Boot Restore Service -->
         <service
-            android:name=".service.CustomTunableRestoreService"
+            android:name=".service.BootRestoreService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="dataSync" />

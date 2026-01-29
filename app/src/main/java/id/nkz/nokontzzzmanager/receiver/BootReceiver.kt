@@ -55,20 +55,16 @@ class BootReceiver : BroadcastReceiver() {
     private fun handleBootCompleted(context: Context) {
         Log.d(TAG, "Handling boot completed event")
         
-        // Always attempt to restore settings on boot
-        val restoreReq = OneTimeWorkRequestBuilder<id.nkz.nokontzzzmanager.worker.RestoreSettingsWorker>().build()
-        WorkManager.getInstance(context).enqueue(restoreReq)
-
-        // Start Custom Tunable Restore Service directly as Foreground Service
+        // Start Boot Restore Service (Foreground)
         try {
-            val tunableIntent = Intent(context, id.nkz.nokontzzzmanager.service.CustomTunableRestoreService::class.java)
+            val restoreIntent = Intent(context, id.nkz.nokontzzzmanager.service.BootRestoreService::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(tunableIntent)
+                context.startForegroundService(restoreIntent)
             } else {
-                context.startService(tunableIntent)
+                context.startService(restoreIntent)
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to start CustomTunableRestoreService", e)
+            Log.e(TAG, "Failed to start BootRestoreService", e)
         }
 
         runCatching {
