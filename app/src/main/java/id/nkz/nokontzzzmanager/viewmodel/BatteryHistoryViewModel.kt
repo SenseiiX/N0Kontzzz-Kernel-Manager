@@ -15,6 +15,7 @@ import id.nkz.nokontzzzmanager.data.model.AppUsageInfo
 import id.nkz.nokontzzzmanager.data.repository.BatteryGraphRepository
 import id.nkz.nokontzzzmanager.data.repository.BatteryMonitorRepository
 import id.nkz.nokontzzzmanager.data.model.BatteryMonitorStats
+import id.nkz.nokontzzzmanager.data.model.BatteryStatsSummary
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -236,6 +237,130 @@ class BatteryHistoryViewModel @Inject constructor(
         started = SharingStarted.Lazily,
         initialValue = emptyList()
     )
+
+    val statsSummary: StateFlow<BatteryStatsSummary> = combine(
+        historyData,
+        monitorStats,
+        filter,
+        isBatteryMonitorEnabled
+    ) { data, monitorStats, currentFilter, isMonitorEnabled ->
+        calculateStats(data, monitorStats, currentFilter, isMonitorEnabled)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Lazily,
+        initialValue = BatteryStatsSummary()
+    )
+
+    private fun calculateStats(
+        data: List<BatteryGraphEntry>,
+        monitorStats: BatteryMonitorStats?,
+        currentFilter: HistoryFilter,
+        isMonitorEnabled: Boolean
+    ): BatteryStatsSummary {
+        if (data.isEmpty() && monitorStats == null) return BatteryStatsSummary()
+
+        val chargeEntries = data.filter { it.currentMa > 0 }
+        val dischargeEntries = data.filter { it.currentMa < 0 }
+
+        val avgCharge = if (chargeEntries.isNotEmpty()) chargeEntries.map { it.currentMa }.average() else 0.0
+        val maxCharge = if (chargeEntries.isNotEmpty()) chargeEntries.maxOf { it.currentMa } else 0f
+        val avgChargeTemp = if (chargeEntries.isNotEmpty()) chargeEntries.map { it.temperature.toDouble() }.average() else 0.0
+        val maxChargeTemp = if (chargeEntries.isNotEmpty()) chargeEntries.maxOf { it.temperature } else 0f
+
+        val avgDischarge = if (dischargeEntries.isNotEmpty()) dischargeEntries.map { kotlin.math.abs(it.currentMa) }.average() else 0.0
+        val maxDischarge = if (dischargeEntries.isNotEmpty()) dischargeEntries.minOf { it.currentMa }.let { kotlin.math.abs(it) } else 0f
+        val avgDischargeTemp = if (dischargeEntries.isNotEmpty()) dischargeEntries.map { it.temperature.toDouble() }.average() else 0.0
+        val maxDischargeTemp = if (dischargeEntries.isNotEmpty()) dischargeEntries.maxOf { it.temperature } else 0f
+
+        var avgActiveDrain = 0.0
+        var avgIdleDrain = 0.0
+        var totalDischargeTimeMs = 0L
+        var screenOnTimeMs = 0L
+        var screenOffTimeMs = 0L
+        var totalAwakeMs = 0L
+        var totalDeepSleepMs = 0L
+
+        val useMonitorStats = (currentFilter == HistoryFilter.SINCE_UNPLUGGED && monitorStats != null)
+
+        if (useMonitorStats) {
+            avgActiveDrain = monitorStats.activeDrainRate.toDouble()
+            avgIdleDrain = monitorStats.idleDrainRate.toDouble()
+            screenOnTimeMs = monitorStats.screenOnMs
+            screenOffTimeMs = monitorStats.screenOffMs
+            totalDischargeTimeMs = screenOnTimeMs + screenOffTimeMs
+            totalAwakeMs = monitorStats.awakeMs
+            totalDeepSleepMs = monitorStats.deepSleepMs
+        } else {
+            avgActiveDrain = if (data.isNotEmpty()) data.map { it.activeDrainRate.toDouble() }.average() else 0.0
+            avgIdleDrain = if (data.isNotEmpty()) data.map { it.idleDrainRate.toDouble() }.average() else 0.0
+
+            val sortedData = data.sortedBy { it.timestamp }
+            for (i in 0 until sortedData.size - 1) {
+                val current = sortedData[i]
+                val next = sortedData[i + 1]
+                val dt = next.timestamp - current.timestamp
+                if (dt > 5 * 60 * 1000) continue
+
+                if (current.currentMa < 0) {
+                    totalDischargeTimeMs += dt
+                    if (current.isScreenOn) screenOnTimeMs += dt else screenOffTimeMs += dt
+
+                    if (current.uptime > 0 && next.uptime > 0) {
+                        val dUptime = next.uptime - current.uptime
+                        if (dUptime >= 0) {
+                            val segmentAwake = dUptime.coerceAtMost(dt)
+                            val segmentSleep = (dt - segmentAwake).coerceAtLeast(0)
+                            totalAwakeMs += segmentAwake
+                            totalDeepSleepMs += segmentSleep
+                        }
+                    }
+                }
+            }
+        }
+
+        var totalDischargeMah = 0.0
+        var screenOnMah = 0.0
+        var screenOffMah = 0.0
+
+        if (data.isNotEmpty()) {
+            val sortedData = data.sortedBy { it.timestamp }
+            for (i in 0 until sortedData.size - 1) {
+                val current = sortedData[i]
+                val next = sortedData[i + 1]
+                val dt = next.timestamp - current.timestamp
+                if (dt > 5 * 60 * 1000) continue
+
+                if (current.currentMa < 0) {
+                    val avgCurrentMa = (kotlin.math.abs(current.currentMa) + kotlin.math.abs(next.currentMa)) / 2.0
+                    val mah = (avgCurrentMa * dt) / 3_600_000.0
+                    totalDischargeMah += mah
+                    if (current.isScreenOn) screenOnMah += mah else screenOffMah += mah
+                }
+            }
+        }
+
+        return BatteryStatsSummary(
+            avgChargeCurrent = avgCharge,
+            maxChargeCurrent = maxCharge,
+            avgChargeTemp = avgChargeTemp,
+            maxChargeTemp = maxChargeTemp,
+            avgDischargeCurrent = avgDischarge,
+            maxDischargeCurrent = maxDischarge,
+            avgDischargeTemp = avgDischargeTemp,
+            maxDischargeTemp = maxDischargeTemp,
+            activeDrainRate = avgActiveDrain,
+            idleDrainRate = avgIdleDrain,
+            totalDischargeTimeMs = totalDischargeTimeMs,
+            screenOnTimeMs = screenOnTimeMs,
+            screenOffTimeMs = screenOffTimeMs,
+            totalAwakeMs = totalAwakeMs,
+            totalDeepSleepMs = totalDeepSleepMs,
+            totalDischargeMah = totalDischargeMah,
+            screenOnMah = screenOnMah,
+            screenOffMah = screenOffMah,
+            isSyncedWithMonitor = useMonitorStats && isMonitorEnabled
+        )
+    }
 
     fun setFilter(newFilter: HistoryFilter) {
         _filter.value = newFilter

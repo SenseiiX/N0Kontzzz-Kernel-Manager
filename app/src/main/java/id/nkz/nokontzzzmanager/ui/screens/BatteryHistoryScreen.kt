@@ -83,6 +83,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.asImageBitmap
 import id.nkz.nokontzzzmanager.data.model.AppUsageInfo
 import id.nkz.nokontzzzmanager.data.model.BatteryMonitorStats
+import id.nkz.nokontzzzmanager.data.model.BatteryStatsSummary
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -95,7 +96,7 @@ fun BatteryHistoryScreen(
     val appUsageList by viewModel.appUsageList.collectAsState()
     val hasUsagePermission by viewModel.hasUsagePermission.collectAsState()
     val isBatteryMonitorEnabled by viewModel.isBatteryMonitorEnabled.collectAsState()
-    val monitorStats by viewModel.monitorStats.collectAsState()
+    val statsSummary by viewModel.statsSummary.collectAsState()
     
     var graphMode by remember { mutableStateOf(BatteryGraphMode.SPEED) }
     var showClearDialog by remember { mutableStateOf(false) }
@@ -297,10 +298,7 @@ fun BatteryHistoryScreen(
             // Stats Card
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 BatteryHistoryStatsCard(
-                    data = historyData,
-                    monitorStats = monitorStats,
-                    currentFilter = currentFilter,
-                    isMonitorEnabled = isBatteryMonitorEnabled,
+                    stats = statsSummary,
                     shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 8.dp, bottomEnd = 8.dp)
                 )
 
@@ -434,7 +432,7 @@ fun BatteryHistoryGraph(
 
     val minTime = data.minOf { it.timestamp }
     val maxTime = data.maxOf { it.timestamp }
-    val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+    val timeFormat = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
 
     val (minY, maxY, labelSuffix) = if (mode == BatteryGraphMode.SPEED) {
         val min = data.minOf { it.currentMa }.coerceAtMost(0f)
@@ -556,108 +554,9 @@ fun BatteryHistoryGraph(
 
 @Composable
 fun BatteryHistoryStatsCard(
-    data: List<BatteryGraphEntry>,
-    monitorStats: BatteryMonitorStats?,
-    currentFilter: HistoryFilter,
-    isMonitorEnabled: Boolean,
+    stats: BatteryStatsSummary,
     shape: Shape = CardDefaults.shape
 ) {
-    if (data.isEmpty() && monitorStats == null) return
-
-    val chargeEntries = data.filter { it.currentMa > 0 }
-    val dischargeEntries = data.filter { it.currentMa < 0 }
-
-    val avgCharge = if (chargeEntries.isNotEmpty()) chargeEntries.map { it.currentMa }.average() else 0.0
-    val maxCharge = if (chargeEntries.isNotEmpty()) chargeEntries.maxOf { it.currentMa } else 0f
-
-    val avgChargeTemp = if (chargeEntries.isNotEmpty()) chargeEntries.map { it.temperature.toDouble() }.average() else 0.0
-    val maxChargeTemp = if (chargeEntries.isNotEmpty()) chargeEntries.maxOf { it.temperature } else 0f
-    
-    val avgDischarge = if (dischargeEntries.isNotEmpty()) dischargeEntries.map { kotlin.math.abs(it.currentMa) }.average() else 0.0
-    val maxDischarge = if (dischargeEntries.isNotEmpty()) dischargeEntries.minOf { it.currentMa }.let { kotlin.math.abs(it) } else 0f
-
-    val avgDischargeTemp = if (dischargeEntries.isNotEmpty()) dischargeEntries.map { it.temperature.toDouble() }.average() else 0.0
-    val maxDischargeTemp = if (dischargeEntries.isNotEmpty()) dischargeEntries.maxOf { it.temperature } else 0f
-
-    // Determine Drain Rates and Times
-    var avgActiveDrain = 0.0
-    var avgIdleDrain = 0.0
-    var totalDischargeTimeMs = 0L
-    var screenOnTimeMs = 0L
-    var screenOffTimeMs = 0L
-    var totalAwakeMs = 0L
-    var totalDeepSleepMs = 0L
-    
-    // We only use Monitor Stats if filter is SINCE_UNPLUGGED (Session)
-    val useMonitorStats = (currentFilter == HistoryFilter.SINCE_UNPLUGGED && monitorStats != null)
-
-    if (useMonitorStats && monitorStats != null) {
-        avgActiveDrain = monitorStats.activeDrainRate.toDouble()
-        avgIdleDrain = monitorStats.idleDrainRate.toDouble()
-        screenOnTimeMs = monitorStats.screenOnMs
-        screenOffTimeMs = monitorStats.screenOffMs
-        totalDischargeTimeMs = screenOnTimeMs + screenOffTimeMs
-        totalAwakeMs = monitorStats.awakeMs
-        totalDeepSleepMs = monitorStats.deepSleepMs
-    } else {
-        avgActiveDrain = if (data.isNotEmpty()) data.map { it.activeDrainRate.toDouble() }.average() else 0.0
-        avgIdleDrain = if (data.isNotEmpty()) data.map { it.idleDrainRate.toDouble() }.average() else 0.0
-
-        // Calculate time and consumption stats from graph
-        val sortedData = data.sortedBy { it.timestamp }
-        for (i in 0 until sortedData.size - 1) {
-            val current = sortedData[i]
-            val next = sortedData[i + 1]
-            
-            // Skip if gap is too large (e.g. service killed), > 5 mins
-            val dt = next.timestamp - current.timestamp
-            if (dt > 5 * 60 * 1000) continue
-            
-            // Only consider discharging periods for these stats
-            if (current.currentMa < 0) {
-                totalDischargeTimeMs += dt
-                
-                if (current.isScreenOn) {
-                    screenOnTimeMs += dt
-                } else {
-                    screenOffTimeMs += dt
-                }
-
-                if (current.uptime > 0 && next.uptime > 0) {
-                    val dUptime = next.uptime - current.uptime
-                    if (dUptime >= 0) {
-                        val segmentAwake = dUptime.coerceAtMost(dt)
-                        val segmentSleep = (dt - segmentAwake).coerceAtLeast(0)
-                        totalAwakeMs += segmentAwake
-                        totalDeepSleepMs += segmentSleep
-                    }
-                }
-            }
-        }
-    }
-
-    // Calculate mAh totals
-    var totalDischargeMah = 0.0
-    var screenOnMah = 0.0
-    var screenOffMah = 0.0
-
-    if (data.isNotEmpty()) {
-         val sortedData = data.sortedBy { it.timestamp }
-         for (i in 0 until sortedData.size - 1) {
-            val current = sortedData[i]
-            val next = sortedData[i + 1]
-            val dt = next.timestamp - current.timestamp
-            if (dt > 5 * 60 * 1000) continue
-            
-            if (current.currentMa < 0) {
-                val avgCurrentMa = (kotlin.math.abs(current.currentMa) + kotlin.math.abs(next.currentMa)) / 2.0
-                val mah = (avgCurrentMa * dt) / 3_600_000.0
-                totalDischargeMah += mah
-                if (current.isScreenOn) screenOnMah += mah else screenOffMah += mah
-            }
-         }
-    }
-    
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = shape,
@@ -681,18 +580,8 @@ fun BatteryHistoryStatsCard(
                 )
                 
                 // Sync Status Badge
-                if (currentFilter == HistoryFilter.SINCE_UNPLUGGED) {
-                    val synced = isMonitorEnabled && monitorStats != null
-                    val labelText = if (synced) {
-                        stringResource(R.string.stats_synced)
-                    } else {
-                        stringResource(R.string.stats_manual)
-                    }
-                    val badgeColor = if (synced) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.error
-                    }
+                if (stats.isSyncedWithMonitor) {
+                    val badgeColor = MaterialTheme.colorScheme.primary
                     
                     Surface(
                         color = badgeColor.copy(alpha = 0.1f),
@@ -700,7 +589,7 @@ fun BatteryHistoryStatsCard(
                         border = androidx.compose.foundation.BorderStroke(1.dp, badgeColor.copy(alpha = 0.5f))
                     ) {
                         Text(
-                            text = labelText,
+                            text = stringResource(R.string.stats_synced),
                             style = MaterialTheme.typography.labelSmall,
                             color = badgeColor,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
@@ -709,18 +598,18 @@ fun BatteryHistoryStatsCard(
                 }
             }
             
-            if (totalDischargeTimeMs > 0) {
+            if (stats.totalDischargeTimeMs > 0) {
                 fun formatUsage(timeMs: Long, mah: Double): String {
-                    val pct = if (totalDischargeMah > 0) (mah / totalDischargeMah * 100).toInt() else 0
+                    val pct = if (stats.totalDischargeMah > 0) (mah / stats.totalDischargeMah * 100).toInt() else 0
                     val duration = formatDuration(timeMs)
                     return "$duration • $pct% (${mah.toInt()} mAh)"
                 }
 
                 // Group: Usage Time
                 val usageItems = listOf(
-                    stringResource(R.string.stats_total_active_time) to formatUsage(totalDischargeTimeMs, totalDischargeMah),
-                    stringResource(R.string.stats_screen_on_time) to formatUsage(screenOnTimeMs, screenOnMah),
-                    stringResource(R.string.stats_screen_off_time) to formatUsage(screenOffTimeMs, screenOffMah)
+                    stringResource(R.string.stats_total_active_time) to formatUsage(stats.totalDischargeTimeMs, stats.totalDischargeMah),
+                    stringResource(R.string.stats_screen_on_time) to formatUsage(stats.screenOnTimeMs, stats.screenOnMah),
+                    stringResource(R.string.stats_screen_off_time) to formatUsage(stats.screenOffTimeMs, stats.screenOffMah)
                 )
 
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -734,14 +623,14 @@ fun BatteryHistoryStatsCard(
                     }
                 }
 
-                if (totalAwakeMs > 0 || totalDeepSleepMs > 0) {
-                    val totalTracked = (totalAwakeMs + totalDeepSleepMs).coerceAtLeast(1L)
-                    val awakePct = (totalAwakeMs * 100 / totalTracked)
-                    val sleepPct = (totalDeepSleepMs * 100 / totalTracked)
+                if (stats.totalAwakeMs > 0 || stats.totalDeepSleepMs > 0) {
+                    val totalTracked = (stats.totalAwakeMs + stats.totalDeepSleepMs).coerceAtLeast(1L)
+                    val awakePct = (stats.totalAwakeMs * 100 / totalTracked)
+                    val sleepPct = (stats.totalDeepSleepMs * 100 / totalTracked)
 
                     val uptimeItems = listOf(
-                        stringResource(R.string.uptime) to "${formatDuration(totalAwakeMs)} ($awakePct%)",
-                        stringResource(R.string.deep_sleep) to "${formatDuration(totalDeepSleepMs)} ($sleepPct%)"
+                        stringResource(R.string.uptime) to "${formatDuration(stats.totalAwakeMs)} ($awakePct%)",
+                        stringResource(R.string.deep_sleep) to "${formatDuration(stats.totalDeepSleepMs)} ($sleepPct%)"
                     )
 
                     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -757,12 +646,12 @@ fun BatteryHistoryStatsCard(
                 }
             }
 
-            if (avgCharge > 0) {
+            if (stats.avgChargeCurrent > 0) {
                 val chargeItems = listOf(
-                    stringResource(R.string.stats_avg_charge_speed) to "%.0f mA".format(avgCharge),
-                    stringResource(R.string.stats_max_charge_speed) to "%.0f mA".format(maxCharge),
-                    stringResource(R.string.stats_avg_charge_temp) to "%.1f °C".format(avgChargeTemp),
-                    stringResource(R.string.stats_max_charge_temp) to "%.1f °C".format(maxChargeTemp)
+                    stringResource(R.string.stats_avg_charge_speed) to "%.0f mA".format(stats.avgChargeCurrent),
+                    stringResource(R.string.stats_max_charge_speed) to "%.0f mA".format(stats.maxChargeCurrent),
+                    stringResource(R.string.stats_avg_charge_temp) to "%.1f °C".format(stats.avgChargeTemp),
+                    stringResource(R.string.stats_max_charge_temp) to "%.1f °C".format(stats.maxChargeTemp)
                 )
 
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -777,12 +666,12 @@ fun BatteryHistoryStatsCard(
                 }
             }
             
-            if (avgDischarge > 0) {
+            if (stats.avgDischargeCurrent > 0) {
                 val dischargeItems = listOf(
-                    stringResource(R.string.stats_avg_discharge_speed) to "-%.0f mA".format(avgDischarge),
-                    stringResource(R.string.stats_max_discharge_speed) to "-%.0f mA".format(maxDischarge),
-                    stringResource(R.string.stats_avg_discharge_temp) to "%.1f °C".format(avgDischargeTemp),
-                    stringResource(R.string.stats_max_discharge_temp) to "%.1f °C".format(maxDischargeTemp)
+                    stringResource(R.string.stats_avg_discharge_speed) to "-%.0f mA".format(stats.avgDischargeCurrent),
+                    stringResource(R.string.stats_max_discharge_speed) to "-%.0f mA".format(stats.maxDischargeCurrent),
+                    stringResource(R.string.stats_avg_discharge_temp) to "%.1f °C".format(stats.avgDischargeTemp),
+                    stringResource(R.string.stats_max_discharge_temp) to "%.1f °C".format(stats.maxDischargeTemp)
                 )
 
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -798,8 +687,8 @@ fun BatteryHistoryStatsCard(
             }
             
             val drainItems = listOf(
-                stringResource(R.string.stats_avg_active_drain) to "%.2f %%/hr".format(avgActiveDrain),
-                stringResource(R.string.stats_avg_idle_drain) to "%.2f %%/hr".format(avgIdleDrain)
+                stringResource(R.string.stats_avg_active_drain) to "%.2f %%/hr".format(stats.activeDrainRate),
+                stringResource(R.string.stats_avg_idle_drain) to "%.2f %%/hr".format(stats.idleDrainRate)
             )
 
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
