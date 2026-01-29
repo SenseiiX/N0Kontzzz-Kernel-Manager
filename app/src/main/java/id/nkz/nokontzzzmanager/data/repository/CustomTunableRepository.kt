@@ -22,7 +22,17 @@ class CustomTunableRepository @Inject constructor(
 
     suspend fun deleteTunable(tunable: CustomTunableEntity) = customTunableDao.deleteTunable(tunable)
 
+    private fun isPathSafe(path: String): Boolean {
+        // Prevent basic shell injection characters
+        val blockList = listOf(";", "|", "&&", "$", "`", "\n")
+        return blockList.none { path.contains(it) }
+    }
+
     suspend fun applyTunable(path: String, value: String): Boolean {
+        if (!isPathSafe(path)) {
+            Log.e(TAG, "Unsafe path blocked: $path")
+            return false
+        }
         return try {
             // Check if file exists
             val check = rootRepository.run("ls $path")
@@ -55,6 +65,7 @@ class CustomTunableRepository @Inject constructor(
     }
 
     suspend fun readTunable(path: String): String {
+        if (!isPathSafe(path)) return ""
         return try {
              val result = rootRepository.run("cat \"$path\"")
              result.trim()

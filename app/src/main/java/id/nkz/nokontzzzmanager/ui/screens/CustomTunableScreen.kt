@@ -83,7 +83,7 @@ fun CustomTunableScreen(
                         showDeleteDialog = true
                     },
                     onToggleBoot = { enabled ->
-                        viewModel.updateTunable(state.entity.copy(applyOnBoot = enabled))
+                        viewModel.updateTunable(state.entity.path, state.entity.copy(applyOnBoot = enabled))
                     }
                 )
             }
@@ -104,7 +104,7 @@ fun CustomTunableScreen(
             },
             onSave = { path, value, applyOnBoot ->
                 if (editingTunable != null) {
-                     viewModel.updateTunable(CustomTunableEntity(path, value, applyOnBoot))
+                     viewModel.updateTunable(editingTunable!!.path, CustomTunableEntity(path, value, applyOnBoot))
                 } else {
                      viewModel.addTunable(path, value, applyOnBoot)
                 }

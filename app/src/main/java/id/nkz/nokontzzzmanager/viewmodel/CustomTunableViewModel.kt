@@ -47,8 +47,11 @@ class CustomTunableViewModel @Inject constructor(
         }
     }
 
-    fun updateTunable(tunable: CustomTunableEntity) {
+    fun updateTunable(oldPath: String, tunable: CustomTunableEntity) {
         viewModelScope.launch(Dispatchers.IO) {
+            if (oldPath != tunable.path) {
+                repository.deleteTunable(CustomTunableEntity(oldPath, "", false))
+            }
             repository.insertTunable(tunable)
             // Auto apply on update (toggle boot or edit value)
             repository.applyTunable(tunable.path, tunable.value)
