@@ -158,6 +158,12 @@ fun MiscScreen(
             Text(stringResource(id = R.string.gpu_power), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
             Spacer(modifier = Modifier.height(8.dp))
         }
+        // Custom Tunable
+        item {
+            CustomTunableEntryCard(
+                onClick = { navController?.navigate("custom_tunable") }
+            )
+        }
         // KGSL Skip Pool Zeroing feature
         item {
             KgslSkipZeroingCard(

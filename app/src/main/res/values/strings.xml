@@ -656,4 +656,11 @@
     <string name="kernel_log_clear">Clear</string>
     <string name="kernel_log_retry">Retry</string>
     <string name="kernel_log_export">Export Log</string>
+
+    <!-- Custom Tunable -->
+    <string name="custom_tunable_title">Custom Tunable</string>
+    <string name="custom_tunable_desc">Configure custom kernel nodes and apply on boot</string>
+    <string name="add_tunable">Add Tunable</string>
+    <string name="edit_tunable">Edit Tunable</string>
+    <string name="set_on_boot">Set on Boot</string>
 </resources>

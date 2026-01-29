@@ -24,6 +24,7 @@ class RestoreSettingsWorker @AssistedInject constructor(
     private val systemRepository: SystemRepository,
     private val tuningRepository: TuningRepository,
     private val thermalRepository: ThermalRepository,
+    private val customTunableRepository: id.nkz.nokontzzzmanager.data.repository.CustomTunableRepository,
     private val preferenceManager: PreferenceManager
 ) : CoroutineWorker(appContext, workerParams) {
 
@@ -37,6 +38,7 @@ class RestoreSettingsWorker @AssistedInject constructor(
         restoreGpuSettings()
         restoreRamSettings()
         restoreThermalSettings()
+        // restoreCustomTunables() - Moved to CustomTunableRestoreService
 
         return Result.success()
     }

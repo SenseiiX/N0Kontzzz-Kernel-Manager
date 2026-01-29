@@ -110,6 +110,10 @@ class MainActivity : ComponentActivity() {
     val processMonitorFabVisible = mutableStateOf(false)
     val processMonitorFabAction: MutableState<(() -> Unit)?> = mutableStateOf(null)
 
+    // State for CustomTunable FAB
+    val customTunableFabVisible = mutableStateOf(false)
+    val customTunableFabAction: MutableState<(() -> Unit)?> = mutableStateOf(null)
+
     @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
     @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -180,6 +184,7 @@ class MainActivity : ComponentActivity() {
                 val title = when (currentRoute) {
                     "settings" -> stringResource(id = R.string.settings)
                     "battery_history" -> stringResource(id = R.string.battery_history_title) // Define title for Battery History screen
+                    "custom_tunable" -> stringResource(id = R.string.custom_tunable_title)
                     "app_profiles" -> "App Profiles"
                     "process_monitor" -> stringResource(id = R.string.process_monitor_title)
                     "permission_manager" -> stringResource(id = R.string.permission_manager_title)
@@ -354,6 +359,13 @@ class MainActivity : ComponentActivity() {
                                     Icon(Icons.Default.Settings, contentDescription = "Settings")
                                 }
                             }
+                            "custom_tunable" if customTunableFabVisible.value -> {
+                                ExtendedFloatingActionButton(
+                                    onClick = { customTunableFabAction.value?.invoke() },
+                                    icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                                    text = { Text(stringResource(R.string.add_tunable)) }
+                                )
+                            }
                         }
                     },
                     floatingActionButtonPosition = FabPosition.End,
@@ -411,6 +423,23 @@ class MainActivity : ComponentActivity() {
                             popEnterTransition = { fadeIn(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) },
                             popExitTransition = { fadeOut(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) + scaleOut(targetScale = 0.92f, animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) }
                         ) { MiscScreen(navController = navController) }
+                        composable(
+                            "custom_tunable",
+                            enterTransition = {
+                                slideInHorizontally(initialOffsetX = { fullWidth -> fullWidth }, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                            },
+                            exitTransition = {
+                                slideOutHorizontally(targetOffsetX = { fullWidth -> -fullWidth }, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                            },
+                            popEnterTransition = {
+                                slideInHorizontally(initialOffsetX = { fullWidth -> -fullWidth }, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                            },
+                            popExitTransition = {
+                                slideOutHorizontally(targetOffsetX = { fullWidth -> fullWidth }, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                            }
+                        ) {
+                             CustomTunableScreen(navController = navController)
+                        }
                         composable(
                             "battery_history",
                             enterTransition = {

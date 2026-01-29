@@ -93,4 +93,19 @@ object AppModule {
     fun provideAppProfileRepository(dao: id.nkz.nokontzzzmanager.data.database.AppProfileDao): id.nkz.nokontzzzmanager.data.repository.AppProfileRepository {
         return id.nkz.nokontzzzmanager.data.repository.AppProfileRepository(dao)
     }
+
+    @Provides
+    @Singleton
+    fun provideCustomTunableDao(database: id.nkz.nokontzzzmanager.data.database.BatteryHistoryDatabase): id.nkz.nokontzzzmanager.data.database.CustomTunableDao {
+        return database.customTunableDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideCustomTunableRepository(
+        dao: id.nkz.nokontzzzmanager.data.database.CustomTunableDao,
+        rootRepository: RootRepository
+    ): id.nkz.nokontzzzmanager.data.repository.CustomTunableRepository {
+        return id.nkz.nokontzzzmanager.data.repository.CustomTunableRepository(dao, rootRepository)
+    }
 }

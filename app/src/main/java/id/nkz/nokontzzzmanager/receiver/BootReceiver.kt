@@ -59,6 +59,18 @@ class BootReceiver : BroadcastReceiver() {
         val restoreReq = OneTimeWorkRequestBuilder<id.nkz.nokontzzzmanager.worker.RestoreSettingsWorker>().build()
         WorkManager.getInstance(context).enqueue(restoreReq)
 
+        // Start Custom Tunable Restore Service directly as Foreground Service
+        try {
+            val tunableIntent = Intent(context, id.nkz.nokontzzzmanager.service.CustomTunableRestoreService::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(tunableIntent)
+            } else {
+                context.startService(tunableIntent)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to start CustomTunableRestoreService", e)
+        }
+
         runCatching {
             val enabled = isBatteryMonitorEnabled(context)
             if (enabled) {
