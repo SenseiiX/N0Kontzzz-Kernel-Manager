@@ -398,7 +398,8 @@ class BatteryMonitorService : Service() {
                                 isScreenOn = interactive,
                                 activeDrainRate = activeRate.toFloat(),
                                 idleDrainRate = idleRate.toFloat(),
-                                temperature = temp
+                                temperature = temp,
+                                uptime = SystemClock.uptimeMillis()
                             )
                         )
                     } catch (_: Exception) { }

@@ -25,14 +25,20 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import androidx.core.graphics.scale
 
+import id.nkz.nokontzzzmanager.utils.PreferenceManager
+
 @HiltViewModel
 class BatteryHistoryViewModel @Inject constructor(
     private val repository: BatteryGraphRepository,
+    private val preferenceManager: PreferenceManager,
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private val _filter = MutableStateFlow(HistoryFilter.LAST_24_HOURS)
     val filter: StateFlow<HistoryFilter> = _filter.asStateFlow()
+
+    private val _isBatteryMonitorEnabled = MutableStateFlow(false)
+    val isBatteryMonitorEnabled: StateFlow<Boolean> = _isBatteryMonitorEnabled.asStateFlow()
 
     private val _hasUsagePermission = MutableStateFlow(false)
     val hasUsagePermission: StateFlow<Boolean> = _hasUsagePermission.asStateFlow()
@@ -46,6 +52,19 @@ class BatteryHistoryViewModel @Inject constructor(
                 loadAppUsageStats()
             }
         }
+        checkBatteryMonitorState()
+    }
+
+    fun checkBatteryMonitorState() {
+        _isBatteryMonitorEnabled.value = preferenceManager.isBatteryMonitorEnabled()
+    }
+
+    fun enableBatteryMonitor() {
+         viewModelScope.launch {
+             preferenceManager.setBatteryMonitorEnabled(true)
+             id.nkz.nokontzzzmanager.service.BatteryMonitorService.start(context)
+             _isBatteryMonitorEnabled.value = true
+         }
     }
 
     fun checkUsagePermission() {

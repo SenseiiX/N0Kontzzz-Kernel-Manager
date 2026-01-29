@@ -223,6 +223,9 @@
     <string name="stats_total_active_time">Total Active</string>
     <string name="stats_screen_on_time">Screen On</string>
     <string name="stats_screen_off_time">Screen Off</string>
+    <string name="battery_monitor_disabled_warning">Battery Monitor Disabled</string>
+    <string name="battery_monitor_disabled_desc">To view Awake and Deep Sleep stats, the Battery Monitor service must be enabled.</string>
+    <string name="enable_battery_monitor">Enable</string>
 
     <!-- SettingsScreen -->
     <string name="theme_and_display">Theme &amp; Display</string>

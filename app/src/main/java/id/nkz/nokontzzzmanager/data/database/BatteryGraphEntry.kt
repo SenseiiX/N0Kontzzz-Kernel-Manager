@@ -13,5 +13,6 @@ data class BatteryGraphEntry(
     val isScreenOn: Boolean = false,
     val activeDrainRate: Float, // %/hr
     val idleDrainRate: Float, // %/hr
-    val temperature: Float
+    val temperature: Float,
+    val uptime: Long = 0L
 )

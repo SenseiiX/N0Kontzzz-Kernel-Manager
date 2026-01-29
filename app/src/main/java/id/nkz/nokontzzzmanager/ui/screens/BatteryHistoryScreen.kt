@@ -92,6 +92,7 @@ fun BatteryHistoryScreen(
     val currentFilter by viewModel.filter.collectAsState()
     val appUsageList by viewModel.appUsageList.collectAsState()
     val hasUsagePermission by viewModel.hasUsagePermission.collectAsState()
+    val isBatteryMonitorEnabled by viewModel.isBatteryMonitorEnabled.collectAsState()
     
     var graphMode by remember { mutableStateOf(BatteryGraphMode.SPEED) }
     var showClearDialog by remember { mutableStateOf(false) }
@@ -104,6 +105,7 @@ fun BatteryHistoryScreen(
         val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
             if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
                 viewModel.loadAppUsageStats()
+                viewModel.checkBatteryMonitorState()
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -116,6 +118,7 @@ fun BatteryHistoryScreen(
         mainActivity?.batteryHistoryFabVisible?.value = true
         mainActivity?.batteryHistoryFabAction?.value = { showClearDialog = true }
         viewModel.loadAppUsageStats()
+        viewModel.checkBatteryMonitorState()
     }
 
     DisposableEffect(Unit) {
@@ -143,6 +146,41 @@ fun BatteryHistoryScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            if (!isBatteryMonitorEnabled) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                        contentColor = MaterialTheme.colorScheme.onErrorContainer
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.battery_monitor_disabled_warning),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = stringResource(R.string.battery_monitor_disabled_desc),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Button(
+                            onClick = { viewModel.enableBatteryMonitor() },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.onErrorContainer,
+                                contentColor = MaterialTheme.colorScheme.errorContainer
+                            ),
+                            modifier = Modifier.align(Alignment.End)
+                        ) {
+                            Text(stringResource(R.string.enable_battery_monitor))
+                        }
+                    }
+                }
+            }
+
             // Mode Toggle
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -544,6 +582,9 @@ fun BatteryHistoryStatsCard(
     var screenOnMah = 0.0
     var screenOffMah = 0.0
 
+    var totalAwakeMs = 0L
+    var totalDeepSleepMs = 0L
+
     // Sort data by timestamp just in case
     val sortedData = data.sortedBy { it.timestamp }
     for (i in 0 until sortedData.size - 1) {
@@ -568,6 +609,16 @@ fun BatteryHistoryStatsCard(
             } else {
                 screenOffTimeMs += dt
                 screenOffMah += mah
+            }
+
+            if (current.uptime > 0 && next.uptime > 0) {
+                val dUptime = next.uptime - current.uptime
+                if (dUptime >= 0) {
+                    val segmentAwake = dUptime.coerceAtMost(dt)
+                    val segmentSleep = (dt - segmentAwake).coerceAtLeast(0)
+                    totalAwakeMs += segmentAwake
+                    totalDeepSleepMs += segmentSleep
+                }
             }
         }
     }
@@ -602,6 +653,22 @@ fun BatteryHistoryStatsCard(
                 StatRow(label = stringResource(R.string.stats_total_active_time), value = formatUsage(totalDischargeTimeMs, totalDischargeMah))
                 StatRow(label = stringResource(R.string.stats_screen_on_time), value = formatUsage(screenOnTimeMs, screenOnMah))
                 StatRow(label = stringResource(R.string.stats_screen_off_time), value = formatUsage(screenOffTimeMs, screenOffMah))
+
+                if (totalAwakeMs > 0 || totalDeepSleepMs > 0) {
+                    val totalTracked = totalAwakeMs + totalDeepSleepMs
+                    val awakePct = if (totalTracked > 0) (totalAwakeMs * 100 / totalTracked) else 0
+                    val sleepPct = if (totalTracked > 0) (totalDeepSleepMs * 100 / totalTracked) else 0
+
+                    StatRow(
+                        label = stringResource(R.string.uptime),
+                        value = "${formatDuration(totalAwakeMs)} ($awakePct%)"
+                    )
+                    StatRow(
+                        label = stringResource(R.string.deep_sleep),
+                        value = "${formatDuration(totalDeepSleepMs)} ($sleepPct%)"
+                    )
+                }
+
                 Spacer(modifier = Modifier.height(8.dp))
             }
 

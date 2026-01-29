@@ -224,6 +224,9 @@
     <string name="stats_total_active_time">Total Aktif</string>
     <string name="stats_screen_on_time">Layar Hidup</string>
     <string name="stats_screen_off_time">Layar Mati</string>
+    <string name="battery_monitor_disabled_warning">Monitor Baterai Nonaktif</string>
+    <string name="battery_monitor_disabled_desc">Untuk melihat statistik Awake dan Deep Sleep, layanan Monitor Baterai harus diaktifkan.</string>
+    <string name="enable_battery_monitor">Aktifkan</string>
 
     <!-- SettingsScreen -->
     <string name="theme_and_display">Tema &amp; Tampilan</string>
