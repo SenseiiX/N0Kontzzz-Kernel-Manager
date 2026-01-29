@@ -82,16 +82,16 @@ fun CustomTunableScreen(
             }
         }
 
-        FloatingActionButton(
+        ExtendedFloatingActionButton(
             onClick = { showAddDialog = true },
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(24.dp),
             containerColor = MaterialTheme.colorScheme.primaryContainer,
-            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-        ) {
-            Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_tunable))
-        }
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            icon = { Icon(Icons.Default.Add, contentDescription = null) },
+            text = { Text(text = stringResource(R.string.add_tunable)) }
+        )
     }
 
     if (showAddDialog) {
