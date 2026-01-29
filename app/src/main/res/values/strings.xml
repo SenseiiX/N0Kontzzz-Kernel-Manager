@@ -652,7 +652,7 @@
     <string name="kernel_log_title">Kernel Log</string>
     <string name="kernel_log_desc">View kernel diagnostic messages (dmesg)</string>
     <string name="kernel_log_empty">No logs available or empty output.</string>
-    <string name="kernel_log_loading">Loading logs...</string>
+    <string name="kernel_log_loading">Loading logs…</string>
     <string name="kernel_log_error_fetch">Failed to load logs: %s</string>
     <string name="kernel_log_error_clear">Failed to clear logs: %s</string>
     <string name="kernel_log_refresh">Refresh</string>
