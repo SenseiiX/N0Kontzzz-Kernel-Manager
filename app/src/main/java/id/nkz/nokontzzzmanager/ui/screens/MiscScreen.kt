@@ -701,7 +701,7 @@ fun AvoidDirtyPteCard(
                         text = stringResource(id = R.string.avoid_dirty_pte),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Medium,
-                        color = if (featureAvailable) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface.copy(
+                        color = if (featureAvailable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(
                             alpha = 0.5f
                         )
                     )
@@ -712,7 +712,7 @@ fun AvoidDirtyPteCard(
                             stringResource(id = R.string.feature_not_available)
                         },
                         style = MaterialTheme.typography.bodySmall,
-                        color = if (featureAvailable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(
+                        color = if (featureAvailable) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface.copy(
                             alpha = 0.5f
                         )
                     )
@@ -1434,7 +1434,7 @@ fun ChargingControlCard(
                         Text(
                             text = stringResource(id = R.string.charging_control_bypass_note),
                             style = MaterialTheme.typography.bodySmall,
-                            color = if (isEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                            color = if (isEnabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                             modifier = Modifier.padding(top = 4.dp)
                         )
                     }
