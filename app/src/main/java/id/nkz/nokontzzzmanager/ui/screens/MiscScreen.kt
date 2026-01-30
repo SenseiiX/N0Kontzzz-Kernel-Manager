@@ -579,7 +579,7 @@ fun KgslSkipZeroingCard(
                             stringResource(id = R.string.feature_not_available)
                         },
                         style = MaterialTheme.typography.bodySmall,
-                        color = if (featureAvailable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(
+                        color = if (featureAvailable) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface.copy(
                             alpha = 0.5f
                         )
                     )
@@ -701,7 +701,7 @@ fun AvoidDirtyPteCard(
                         text = stringResource(id = R.string.avoid_dirty_pte),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Medium,
-                        color = if (featureAvailable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(
+                        color = if (featureAvailable) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface.copy(
                             alpha = 0.5f
                         )
                     )
@@ -1293,7 +1293,7 @@ fun BypassChargingCard(
                             stringResource(id = R.string.feature_not_available)
                         },
                         style = MaterialTheme.typography.bodySmall,
-                        color = if (isEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(
+                        color = if (isEnabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface.copy(
                             alpha = 0.5f
                         )
                     )
@@ -1427,7 +1427,7 @@ fun ChargingControlCard(
                             stringResource(id = R.string.requires_battery_monitor)
                         },
                         style = MaterialTheme.typography.bodySmall,
-                        color = if (isEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                        color = if (isEnabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                     )
                     
                     if (isBatteryMonitorEnabled && !isBypassChargingEnabled) {
@@ -1590,7 +1590,7 @@ fun ForceFastChargeCard(
                             stringResource(id = R.string.feature_not_available)
                         },
                         style = MaterialTheme.typography.bodySmall,
-                        color = if (featureAvailable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(
+                        color = if (featureAvailable) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface.copy(
                             alpha = 0.5f
                         )
                     )
