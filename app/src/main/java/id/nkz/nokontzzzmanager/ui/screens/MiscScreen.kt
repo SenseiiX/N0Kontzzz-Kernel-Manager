@@ -1370,7 +1370,11 @@ fun ChargingControlCard(
     isBypassChargingEnabled: Boolean,
     onClick: () -> Unit
 ) {
-    val isEnabled = isBatteryMonitorEnabled && !isBypassChargingEnabled
+    // Enable card if:
+    // 1. Battery Monitor is ON
+    // 2. AND (Bypass is OFF OR Charging Control is ALREADY ON)
+    // This allows the user to turn OFF Charging Control even if it has currently activated bypass.
+    val isEnabled = isBatteryMonitorEnabled && (!isBypassChargingEnabled || enabled)
     
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -1419,7 +1423,7 @@ fun ChargingControlCard(
                         color = if (isEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                     )
                     Text(
-                        text = if (isBypassChargingEnabled) {
+                        text = if (isBypassChargingEnabled && !enabled) {
                              stringResource(id = R.string.bypass_active_subtitle)
                         } else if (isBatteryMonitorEnabled) {
                             stringResource(id = R.string.charging_control_desc)
@@ -1430,7 +1434,7 @@ fun ChargingControlCard(
                         color = if (isEnabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                     )
                     
-                    if (isBatteryMonitorEnabled && !isBypassChargingEnabled) {
+                    if (isBatteryMonitorEnabled && (!isBypassChargingEnabled || enabled)) {
                         Text(
                             text = stringResource(id = R.string.charging_control_bypass_note),
                             style = MaterialTheme.typography.bodySmall,
