@@ -351,9 +351,17 @@ class MiscViewModel @Inject constructor(
         _chargingControlEnabled.value = enabled
         preferenceManager.setChargingControlEnabled(enabled)
         
-        // If enabling automation, turn off manual bypass to give control to the service
-        if (enabled && _bypassChargingEnabled.value) {
-            toggleBypassCharging(false)
+        if (enabled) {
+            // If enabling automation, turn off manual bypass (preference) to give control to the service
+            if (_bypassChargingEnabled.value) {
+                toggleBypassCharging(false)
+            }
+        } else {
+            // If disabling automation, ensure we don't leave the device in bypass mode (not charging)
+            // Use current kernel state check or just force disable if flag is set
+            if (_bypassChargingEnabled.value) {
+                toggleBypassCharging(false)
+            }
         }
     }
 
