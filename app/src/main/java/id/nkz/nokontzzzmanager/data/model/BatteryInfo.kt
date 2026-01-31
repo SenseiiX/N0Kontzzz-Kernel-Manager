@@ -19,5 +19,6 @@ data class BatteryInfo(
     val capacity: Int = 0, // Design capacity in mAh
     val currentCapacity: Int = 0, // Current capacity in mAh
     val plugged: Int = 0, // Raw plugged value from BatteryManager
-    val chargingType: String = "Unknown" // Added chargingType field for compatibility
+    val chargingType: String = "Unknown", // Added chargingType field for compatibility
+    val isBypassActive: Boolean = false
 )

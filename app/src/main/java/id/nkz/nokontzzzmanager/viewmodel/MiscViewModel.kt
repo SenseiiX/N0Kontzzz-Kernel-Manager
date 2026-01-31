@@ -178,6 +178,15 @@ class MiscViewModel @Inject constructor(
                     toggleBatteryMonitor(false)
                 }
             }
+
+            // Sync bypass charging state with real-time kernel status (e.g. if changed by Charging Control service)
+            launch {
+                batteryInfo.collect { info ->
+                    if (info != null) {
+                        _bypassChargingEnabled.value = info.isBypassActive
+                    }
+                }
+            }
         }
     }
 

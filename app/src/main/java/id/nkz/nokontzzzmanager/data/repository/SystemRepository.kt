@@ -495,7 +495,8 @@ class SystemRepository @Inject constructor(
             cycleCount = finalCycleCount, // Use the actual cycle count
             capacity = finalDesignCapacityMah, // Use the actual design capacity
             currentCapacity = currentCapacityMah, // Use the actual current capacity
-            plugged = 0
+            plugged = 0,
+            isBypassActive = getBypassCharging()
         )
     }
 
