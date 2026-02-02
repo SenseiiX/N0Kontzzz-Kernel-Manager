@@ -89,6 +89,7 @@ class BatteryMonitorService : Service() {
     private var windowStartElapsed: Long = -1L
     private var windowStartUptime: Long = -1L
     private var windowAccumMs: Long = 0L // Accumulated window time from previous sessions (for reboot persistence)
+    private var awakeAccumMs: Long = 0L // Accumulated awake (uptime) from previous sessions
     private var nextDelayOverrideMs: Long? = null
     
     // Cache for Charging Control to reduce File I/O
@@ -106,6 +107,7 @@ class BatteryMonitorService : Service() {
     }
     private val keyScreenAccum = "screen_accum_ms"
     private val keyLastElapsed = "last_elapsed_ms"
+    private val keyLastUptime = "last_uptime_ms"
 
     override fun onCreate() {
         super.onCreate()
@@ -353,7 +355,8 @@ class BatteryMonitorService : Service() {
         val windowMs = windowAccumMs + currentSessionWindowMs
         val screenOffMs = (windowMs - currentScreenOnMs).coerceAtLeast(0L)
 
-        val awakeMs = if (windowStartUptime >= 0L) (nowUptime - windowStartUptime) else 0L
+        val currentSessionAwakeMs = if (windowStartUptime >= 0L) (nowUptime - windowStartUptime) else 0L
+        val awakeMs = awakeAccumMs + currentSessionAwakeMs
         val deepSleepMs = (windowMs - awakeMs).coerceAtLeast(0L)
         val awakeOffMs = (awakeMs - currentScreenOnMs).coerceAtLeast(0L)
         // Deep Sleep % of screen-off time, gunakan ms agar akurat; hindari lonjakan jika total < 1s
@@ -522,11 +525,15 @@ class BatteryMonitorService : Service() {
         } else {
             // Even if we don't reset, we must "close" the current window
             val now = SystemClock.elapsedRealtime()
+            val nowUp = SystemClock.uptimeMillis()
             if (windowStartElapsed >= 0) {
                 windowAccumMs += (now - windowStartElapsed)
                 windowStartElapsed = -1L
             }
-            if (windowStartUptime >= 0) windowStartUptime = -1L
+            if (windowStartUptime >= 0) {
+                awakeAccumMs += (nowUp - windowStartUptime)
+                windowStartUptime = -1L
+            }
             val start = screenOnStartAtElapsed
             if (start != null) {
                 screenOnAccumMs += (now - start)
@@ -551,6 +558,7 @@ class BatteryMonitorService : Service() {
     private fun onPowerDisconnected() {
         if (preferenceManager.isMonitorAutoResetOnCharging()) {
             windowAccumMs = 0L // Start fresh window
+            awakeAccumMs = 0L
             screenOnAccumMs = 0L
             consumedOnUah = 0L
             consumedOffUah = 0L
@@ -593,6 +601,7 @@ class BatteryMonitorService : Service() {
         windowStartElapsed = nowEl
         windowStartUptime = nowUp
         windowAccumMs = 0L
+        awakeAccumMs = 0L
         screenOnAccumMs = 0L
         screenOnStartAtElapsed = if (pm.isInteractive) nowEl else null
         consumedOnUah = 0L
@@ -895,13 +904,16 @@ class BatteryMonitorService : Service() {
 
     private fun persistState(sync: Boolean = false) {
         val now = SystemClock.elapsedRealtime()
+        val nowUp = SystemClock.uptimeMillis()
         val updatedAccum = screenOnAccumMs + (screenOnStartAtElapsed?.let { now - it } ?: 0L)
         val editor = prefs.edit()
             .putLong(keyScreenAccum, updatedAccum)
             .putLong(keyLastElapsed, now)
+            .putLong(keyLastUptime, nowUp)
             .putLong("window_start_elapsed", windowStartElapsed)
             .putLong("window_start_uptime", windowStartUptime)
             .putLong("window_accum_ms", windowAccumMs)
+            .putLong("awake_accum_ms", awakeAccumMs)
             .putLong("consumed_on_uah", consumedOnUah)
             .putLong("consumed_off_uah", consumedOffUah)
             .putLong("on_percent_drop_bits", java.lang.Double.doubleToRawLongBits(onPercentDrop))
@@ -916,9 +928,12 @@ class BatteryMonitorService : Service() {
 
     private fun restoreStateIfAny() {
         val lastElapsed = prefs.getLong(keyLastElapsed, 0L)
+        val lastUptime = prefs.getLong(keyLastUptime, 0L)
         val savedAccum = prefs.getLong(keyScreenAccum, 0L)
         val savedWindowStart = prefs.getLong("window_start_elapsed", -1L)
+        val savedWindowStartUptime = prefs.getLong("window_start_uptime", -1L)
         val savedWindowAccum = prefs.getLong("window_accum_ms", 0L)
+        val savedAwakeAccum = prefs.getLong("awake_accum_ms", 0L)
         
         // Restore drain stats
         val savedConsumedOn = prefs.getLong("consumed_on_uah", 0L)
@@ -934,6 +949,7 @@ class BatteryMonitorService : Service() {
                 // Reset everything if user requested auto-reset on reboot
                 screenOnAccumMs = 0L
                 windowAccumMs = 0L
+                awakeAccumMs = 0L
                 windowStartElapsed = -1L
                 windowStartUptime = -1L
                 consumedOnUah = 0L
@@ -947,6 +963,11 @@ class BatteryMonitorService : Service() {
                 // For window duration: add the duration from the previous session
                 val prevSessionDuration = if (savedWindowStart >= 0) (lastElapsed - savedWindowStart).coerceAtLeast(0L) else 0L
                 windowAccumMs = savedWindowAccum + prevSessionDuration
+
+                // For awake duration: add the uptime duration from the previous session
+                val prevSessionAwake = if (savedWindowStartUptime >= 0 && lastUptime >= savedWindowStartUptime) 
+                    (lastUptime - savedWindowStartUptime) else 0L
+                awakeAccumMs = savedAwakeAccum + prevSessionAwake
                 
                 // Reset start time to now for the new session
                 windowStartElapsed = now
@@ -962,8 +983,9 @@ class BatteryMonitorService : Service() {
             // Normal restore (service restart, no reboot)
             screenOnAccumMs = savedAccum
             windowAccumMs = savedWindowAccum
+            awakeAccumMs = savedAwakeAccum
             windowStartElapsed = savedWindowStart
-            windowStartUptime = prefs.getLong("window_start_uptime", -1L)
+            windowStartUptime = savedWindowStartUptime
             
             consumedOnUah = savedConsumedOn
             consumedOffUah = savedConsumedOff
