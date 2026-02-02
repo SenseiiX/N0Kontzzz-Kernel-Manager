@@ -374,12 +374,12 @@ class BatteryMonitorService : Service() {
         val offHours = screenOffMs / 3_600_000.0
         val activeRate = if (onHours > 0) (onPercentDrop / onHours) else 0.0
         val idleRate = if (offHours > 0) (offPercentDrop / offHours) else 0.0
-        val activeDrainStr = if (onPercentDrop <= 0.0 || onHours <= 0.0) {
+        val activeDrainStr = if (onPercentDrop <= 0.0 || onHours <= 0.0 || currentScreenOnMs < 60_000L) {
             "0% /hr"
         } else {
             String.format(Locale.US, "%.2f%% /hr", activeRate)
         }
-        val idleDrainStr = if (offPercentDrop <= 0.0 || offHours <= 0.0) {
+        val idleDrainStr = if (offPercentDrop <= 0.0 || offHours <= 0.0 || screenOffMs < 60_000L) {
             "0% /hr"
         } else {
             String.format(Locale.US, "%.2f%% /hr", idleRate)
