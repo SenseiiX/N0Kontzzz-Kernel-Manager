@@ -134,6 +134,9 @@ class AppMonitorService : Service() {
 
         // 3. Bypass Charging
         systemRepository.setBypassCharging(profile.bypassCharging)
+
+        // 4. Dirty PTE
+        systemRepository.setAvoidDirtyPte(profile.allowDirtyPte)
     }
 
     private suspend fun applyGlobalSettings() {
@@ -150,10 +153,18 @@ class AppMonitorService : Service() {
         // 3. Bypass Charging
         val globalBypass = preferenceManager.getBypassCharging()
         systemRepository.setBypassCharging(globalBypass)
+
+        // 4. Dirty PTE
+        val globalDirtyPte = preferenceManager.getAvoidDirtyPte()
+        systemRepository.setAvoidDirtyPte(globalDirtyPte)
     }
 
     private fun applyPerformanceMode(mode: String) {
-        val governor = if (mode == "Performance") "performance" else "schedutil"
+        val governor = when (mode) {
+            "Performance" -> "performance"
+            "Powersave" -> "powersave"
+            else -> "schedutil"
+        }
         
         // Dynamically get cluster leaders instead of hardcoding
         val clusterNodes = tuningRepository.getClusterLeaders()

@@ -40,12 +40,16 @@ class AppProfilesViewModel @Inject constructor(
     private val _isKgslFeatureAvailable = MutableStateFlow<Boolean?>(null)
     val isKgslFeatureAvailable: StateFlow<Boolean?> = _isKgslFeatureAvailable.asStateFlow()
 
+    private val _isAvoidDirtyPteAvailable = MutableStateFlow<Boolean?>(null)
+    val isAvoidDirtyPteAvailable: StateFlow<Boolean?> = _isAvoidDirtyPteAvailable.asStateFlow()
+
     private val _isPowersaveAvailable = MutableStateFlow<Boolean>(false)
     val isPowersaveAvailable: StateFlow<Boolean> = _isPowersaveAvailable.asStateFlow()
     
     init {
-        // Check if KGSL feature is available
+        // Check if features are available
         _isKgslFeatureAvailable.value = systemRepository.isKgslFeatureAvailable()
+        _isAvoidDirtyPteAvailable.value = systemRepository.isAvoidDirtyPteAvailable()
         
         // Check if Powersave governor is available
         viewModelScope.launch {
@@ -139,6 +143,7 @@ class AppProfilesViewModel @Inject constructor(
                 performanceMode = "Balanced",
                 kgslSkipZeroing = false,
                 bypassCharging = false,
+                allowDirtyPte = false,
                 isEnabled = true
             )
             appProfileRepository.insertProfile(profile)

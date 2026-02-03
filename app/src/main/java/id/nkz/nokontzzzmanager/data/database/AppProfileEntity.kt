@@ -11,5 +11,6 @@ data class AppProfileEntity(
     val performanceMode: String = "Balanced", // "Balanced" or "Performance"
     val kgslSkipZeroing: Boolean = false,
     val bypassCharging: Boolean = false,
+    val allowDirtyPte: Boolean = false,
     val isEnabled: Boolean = true
 )

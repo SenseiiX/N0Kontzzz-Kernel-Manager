@@ -54,6 +54,7 @@ fun AppProfilesScreen(
     val isLoadingApps by viewModel.isLoadingApps.collectAsStateWithLifecycle()
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val isKgslFeatureAvailable by viewModel.isKgslFeatureAvailable.collectAsStateWithLifecycle()
+    val isAvoidDirtyPteAvailable by viewModel.isAvoidDirtyPteAvailable.collectAsStateWithLifecycle()
     val isPowersaveAvailable by viewModel.isPowersaveAvailable.collectAsStateWithLifecycle()
     val sheetState = rememberModalBottomSheetState()
     
@@ -183,6 +184,7 @@ fun AppProfilesScreen(
             AppProfileConfigDialog(
                 profile = profileToEdit!!,
                 isKgslFeatureAvailable = isKgslFeatureAvailable == true,
+                isAvoidDirtyPteAvailable = isAvoidDirtyPteAvailable == true,
                 isPowersaveAvailable = isPowersaveAvailable,
                 onDismiss = { profileToEdit = null },
                 onSave = { updatedProfile ->
@@ -236,7 +238,7 @@ fun AppProfileItem(
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = profile.appName, style = MaterialTheme.typography.titleMedium)
                 Text(
-                    text = "${profile.performanceMode}${stringResource(R.string.app_profiles_kgsl_prefix)}${if(profile.kgslSkipZeroing) stringResource(R.string.app_profiles_on) else stringResource(R.string.app_profiles_off)}${stringResource(R.string.app_profiles_bypass_prefix)}${if(profile.bypassCharging) stringResource(R.string.app_profiles_on) else stringResource(R.string.app_profiles_off)}",
+                    text = "${profile.performanceMode}${stringResource(R.string.app_profiles_kgsl_prefix)}${if(profile.kgslSkipZeroing) stringResource(R.string.app_profiles_on) else stringResource(R.string.app_profiles_off)}${stringResource(R.string.app_profiles_bypass_prefix)}${if(profile.bypassCharging) stringResource(R.string.app_profiles_on) else stringResource(R.string.app_profiles_off)}${stringResource(R.string.app_profiles_dirty_pte_prefix)}${if(profile.allowDirtyPte) stringResource(R.string.app_profiles_on) else stringResource(R.string.app_profiles_off)}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -400,6 +402,7 @@ fun AppPickerSheet(
 fun AppProfileConfigDialog(
     profile: AppProfileEntity,
     isKgslFeatureAvailable: Boolean,
+    isAvoidDirtyPteAvailable: Boolean,
     isPowersaveAvailable: Boolean,
     onDismiss: () -> Unit,
     onSave: (AppProfileEntity) -> Unit
@@ -407,6 +410,7 @@ fun AppProfileConfigDialog(
     var performanceMode by remember { mutableStateOf(profile.performanceMode) }
     var kgslSkipZeroing by remember { mutableStateOf(profile.kgslSkipZeroing) }
     var bypassCharging by remember { mutableStateOf(profile.bypassCharging) }
+    var allowDirtyPte by remember { mutableStateOf(profile.allowDirtyPte) }
     var isEnabled by remember { mutableStateOf(profile.isEnabled) }
 
     val options = remember(isPowersaveAvailable) {
@@ -574,7 +578,7 @@ fun AppProfileConfigDialog(
                             }
                         }
 
-                        // KGSL and Bypass Charging
+                        // KGSL, Dirty PTE, and Bypass Charging
                         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                             // KGSL
                             Card(
@@ -598,6 +602,48 @@ fun AppProfileConfigDialog(
                                         onCheckedChange = { kgslSkipZeroing = it },
                                         enabled = isKgslFeatureAvailable && isEnabled,
                                         thumbContent = if (kgslSkipZeroing && isKgslFeatureAvailable) {
+                                            {
+                                                Icon(
+                                                    imageVector = Icons.Default.Check,
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(SwitchDefaults.IconSize),
+                                                )
+                                            }
+                                        } else {
+                                            {
+                                                Icon(
+                                                    imageVector = Icons.Default.Close,
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(SwitchDefaults.IconSize),
+                                                )
+                                            }
+                                        }
+                                    )
+                                }
+                            }
+
+                            // Allow Dirty PTE
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(8.dp),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        stringResource(R.string.app_profiles_allow_dirty_pte),
+                                        color = if (isAvoidDirtyPteAvailable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                                    )
+                                    Switch(
+                                        checked = allowDirtyPte && isAvoidDirtyPteAvailable,
+                                        onCheckedChange = { allowDirtyPte = it },
+                                        enabled = isAvoidDirtyPteAvailable && isEnabled,
+                                        thumbContent = if (allowDirtyPte && isAvoidDirtyPteAvailable) {
                                             {
                                                 Icon(
                                                     imageVector = Icons.Default.Check,
@@ -679,6 +725,7 @@ fun AppProfileConfigDialog(
                                         performanceMode = performanceMode,
                                         kgslSkipZeroing = kgslSkipZeroing,
                                         bypassCharging = bypassCharging,
+                                        allowDirtyPte = allowDirtyPte,
                                         isEnabled = isEnabled
                                     )
                                 )
