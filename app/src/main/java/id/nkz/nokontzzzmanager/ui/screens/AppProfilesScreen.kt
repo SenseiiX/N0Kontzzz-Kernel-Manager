@@ -245,10 +245,54 @@ fun AppProfileItem(
             
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = profile.appName, style = MaterialTheme.typography.titleMedium)
+                
+                val summary = remember(profile) {
+                    val parts = mutableListOf<String>()
+                    
+                    // 1. Performance Mode
+                    parts.add(profile.performanceMode)
+                    
+                    // 2. KGSL (Only if ON)
+                    if (profile.kgslSkipZeroing) {
+                        parts.add("KGSL")
+                    }
+                    
+                    // 3. Bypass (Only if ON)
+                    if (profile.bypassCharging) {
+                        parts.add("Bypass")
+                    }
+                    
+                    // 4. Dirty PTE (Only if ON)
+                    if (profile.allowDirtyPte) {
+                        parts.add("Dirty PTE")
+                    }
+                    
+                    // 5. CPU Tuning Indicator
+                    val cpuConfig = profile.getCpuConfig()
+                    if (cpuConfig.clusterConfigs.isNotEmpty() || cpuConfig.coreOnlineStatus.isNotEmpty()) {
+                        parts.add("CPU")
+                    }
+                    
+                    // 6. GPU Tuning Indicator
+                    val gpuConfig = profile.getGpuConfig()
+                    if (gpuConfig.governor != null || gpuConfig.minFreq != null || gpuConfig.maxFreq != null || gpuConfig.powerLevel != null || gpuConfig.throttlingEnabled != null) {
+                        parts.add("GPU")
+                    }
+                    
+                    // 7. Thermal Tuning Indicator
+                    if (profile.thermalProfile != null) {
+                        parts.add("Thermal")
+                    }
+                    
+                    parts.joinToString(" • ")
+                }
+
                 Text(
-                    text = "${profile.performanceMode}${stringResource(R.string.app_profiles_kgsl_prefix)}${if(profile.kgslSkipZeroing) stringResource(R.string.app_profiles_on) else stringResource(R.string.app_profiles_off)}${stringResource(R.string.app_profiles_bypass_prefix)}${if(profile.bypassCharging) stringResource(R.string.app_profiles_on) else stringResource(R.string.app_profiles_off)}${stringResource(R.string.app_profiles_dirty_pte_prefix)}${if(profile.allowDirtyPte) stringResource(R.string.app_profiles_on) else stringResource(R.string.app_profiles_off)}",
+                    text = summary,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                 )
             }
             
