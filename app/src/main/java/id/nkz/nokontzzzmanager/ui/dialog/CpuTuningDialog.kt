@@ -712,7 +712,24 @@ fun CoreConfigDialog(
                                     )
                                     Switch(
                                         checked = isEnabled,
-                                        onCheckedChange = { onCoreToggled(index, it) }
+                                        onCheckedChange = { onCoreToggled(index, it) },
+                                        thumbContent = if (isEnabled) {
+                                            {
+                                                Icon(
+                                                    imageVector = Icons.Default.Check,
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(SwitchDefaults.IconSize),
+                                                )
+                                            }
+                                        } else {
+                                            {
+                                                Icon(
+                                                    imageVector = Icons.Default.Close,
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(SwitchDefaults.IconSize),
+                                                )
+                                            }
+                                        }
                                     )
                                 }
                             }
