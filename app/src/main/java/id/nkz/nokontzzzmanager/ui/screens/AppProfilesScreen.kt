@@ -51,6 +51,8 @@ import kotlinx.serialization.json.Json
 import id.nkz.nokontzzzmanager.ui.dialog.GpuTuningDialog
 import id.nkz.nokontzzzmanager.data.model.GpuProfileConfig
 
+import id.nkz.nokontzzzmanager.ui.components.IndeterminateExpressiveLoadingIndicator
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppProfilesScreen(
@@ -135,7 +137,11 @@ fun AppProfilesScreen(
                 }
             }
 
-            if (profiles.isEmpty()) {
+            if (profiles == null) {
+                Box(modifier = Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
+                    IndeterminateExpressiveLoadingIndicator()
+                }
+            } else if (profiles!!.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(stringResource(R.string.app_profiles_no_profiles))
                 }
@@ -144,11 +150,11 @@ fun AppProfilesScreen(
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
-                    itemsIndexed(profiles) { index, profile ->
+                    itemsIndexed(profiles!!) { index, profile ->
                         val shape = when {
-                            profiles.size == 1 -> RoundedCornerShape(24.dp) // Single item
+                            profiles!!.size == 1 -> RoundedCornerShape(24.dp) // Single item
                             index == 0 -> RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 8.dp, bottomEnd = 8.dp) // First item
-                            index == profiles.lastIndex -> RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = 24.dp, bottomEnd = 24.dp) // Last item
+                            index == profiles!!.lastIndex -> RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = 24.dp, bottomEnd = 24.dp) // Last item
                             else -> RoundedCornerShape(8.dp) // Middle items
                         }
                         AppProfileItem(
@@ -374,7 +380,7 @@ fun AppPickerSheet(
                     .weight(1f),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator()
+                IndeterminateExpressiveLoadingIndicator()
             }
         } else {
             if (filteredApps.isEmpty()) {

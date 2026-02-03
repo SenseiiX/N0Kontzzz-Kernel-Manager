@@ -38,8 +38,8 @@ class AppProfilesViewModel @Inject constructor(
     private val thermalRepository: ThermalRepository
 ) : AndroidViewModel(application) {
 
-    val profiles = appProfileRepository.getAllProfiles()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val profiles: StateFlow<List<AppProfileEntity>?> = appProfileRepository.getAllProfiles()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     private val _isKgslFeatureAvailable = MutableStateFlow<Boolean?>(null)
     val isKgslFeatureAvailable: StateFlow<Boolean?> = _isKgslFeatureAvailable.asStateFlow()
