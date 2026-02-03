@@ -627,7 +627,19 @@ fun AppProfileConfigDialog(
                                 )
                                 Switch(
                                     checked = isEnabled,
-                                    onCheckedChange = { isEnabled = it },
+                                    onCheckedChange = { 
+                                        isEnabled = it
+                                        if (!it) {
+                                            // Reset to defaults when disabled
+                                            performanceMode = "Balanced"
+                                            kgslSkipZeroing = false
+                                            bypassCharging = false
+                                            allowDirtyPte = false
+                                            cpuConfig = id.nkz.nokontzzzmanager.data.model.CpuProfileConfig()
+                                            gpuConfig = id.nkz.nokontzzzmanager.data.model.GpuProfileConfig()
+                                            thermalProfile = null
+                                        }
+                                    },
                                     thumbContent = if (isEnabled) {
                                         {
                                             Icon(
@@ -661,13 +673,14 @@ fun AppProfileConfigDialog(
                                 Column {
                                     Text(
                                         text = stringResource(R.string.app_profiles_performance_mode),
-                                        style = MaterialTheme.typography.titleSmall
+                                        style = MaterialTheme.typography.titleSmall,
+                                        color = if (isEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                                     )
                                     if (hasCustomTuning) {
                                         Text(
                                             text = stringResource(R.string.app_profiles_custom_tuning_active),
                                             style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.error
+                                            color = if (isEnabled) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.error.copy(alpha = 0.38f)
                                         )
                                     }
                                 }
@@ -683,7 +696,11 @@ fun AppProfileConfigDialog(
                                     Text(
                                         text = text,
                                         style = MaterialTheme.typography.titleSmall,
-                                        color = if (hasCustomTuning) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                                        color = if (hasCustomTuning) {
+                                            if (isEnabled) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.error.copy(alpha = 0.38f)
+                                        } else {
+                                            if (isEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary.copy(alpha = 0.38f)
+                                        },
                                         fontWeight = FontWeight.Bold
                                     )
                                 }
@@ -728,7 +745,7 @@ fun AppProfileConfigDialog(
                             Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clickable { showCpuTuningDialog = true },
+                                    .clickable(enabled = isEnabled) { showCpuTuningDialog = true },
                                 shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 8.dp, bottomEnd = 8.dp),
                                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
                             ) {
@@ -743,13 +760,23 @@ fun AppProfileConfigDialog(
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                                     ) {
-                                        Icon(Icons.Default.Memory, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                        Icon(
+                                            Icons.Default.Memory, 
+                                            contentDescription = null, 
+                                            tint = if (isEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                                        )
                                         Column {
-                                            Text(stringResource(R.string.app_profiles_cpu_tuning))
-                                            // Optional: Show status (e.g., "Configured" or "Default")
+                                            Text(
+                                                text = stringResource(R.string.app_profiles_cpu_tuning),
+                                                color = if (isEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                                            )
                                         }
                                     }
-                                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Icon(
+                                        Icons.AutoMirrored.Filled.KeyboardArrowRight, 
+                                        contentDescription = null, 
+                                        tint = if (isEnabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                                    )
                                 }
                             }
 
@@ -757,7 +784,7 @@ fun AppProfileConfigDialog(
                             Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clickable { showGpuTuningDialog = true },
+                                    .clickable(enabled = isEnabled) { showGpuTuningDialog = true },
                                 shape = RoundedCornerShape(8.dp),
                                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
                             ) {
@@ -772,10 +799,21 @@ fun AppProfileConfigDialog(
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                                     ) {
-                                        Icon(Icons.Default.DeveloperBoard, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                                        Text(stringResource(R.string.app_profiles_gpu_tuning))
+                                        Icon(
+                                            Icons.Default.DeveloperBoard, 
+                                            contentDescription = null, 
+                                            tint = if (isEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                                        )
+                                        Text(
+                                            text = stringResource(R.string.app_profiles_gpu_tuning),
+                                            color = if (isEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                                        )
                                     }
-                                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Icon(
+                                        Icons.AutoMirrored.Filled.KeyboardArrowRight, 
+                                        contentDescription = null, 
+                                        tint = if (isEnabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                                    )
                                 }
                             }
 
@@ -783,7 +821,7 @@ fun AppProfileConfigDialog(
                             Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clickable { showThermalDialog = true },
+                                    .clickable(enabled = isEnabled) { showThermalDialog = true },
                                 shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = 24.dp, bottomEnd = 24.dp),
                                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
                             ) {
@@ -798,9 +836,16 @@ fun AppProfileConfigDialog(
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                                     ) {
-                                        Icon(Icons.Default.Thermostat, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                        Icon(
+                                            Icons.Default.Thermostat, 
+                                            contentDescription = null, 
+                                            tint = if (isEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                                        )
                                         Column {
-                                            Text(stringResource(R.string.app_profiles_thermal_tuning))
+                                            Text(
+                                                text = stringResource(R.string.app_profiles_thermal_tuning),
+                                                color = if (isEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                                            )
                                             val currentProfileName = remember(thermalProfile, availableThermalProfiles) {
                                                 if (thermalProfile == null) null
                                                 else availableThermalProfiles.find { it.index == thermalProfile }?.displayName
@@ -808,11 +853,15 @@ fun AppProfileConfigDialog(
                                             Text(
                                                 text = currentProfileName ?: stringResource(R.string.app_profiles_default),
                                                 style = MaterialTheme.typography.bodySmall,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                color = if (isEnabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                                             )
                                         }
                                     }
-                                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Icon(
+                                        Icons.AutoMirrored.Filled.KeyboardArrowRight, 
+                                        contentDescription = null, 
+                                        tint = if (isEnabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                                    )
                                 }
                             }
                         }
@@ -834,7 +883,11 @@ fun AppProfileConfigDialog(
                                 ) {
                                     Text(
                                         stringResource(R.string.app_profiles_kgsl_skip_zeroing),
-                                        color = if (isKgslFeatureAvailable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                                        color = if (isEnabled) {
+                                            if (isKgslFeatureAvailable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                                        } else {
+                                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                                        }
                                     )
                                     Switch(
                                         checked = kgslSkipZeroing && isKgslFeatureAvailable,
@@ -876,7 +929,11 @@ fun AppProfileConfigDialog(
                                 ) {
                                     Text(
                                         stringResource(R.string.app_profiles_allow_dirty_pte),
-                                        color = if (isAvoidDirtyPteAvailable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                                        color = if (isEnabled) {
+                                            if (isAvoidDirtyPteAvailable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                                        } else {
+                                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                                        }
                                     )
                                     Switch(
                                         checked = allowDirtyPte && isAvoidDirtyPteAvailable,
@@ -916,7 +973,10 @@ fun AppProfileConfigDialog(
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text(stringResource(R.string.app_profiles_bypass_charging))
+                                    Text(
+                                        stringResource(R.string.app_profiles_bypass_charging),
+                                        color = if (isEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                                    )
                                     Switch(
                                         checked = bypassCharging,
                                         onCheckedChange = { bypassCharging = it },
