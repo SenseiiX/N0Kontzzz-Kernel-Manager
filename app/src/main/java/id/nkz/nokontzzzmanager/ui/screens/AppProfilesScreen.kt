@@ -48,6 +48,9 @@ import id.nkz.nokontzzzmanager.data.model.CpuProfileConfig
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
+import id.nkz.nokontzzzmanager.ui.dialog.GpuTuningDialog
+import id.nkz.nokontzzzmanager.data.model.GpuProfileConfig
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppProfilesScreen(
@@ -423,10 +426,22 @@ fun AppProfileConfigDialog(
     var showCpuTuningDialog by remember { mutableStateOf(false) }
     var cpuConfig by remember { mutableStateOf(profile.getCpuConfig()) }
 
-    val hasCustomCpu = remember(cpuConfig) {
-        cpuConfig.clusterConfigs.values.any { 
+    // GPU Tuning State
+    var showGpuTuningDialog by remember { mutableStateOf(false) }
+    var gpuConfig by remember { mutableStateOf(profile.getGpuConfig()) }
+
+    val hasCustomTuning = remember(cpuConfig, gpuConfig) {
+        val customCpu = cpuConfig.clusterConfigs.values.any { 
             !it.governor.isNullOrBlank() || it.minFreq != null || it.maxFreq != null 
         } || cpuConfig.coreOnlineStatus.isNotEmpty()
+        
+        val customGpu = gpuConfig.governor != null || 
+                       gpuConfig.minFreq != null || 
+                       gpuConfig.maxFreq != null || 
+                       gpuConfig.powerLevel != null || 
+                       gpuConfig.throttlingEnabled != null
+                       
+        customCpu || customGpu
     }
 
     val options = remember(isPowersaveAvailable) {
@@ -446,6 +461,19 @@ fun AppProfileConfigDialog(
             onSave = { newConfig ->
                 cpuConfig = newConfig
                 showCpuTuningDialog = false
+            }
+        )
+    }
+
+    if (showGpuTuningDialog) {
+        GpuTuningDialog(
+            appName = profile.appName,
+            initialConfig = gpuConfig,
+            viewModel = viewModel,
+            onDismiss = { showGpuTuningDialog = false },
+            onSave = { newConfig ->
+                gpuConfig = newConfig
+                showGpuTuningDialog = false
             }
         )
     }
@@ -558,7 +586,7 @@ fun AppProfileConfigDialog(
                                         text = stringResource(R.string.app_profiles_performance_mode),
                                         style = MaterialTheme.typography.titleSmall
                                     )
-                                    if (hasCustomCpu) {
+                                    if (hasCustomTuning) {
                                         Text(
                                             text = stringResource(R.string.app_profiles_custom_tuning_active),
                                             style = MaterialTheme.typography.labelSmall,
@@ -568,7 +596,7 @@ fun AppProfileConfigDialog(
                                 }
                                 
                                 val selectedText = when {
-                                    hasCustomCpu -> stringResource(R.string.app_profiles_custom)
+                                    hasCustomTuning -> stringResource(R.string.app_profiles_custom)
                                     performanceMode == "Powersave" -> stringResource(R.string.app_profiles_powersave)
                                     performanceMode == "Balanced" -> stringResource(R.string.app_profiles_balanced)
                                     else -> stringResource(R.string.app_profiles_performance)
@@ -578,7 +606,7 @@ fun AppProfileConfigDialog(
                                     Text(
                                         text = text,
                                         style = MaterialTheme.typography.titleSmall,
-                                        color = if (hasCustomCpu) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                                        color = if (hasCustomTuning) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
                                         fontWeight = FontWeight.Bold
                                     )
                                 }
@@ -589,14 +617,14 @@ fun AppProfileConfigDialog(
                                 horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
                             ) {
                                 options.forEachIndexed { index, option ->
-                                    val isSelected = !hasCustomCpu && performanceMode == option
+                                    val isSelected = !hasCustomTuning && performanceMode == option
                                     ToggleButton(
                                         checked = isSelected,
                                         onCheckedChange = { performanceMode = option },
                                         modifier = Modifier
                                             .weight(1f)
                                             .semantics { role = Role.RadioButton },
-                                        enabled = isEnabled && !hasCustomCpu,
+                                        enabled = isEnabled && !hasCustomTuning,
                                         shapes = when (index) {
                                             0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
                                             options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
@@ -650,7 +678,9 @@ fun AppProfileConfigDialog(
 
                             // GPU Tuning
                             Card(
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { showGpuTuningDialog = true },
                                 shape = RoundedCornerShape(8.dp),
                                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
                             ) {
@@ -846,6 +876,7 @@ fun AppProfileConfigDialog(
                                         bypassCharging = bypassCharging,
                                         allowDirtyPte = allowDirtyPte,
                                         cpuConfigJson = Json.encodeToString(cpuConfig),
+                                        gpuConfigJson = Json.encodeToString(gpuConfig),
                                         isEnabled = isEnabled
                                     )
                                 )

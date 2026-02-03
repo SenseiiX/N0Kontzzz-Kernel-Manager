@@ -13,6 +13,7 @@ data class AppProfileEntity(
     val bypassCharging: Boolean = false,
     val allowDirtyPte: Boolean = false,
     val cpuConfigJson: String? = null,
+    val gpuConfigJson: String? = null,
     val isEnabled: Boolean = true
 ) {
     fun getCpuConfig(): id.nkz.nokontzzzmanager.data.model.CpuProfileConfig {
@@ -21,6 +22,15 @@ data class AppProfileEntity(
             kotlinx.serialization.json.Json.decodeFromString(cpuConfigJson)
         } catch (e: Exception) {
             id.nkz.nokontzzzmanager.data.model.CpuProfileConfig()
+        }
+    }
+
+    fun getGpuConfig(): id.nkz.nokontzzzmanager.data.model.GpuProfileConfig {
+        if (gpuConfigJson.isNullOrBlank()) return id.nkz.nokontzzzmanager.data.model.GpuProfileConfig()
+        return try {
+            kotlinx.serialization.json.Json.decodeFromString(gpuConfigJson)
+        } catch (e: Exception) {
+            id.nkz.nokontzzzmanager.data.model.GpuProfileConfig()
         }
     }
 }

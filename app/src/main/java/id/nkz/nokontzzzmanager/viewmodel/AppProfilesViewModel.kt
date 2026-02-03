@@ -102,6 +102,11 @@ class AppProfilesViewModel @Inject constructor(
     fun getAvailableCpuGovernors(cluster: String) = tuningRepository.getAvailableCpuGovernors(cluster)
     fun getAvailableCpuFrequencies(cluster: String) = tuningRepository.getAvailableCpuFrequencies(cluster)
     
+    // GPU Tuning Data
+    val availableGpuGovernors = tuningRepository.getAvailableGpuGovernors()
+    val availableGpuFrequencies = tuningRepository.getAvailableGpuFrequencies()
+    val gpuPowerLevelRange = tuningRepository.getGpuPowerLevelRange()
+
     // Check if service is running or permissions granted? 
     // We can check usage stats permission here.
     
@@ -162,6 +167,7 @@ class AppProfilesViewModel @Inject constructor(
                 bypassCharging = false,
                 allowDirtyPte = false,
                 cpuConfigJson = null,
+                gpuConfigJson = null,
                 isEnabled = true
             )
             appProfileRepository.insertProfile(profile)

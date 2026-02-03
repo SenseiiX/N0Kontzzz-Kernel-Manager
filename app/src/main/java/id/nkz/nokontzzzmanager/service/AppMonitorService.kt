@@ -141,6 +141,9 @@ class AppMonitorService : Service() {
 
         // 5. CPU Tuning
         applyCpuConfig(profile.getCpuConfig())
+
+        // 6. GPU Tuning
+        applyGpuConfig(profile.getGpuConfig())
     }
 
     private suspend fun applyGlobalSettings() {
@@ -164,6 +167,48 @@ class AppMonitorService : Service() {
 
         // 5. Revert CPU Tuning to Global Prefs
         revertCpuConfig()
+
+        // 6. Revert GPU Tuning to Global Prefs
+        revertGpuConfig()
+    }
+
+    private fun applyGpuConfig(config: id.nkz.nokontzzzmanager.data.model.GpuProfileConfig) {
+        if (!config.governor.isNullOrBlank()) {
+            tuningRepository.setGpuGov(config.governor)
+        }
+        if (config.minFreq != null) {
+            tuningRepository.setGpuMinFreq(config.minFreq)
+        }
+        if (config.maxFreq != null) {
+            tuningRepository.setGpuMaxFreq(config.maxFreq)
+        }
+        if (config.powerLevel != null) {
+            tuningRepository.setGpuPowerLevel(config.powerLevel.toFloat())
+        }
+        if (config.throttlingEnabled != null) {
+            systemRepository.setGpuThrottling(config.throttlingEnabled)
+        }
+    }
+
+    private fun revertGpuConfig() {
+        val globalGov = preferenceManager.getGpuGovernor()
+        if (globalGov != null) tuningRepository.setGpuGov(globalGov)
+
+        val globalMin = preferenceManager.getGpuMinFreq()
+        if (globalMin != -1) tuningRepository.setGpuMinFreq(globalMin)
+
+        val globalMax = preferenceManager.getGpuMaxFreq()
+        if (globalMax != -1) tuningRepository.setGpuMaxFreq(globalMax)
+
+        val globalPwr = preferenceManager.getGpuPowerLevel()
+        if (globalPwr != -1) tuningRepository.setGpuPowerLevel(globalPwr.toFloat())
+
+        val globalThrottling = preferenceManager.getGpuThrottling()
+        // If null (not set), we might assume default is enabled (true), or just leave it. 
+        // Safer to revert to preference if set.
+        if (globalThrottling != null) {
+            systemRepository.setGpuThrottling(globalThrottling)
+        }
     }
 
     private fun applyCpuConfig(config: id.nkz.nokontzzzmanager.data.model.CpuProfileConfig) {
