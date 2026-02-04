@@ -243,12 +243,12 @@ class BatteryHistoryViewModel @Inject constructor(
     )
 
     val statsSummary: StateFlow<BatteryStatsSummary> = combine(
-        historyData,
+        repository.getAllEntries(),
         monitorStats,
         filter,
         isBatteryMonitorEnabled
-    ) { data, monitorStats, currentFilter, isMonitorEnabled ->
-        calculateStats(data, monitorStats, currentFilter, isMonitorEnabled)
+    ) { allEntries, monitorStats, currentFilter, isMonitorEnabled ->
+        calculateStats(allEntries, monitorStats, currentFilter, isMonitorEnabled)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Lazily,
@@ -256,14 +256,61 @@ class BatteryHistoryViewModel @Inject constructor(
     )
 
     private fun calculateStats(
-        data: List<BatteryGraphEntry>,
+        allEntries: List<BatteryGraphEntry>,
         monitorStats: BatteryMonitorStats?,
         currentFilter: HistoryFilter,
         isMonitorEnabled: Boolean
     ): BatteryStatsSummary {
-        if (data.isEmpty() && monitorStats == null) return BatteryStatsSummary()
+        if (allEntries.isEmpty() && monitorStats == null) return BatteryStatsSummary()
 
-        val chargeEntries = data.filter { it.currentMa > 0 }
+        val now = System.currentTimeMillis()
+        val data = when (currentFilter) {
+            HistoryFilter.LAST_24_HOURS -> {
+                val twentyFourHoursAgo = now - (24 * 60 * 60 * 1000)
+                allEntries.filter { it.timestamp >= twentyFourHoursAgo }
+            }
+            HistoryFilter.SINCE_UNPLUGGED -> {
+                // Find the last time it was charging
+                val lastChargeIndex = allEntries.indexOfLast { it.isCharging }
+                if (lastChargeIndex != -1) {
+                    // Return entries starting AFTER the last charge entry (pure discharge)
+                    if (lastChargeIndex + 1 < allEntries.size) {
+                        allEntries.subList(lastChargeIndex + 1, allEntries.size)
+                    } else {
+                        emptyList()
+                    }
+                } else {
+                    // Never charged in history? Show all.
+                    allEntries
+                }
+            }
+            HistoryFilter.PER_CYCLE -> {
+                val lastFullChargeIndex = allEntries.indexOfLast { it.batteryLevel >= 90 }
+                if (lastFullChargeIndex != -1) {
+                    allEntries.subList(lastFullChargeIndex, allEntries.size)
+                } else {
+                    val twentyFourHoursAgo = now - (24 * 60 * 60 * 1000)
+                    allEntries.filter { it.timestamp >= twentyFourHoursAgo }
+                }
+            }
+        }
+
+        // For charging stats, if SINCE_UNPLUGGED, we want the LAST charging session
+        val chargeEntries = if (currentFilter == HistoryFilter.SINCE_UNPLUGGED) {
+            val lastChargeIndex = allEntries.indexOfLast { it.isCharging }
+            if (lastChargeIndex != -1) {
+                var startIndex = lastChargeIndex
+                while (startIndex > 0 && allEntries[startIndex - 1].isCharging) {
+                    startIndex--
+                }
+                allEntries.subList(startIndex, lastChargeIndex + 1)
+            } else {
+                emptyList()
+            }
+        } else {
+            data.filter { it.currentMa > 0 }
+        }
+
         val dischargeEntries = data.filter { it.currentMa < 0 }
 
         val avgCharge = if (chargeEntries.isNotEmpty()) chargeEntries.map { it.currentMa }.average() else 0.0
