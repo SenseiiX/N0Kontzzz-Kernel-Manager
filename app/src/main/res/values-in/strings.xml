@@ -200,6 +200,7 @@
     <string name="status_stopped">BERHENTI</string>
     <string name="status_charging">MENGISI DAYA</string>
     <string name="status_idle">IDLE</string>
+    <string name="charging_control_notif_desc">Pengisian dihentikan pada %d%% untuk menjaga kesehatan baterai.</string>
 
     <!-- Battery Monitor -->
     <string name="battery_settings">Baterai</string>

@@ -212,6 +212,11 @@ class BatteryMonitorService : Service() {
         val pm = getSystemService(POWER_SERVICE) as PowerManager
 
         scope.launch {
+            // Immediate check upon starting to handle initial state correctly
+            try {
+                updateNotification(collectSystemStats())
+            } catch (_: Exception) {}
+
             while (isRunning) {
                 val stats = collectSystemStats()
                 updateNotification(stats)
@@ -637,9 +642,13 @@ class BatteryMonitorService : Service() {
         return um.isUserUnlocked
     }
 
+    private val CHARGE_LIMIT_NOTIF_ID = 1005
+    private var isChargeLimitNotified = false
+
     private fun checkChargingControl(level: Int, plugged: Boolean) {
         if (!preferenceManager.isChargingControlEnabled()) {
             lastKnownBypassState = null // Reset cache if disabled
+            isChargeLimitNotified = false
             return
         }
         
@@ -655,6 +664,7 @@ class BatteryMonitorService : Service() {
                 shouldEnableBypass = true
             } else if (level <= resumeLevel) {
                 shouldEnableBypass = false
+                isChargeLimitNotified = false // Reset notification flag when charging resumes
             }
 
             // Apply only if state needs to change or if we don't know the state yet
@@ -670,6 +680,14 @@ class BatteryMonitorService : Service() {
                         val success = systemRepository.setBypassCharging(shouldEnableBypass)
                         if (success) {
                             lastKnownBypassState = shouldEnableBypass
+                            
+                            // Show/Hide charge limit notification
+                            if (shouldEnableBypass) {
+                                showChargeLimitNotification(level)
+                            } else {
+                                removeChargeLimitNotification()
+                            }
+
                             // Force update notification to reflect status change immediately
                             try {
                                updateNotification(collectSystemStats())
@@ -679,9 +697,32 @@ class BatteryMonitorService : Service() {
                 }
             }
         } else {
-            // Reset cache when unplugged so we verify fresh state next time we plug in
+            // Reset cache and notifications when unplugged
             lastKnownBypassState = null
+            isChargeLimitNotified = false
+            removeChargeLimitNotification()
         }
+    }
+
+    private fun showChargeLimitNotification(level: Int) {
+        if (isChargeLimitNotified) return
+        
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notification = NotificationCompat.Builder(this, channelId)
+            .setContentTitle(getString(R.string.status_limit_reached))
+            .setContentText(getString(R.string.charging_control_notif_desc, level))
+            .setSmallIcon(R.drawable.ic_battery_saver)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setAutoCancel(true)
+            .build()
+            
+        notificationManager.notify(CHARGE_LIMIT_NOTIF_ID, notification)
+        isChargeLimitNotified = true
+    }
+
+    private fun removeChargeLimitNotification() {
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.cancel(CHARGE_LIMIT_NOTIF_ID)
     }
 
     private fun checkAutoResetAtLevel(level: Int, isCharging: Boolean) {
