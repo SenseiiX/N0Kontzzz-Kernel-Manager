@@ -60,16 +60,14 @@ class DexoptService : Service() {
         return START_NOT_STICKY
     }
 
+    private var dedicatedShell: Shell? = null
+
     private fun runDexopt() {
         dexoptRepository.setRunning(true)
         
         serviceScope.launch {
             // Buffer to hold the latest log
             var lastLogMessage = "Initializing..."
-            
-            // CRITICAL FIX: Use a DEDICATED Shell instance to prevent blocking the main app shell
-            // This ensures that MainActivity checks do not freeze waiting for this command
-            var dedicatedShell: Shell? = null
             
             try {
                 // Build a new root shell instance
@@ -99,26 +97,29 @@ class DexoptService : Service() {
                 dexoptRepository.updateLastLog("Starting optimization (Dedicated Shell)...")
                 
                 // Execute commands on the DEDICATED shell instance
-                // We use the same nice/ionice optimization
-                dedicatedShell.newJob().add(
+                dedicatedShell?.newJob()?.add(
                     "nice -n 19 pm compile -a -f -m speed-profile",
                     "nice -n 19 pm compile -a -f compile-layouts",
                     "nice -n 19 pm bg-dexopt-job"
-                ).to(callbackList).exec()
+                )?.to(callbackList)?.exec()
 
-                dexoptRepository.updateLastLog("Dexopt process finished.")
+                if (isActive) {
+                    dexoptRepository.updateLastLog("Dexopt process finished.")
+                    dexoptRepository.setFinished(true)
+                    showFinishedNotification()
+                }
             } catch (e: Exception) {
-                dexoptRepository.updateLastLog("Error: ${e.message}")
+                if (isActive) {
+                    dexoptRepository.updateLastLog("Error: ${e.message}")
+                }
             } finally {
                 updaterJob.cancel()
-                dexoptRepository.updateLastLog("Finished.")
                 
                 try {
-                    dedicatedShell.close()
+                    dedicatedShell?.close()
+                    dedicatedShell = null
                 } catch (e: Exception) { /* ignore */ }
                 
-                dexoptRepository.setFinished(true)
-                showFinishedNotification()
                 stopSelf()
             }
         }
@@ -177,6 +178,23 @@ class DexoptService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        serviceScope.cancel()
+        // If service is destroyed (Stop button pressed), kill the compile processes
+        serviceScope.launch(Dispatchers.IO) {
+            try {
+                // Terminate the shell if it's still running
+                dedicatedShell?.close()
+                
+                // Force kill the android compile processes to stop them immediately
+                Shell.cmd("pkill -f \"pm compile\"").exec()
+                Shell.cmd("pkill -f \"pm bg-dexopt-job\"").exec()
+                
+                dexoptRepository.updateLastLog("Process stopped by user.")
+                dexoptRepository.setCanceled(true)
+            } catch (e: Exception) {
+                // ignore
+            } finally {
+                serviceScope.cancel()
+            }
+        }
     }
 }

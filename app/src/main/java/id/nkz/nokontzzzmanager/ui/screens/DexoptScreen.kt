@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -147,6 +148,14 @@ fun DexoptScreen(
                     onClick = { showConfirmDialog = true },
                     icon = { Icon(Icons.Default.PlayArrow, stringResource(R.string.dexopt_run_dexopt)) },
                     text = { Text(stringResource(R.string.dexopt_run_dexopt)) }
+                )
+            } else {
+                ExtendedFloatingActionButton(
+                    onClick = { viewModel.stopDexopt() },
+                    containerColor = MaterialTheme.colorScheme.error,
+                    contentColor = MaterialTheme.colorScheme.onError,
+                    icon = { Icon(Icons.Default.Stop, stringResource(R.string.stop)) },
+                    text = { Text(stringResource(R.string.stop)) }
                 )
             }
         },

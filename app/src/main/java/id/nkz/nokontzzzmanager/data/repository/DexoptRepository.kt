@@ -15,9 +15,12 @@ class DexoptRepository @Inject constructor() {
     private val _isFinished = MutableStateFlow(false)
     val isFinished: StateFlow<Boolean> = _isFinished.asStateFlow()
 
-    // Store last 10 logs
+    // Store last 50 logs
     private val _recentLogs = MutableStateFlow<List<String>>(listOf("Waiting for logs..."))
     val recentLogs: StateFlow<List<String>> = _recentLogs.asStateFlow()
+
+    private val _isCanceled = MutableStateFlow(false)
+    val isCanceled: StateFlow<Boolean> = _isCanceled.asStateFlow()
 
     // Keep compatibility if needed, but unused
     val logs: StateFlow<List<String>> = _recentLogs 
@@ -26,7 +29,15 @@ class DexoptRepository @Inject constructor() {
         _isRunning.value = running
         if (running) {
             _isFinished.value = false
+            _isCanceled.value = false
             _recentLogs.value = listOf("Starting...")
+        }
+    }
+
+    fun setCanceled(canceled: Boolean) {
+        _isCanceled.value = canceled
+        if (canceled) {
+            _isRunning.value = false
         }
     }
 
@@ -40,10 +51,14 @@ class DexoptRepository @Inject constructor() {
     fun updateLastLog(log: String) {
         if (log.isNotBlank()) {
             val currentList = _recentLogs.value.toMutableList()
+            
+            // Optimization: If latest log is exactly the same as previous, don't duplicate
+            if (currentList.isNotEmpty() && currentList.last() == log) return
+
             currentList.add(log)
-            // Keep only last 10 lines
-            if (currentList.size > 10) {
-                _recentLogs.value = currentList.takeLast(10)
+            // Keep only last 50 lines for better visibility
+            if (currentList.size > 50) {
+                _recentLogs.value = currentList.takeLast(50)
             } else {
                 _recentLogs.value = currentList
             }

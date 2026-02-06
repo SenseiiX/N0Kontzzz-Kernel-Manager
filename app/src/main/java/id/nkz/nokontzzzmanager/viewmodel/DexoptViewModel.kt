@@ -24,6 +24,10 @@ class DexoptViewModel @Inject constructor(
     fun runDexopt() {
         DexoptService.start(context)
     }
+
+    fun stopDexopt() {
+        DexoptService.stop(context)
+    }
     
     fun clearLogs() {
         dexoptRepository.clearLogs()
