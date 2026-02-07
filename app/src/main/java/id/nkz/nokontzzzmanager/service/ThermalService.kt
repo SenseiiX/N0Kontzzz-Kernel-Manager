@@ -14,7 +14,7 @@ import androidx.core.app.NotificationCompat
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.intPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
+import androidx.datastore.preferences.core.stringPreferencesKey
 import com.topjohnwu.superuser.Shell
 import dagger.hilt.android.AndroidEntryPoint
 import id.nkz.nokontzzzmanager.R
@@ -253,17 +253,6 @@ class ThermalService : Service() {
                 }
             }
             prefsJob.cancel()
-        }
-    }
-
-                } catch (e: Exception) {
-                    Log.e(TAG, "Error in monitoring loop", e)
-                    if (++retryCount >= MAX_RETRY_COUNT) {
-                        break
-                    }
-                    delay(MONITOR_INTERVAL * 2)
-                }
-            }
         }
     }
 
