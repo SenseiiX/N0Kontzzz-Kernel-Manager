@@ -45,7 +45,6 @@ class ThermalRepository @Inject constructor(
 
     private var userSetMaxFreq: Int = 0
     private var userSetGovernor: String? = null
-    private var monitoringJob: Job? = null
 
     private suspend fun executeRootCommand(cmd: String, logTag: String = TAG): Boolean {
         if (!rootRepository.checkRootFresh()) {
@@ -221,9 +220,6 @@ class ThermalRepository @Inject constructor(
             return@flow
         }
 
-        monitoringJob?.cancel()
-        monitoringJob = null
-
         // Apply thermal mode with necessary permission handling for sysfs
         // Some kernels/engines lock this node with 0444
         executeRootCommand("chcon u:object_r:sysfs_thermal:s0 $thermalSysfsNode")
@@ -238,43 +234,6 @@ class ThermalRepository @Inject constructor(
             Log.e(TAG, "setThermalModeIndex: Failed to write $modeIndex to $thermalSysfsNode")
             emit(false)
             return@flow
-        }
-
-        if (modeIndex == 10) {
-            monitoringJob = CoroutineScope(Dispatchers.IO).launch {
-                while (isActive) {
-                    val currentFreqStr = try {
-                        rootRepository.run("cat /sys/devices/system/cpu/cpu7/cpufreq/scaling_max_freq").trim()
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Failed to read CPU max frequency", e)
-                        ""
-                    }
-                    val currentFreq = currentFreqStr.toIntOrNull() ?: 0
-
-                    val currentGov = try {
-                        rootRepository.run("cat /sys/devices/system/cpu/cpu7/cpufreq/scaling_governor").trim()
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Failed to read CPU governor", e)
-                        ""
-                    }
-
-                    if (userSetMaxFreq > 0 && currentFreq != userSetMaxFreq) {
-                        try {
-                            rootRepository.run("echo $userSetMaxFreq > /sys/devices/system/cpu/cpu7/cpufreq/scaling_max_freq")
-                        } catch (e: Exception) {
-                            Log.e(TAG, "Failed to restore CPU max frequency", e)
-                        }
-                    }
-                    if (!userSetGovernor.isNullOrEmpty() && currentGov != userSetGovernor) {
-                        try {
-                            rootRepository.run("echo $userSetGovernor > /sys/devices/system/cpu/cpu7/cpufreq/scaling_governor")
-                        } catch (e: Exception) {
-                            Log.e(TAG, "Failed to restore CPU governor", e)
-                        }
-                    }
-                    delay(1000)
-                }
-            }
         }
 
         thermalDataStore.edit { preferences ->

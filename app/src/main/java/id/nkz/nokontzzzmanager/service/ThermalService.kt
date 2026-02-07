@@ -40,6 +40,8 @@ class ThermalService : Service() {
     private var windowManager: WindowManager? = null
 
     private val LAST_THERMAL_MODE = intPreferencesKey("last_thermal_mode")
+    private val USER_MAX_FREQ = intPreferencesKey("user_max_freq")
+    private val USER_GOVERNOR = stringPreferencesKey("user_governor")
 
     companion object {
         const val NOTIFICATION_ID = 1
@@ -161,24 +163,34 @@ class ThermalService : Service() {
     private fun startMonitoring() {
         monitoringJob?.cancel()
         monitoringJob = serviceScope.launch {
-            // Cache the target mode
+            // Cache preferences
             var targetMode = 0
+            var userMaxFreq = 0
+            var userGovernor: String? = null
             
-            // Launch a separate coroutine to observe settings changes
-            launch {
+            // Collect preferences updates
+            val prefsJob = launch {
                 thermalDataStore.data.collect { prefs ->
                     targetMode = prefs[LAST_THERMAL_MODE] ?: 0
+                    userMaxFreq = prefs[USER_MAX_FREQ] ?: 0
+                    userGovernor = prefs[USER_GOVERNOR]
                 }
             }
 
             val pm = getSystemService(POWER_SERVICE) as android.os.PowerManager
             var retryCount = 0
+            
+            // Dynamic CPU identification
+            val leaders = Shell.cmd("ls -d /sys/devices/system/cpu/cpu[0-9]*").exec().out
+                .map { it.substringAfterLast("/") }
+                .filter { it.startsWith("cpu") }
+                .sortedBy { it.substring(3).toIntOrNull() ?: 0 }
+            
+            val primeCore = leaders.lastOrNull() ?: "cpu7"
+            Log.d(TAG, "Thermal monitoring active. Prime core: $primeCore")
 
             while (isActive) {
                 try {
-                    // Optimization: Pause monitoring if screen is off, 
-                    // unless we are in a critical state (which we don't track here yet).
-                    // For now, just slowing down check when screen is off is safer than stopping.
                     if (!pm.isInteractive) {
                         delay(5000)
                         continue
@@ -197,35 +209,52 @@ class ThermalService : Service() {
                         }
                     }
 
-                    // If we're no longer in Dynamic mode, stop the service
                     if (targetMode != 10 && targetMode != 0) {
-                         // Wait a bit to ensure targetMode is stable or if we should just stop
-                         // But for now, if it's not dynamic, we shouldn't be enforcing it?
-                         // The original logic stopped if savedMode != 10.
-                         // We'll mimic that behavior but slightly more robustly.
                          Log.d(TAG, "No longer in Dynamic mode ($targetMode), stopping service")
                          stopSelf()
                          break
                     }
                     
                     if (targetMode == 10) {
-                        val currentMode = thermalRepository.getCurrentThermalModeIndex().first()
+                        // 1. Monitor Thermal Mode
+                        val currentModeStr = Shell.cmd("cat /sys/class/thermal/thermal_message/sconfig").exec().out.firstOrNull()?.trim()
+                        val currentMode = currentModeStr?.toIntOrNull() ?: -1
 
                         if (currentMode != targetMode) {
-                            Log.d(TAG, "Thermal mode changed from $targetMode to $currentMode, restoring...")
-                            val result = Shell.cmd("echo $targetMode > /sys/class/thermal/thermal_message/sconfig").exec()
-                            if (result.isSuccess) {
-                                retryCount = 0
-                            } else {
-                                Log.e(TAG, "Failed to restore thermal mode: ${result.err.joinToString()}")
-                                if (++retryCount >= MAX_RETRY_COUNT) {
-                                    break
-                                }
+                            Log.d(TAG, "Restoring thermal mode: $targetMode (current: $currentMode)")
+                            Shell.cmd("chmod 0644 /sys/class/thermal/thermal_message/sconfig").exec()
+                            Shell.cmd("echo $targetMode > /sys/class/thermal/thermal_message/sconfig").exec()
+                            Shell.cmd("chmod 0444 /sys/class/thermal/thermal_message/sconfig").exec()
+                        }
+
+                        // 2. Monitor CPU Settings
+                        if (userMaxFreq > 0) {
+                            val curMaxFreq = Shell.cmd("cat /sys/devices/system/cpu/$primeCore/cpufreq/scaling_max_freq").exec().out.firstOrNull()?.trim()?.toIntOrNull() ?: 0
+                            if (curMaxFreq != userMaxFreq) {
+                                Log.d(TAG, "Restoring CPU max freq: $userMaxFreq")
+                                Shell.cmd("echo $userMaxFreq > /sys/devices/system/cpu/$primeCore/cpufreq/scaling_max_freq").exec()
+                            }
+                        }
+
+                        if (!userGovernor.isNullOrEmpty()) {
+                            val curGov = Shell.cmd("cat /sys/devices/system/cpu/$primeCore/cpufreq/scaling_governor").exec().out.firstOrNull()?.trim()
+                            if (curGov != userGovernor) {
+                                Log.d(TAG, "Restoring CPU governor: $userGovernor")
+                                Shell.cmd("echo $userGovernor > /sys/devices/system/cpu/$primeCore/cpufreq/scaling_governor").exec()
                             }
                         }
                     }
                     
-                    delay(3000) // Increase interval to 3s
+                    delay(5000)
+
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error in monitoring loop", e)
+                    delay(MONITOR_INTERVAL * 5)
+                }
+            }
+            prefsJob.cancel()
+        }
+    }
 
                 } catch (e: Exception) {
                     Log.e(TAG, "Error in monitoring loop", e)
