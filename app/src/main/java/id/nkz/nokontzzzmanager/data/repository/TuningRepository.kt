@@ -278,11 +278,13 @@ class TuningRepository @Inject constructor(
     }.flowOn(Dispatchers.IO)
 
     fun getZramEnabled(): Flow<Boolean> = flow {
-        emit(readShellCommand("cat $zramInitStatePath").trim() == "1")
+        val result = readShellCommand("if [ -f $zramInitStatePath ]; then cat $zramInitStatePath; else echo 0; fi").trim()
+        emit(result == "1")
     }.flowOn(Dispatchers.IO)
 
     fun getZramUsed(): Flow<Long> = flow {
-        val mmStat = readShellCommand("cat /sys/block/zram0/mm_stat").trim()
+        val mmStatPath = "/sys/block/zram0/mm_stat"
+        val mmStat = readShellCommand("if [ -f $mmStatPath ]; then cat $mmStatPath; else echo \"\"; fi").trim()
         val stats = mmStat.split("[ \t\n\r]+".toRegex())
         // mem_used_total is the 3rd value in mm_stat
         val usedBytes = if (stats.size >= 3) stats[2].toLongOrNull() ?: 0L else 0L
@@ -290,7 +292,7 @@ class TuningRepository @Inject constructor(
     }.flowOn(Dispatchers.IO)
 
     fun getSwapUsed(): Flow<Long> = flow {
-        val swapInfo = readShellCommand("cat /proc/swaps")
+        val swapInfo = readShellCommand("cat /proc/swaps 2>/dev/null || echo \"\"")
         val totalUsedKb = swapInfo.lines()
             .drop(1) // Skip header line
             .map { it.trim().split("[ \t\n\r]+".toRegex()) }
@@ -300,7 +302,7 @@ class TuningRepository @Inject constructor(
     }.flowOn(Dispatchers.IO)
 
     suspend fun setCompressionAlgorithm(algo: String): Boolean = withContext(NonCancellable) {
-        val currentSize = readShellCommand("cat $zramDisksizePath").toLongOrNull() ?: 0L
+        val currentSize = readShellCommand("cat $zramDisksizePath 2>/dev/null").toLongOrNull() ?: 0L
         if (readShellCommand("if [ -e $zramControlPath ]; then echo 1; else echo 0; fi").trim() != "1") {
             return@withContext false
         }
@@ -315,20 +317,24 @@ class TuningRepository @Inject constructor(
 
         executeShellCommand("chmod 666 $zramCompAlgorithmPath")
 
-        val commands = if (currentSize > 0) {
-            """
-            swapoff /dev/block/zram0 2>/dev/null || true
-            echo 1 > $zramResetPath
-            echo $algo > $zramCompAlgorithmPath
-            echo $currentSize > $zramDisksizePath
-            mkswap /dev/block/zram0 2>/dev/null || true
-            swapon /dev/block/zram0 2>/dev/null || true
-            """.trimIndent()
+        val success = if (currentSize > 0) {
+            // If ZRAM is active, we must reset it to change algorithm
+            val commands = listOf(
+                "swapoff /dev/block/zram0 2>/dev/null || true",
+                "echo 1 > $zramResetPath",
+                "echo $algo > $zramCompAlgorithmPath",
+                "echo $currentSize > $zramDisksizePath",
+                "mkswap /dev/block/zram0 2>/dev/null || true",
+                "swapon /dev/block/zram0 2>/dev/null || true"
+            )
+            var batchOk = true
+            for (cmd in commands) {
+                if (!executeShellCommand(cmd)) batchOk = false
+            }
+            batchOk
         } else {
-            "echo $algo > $zramCompAlgorithmPath"
+            executeShellCommand("echo $algo > $zramCompAlgorithmPath")
         }
-
-        val success = executeShellCommand(commands)
 
         if (needsSelinuxChange) {
             setSelinuxModeInternal(true)
@@ -337,11 +343,12 @@ class TuningRepository @Inject constructor(
     }
 
     fun getCompressionAlgorithms(): Flow<List<String>> = flow {
-        emit(readShellCommand("cat $zramCompAlgorithmPath").split(" ").filter { it.isNotBlank() }.sorted())
+        val raw = readShellCommand("cat $zramCompAlgorithmPath 2>/dev/null").trim()
+        emit(raw.split(" ").filter { it.isNotBlank() }.map { it.removeSurrounding("[", "]") }.sorted())
     }.flowOn(Dispatchers.IO)
 
     fun getCurrentCompression(): Flow<String> = flow {
-        val raw = readShellCommand("cat $zramCompAlgorithmPath").trim()
+        val raw = readShellCommand("cat $zramCompAlgorithmPath 2>/dev/null").trim()
         val active = raw.split(" ").firstOrNull { it.startsWith("[") }
             ?.removeSurrounding("[", "]")
             ?: raw.split(" ").firstOrNull()
@@ -352,42 +359,54 @@ class TuningRepository @Inject constructor(
         runTuningCommand("echo $value > $swappinessPath")
 
     fun getSwappiness(): Flow<Int> = flow {
-        emit(readShellCommand("cat $swappinessPath").toIntOrNull() ?: 60)
+        emit(readShellCommand("cat $swappinessPath 2>/dev/null").toIntOrNull() ?: 60)
     }.flowOn(Dispatchers.IO)
 
     fun setDirtyRatio(value: Int): Boolean =
         runTuningCommand("echo $value > $dirtyRatioPath")
 
     fun getDirtyRatio(): Flow<Int> = flow {
-        emit(readShellCommand("cat $dirtyRatioPath").toIntOrNull() ?: 20)
+        emit(readShellCommand("cat $dirtyRatioPath 2>/dev/null").toIntOrNull() ?: 20)
     }.flowOn(Dispatchers.IO)
 
     fun setDirtyBackgroundRatio(value: Int): Boolean =
         runTuningCommand("echo $value > $dirtyBackgroundRatioPath")
 
     fun getDirtyBackgroundRatio(): Flow<Int> = flow {
-        emit(readShellCommand("cat $dirtyBackgroundRatioPath").toIntOrNull() ?: 10)
+        emit(readShellCommand("cat $dirtyBackgroundRatioPath 2>/dev/null").toIntOrNull() ?: 10)
     }.flowOn(Dispatchers.IO)
 
     fun setDirtyWriteback(valueCentisecs: Int): Boolean =
         runTuningCommand("echo $valueCentisecs > $dirtyWritebackCentisecsPath")
 
     fun getDirtyWriteback(): Flow<Int> = flow {
-        emit((readShellCommand("cat $dirtyWritebackCentisecsPath").toIntOrNull() ?: 3000) / 100)
+        emit((readShellCommand("cat $dirtyWritebackCentisecsPath 2>/dev/null").toIntOrNull() ?: 3000) / 100)
     }.flowOn(Dispatchers.IO)
 
     fun setDirtyExpireCentisecs(valueCentisecsInput: Int): Boolean =
         runTuningCommand("echo $valueCentisecsInput > $dirtyExpireCentisecsPath")
 
     fun getDirtyExpireCentisecs(): Flow<Int> = flow {
-        emit((readShellCommand("cat $dirtyExpireCentisecsPath").toIntOrNull() ?: 3000) / 100)
+        emit((readShellCommand("cat $dirtyExpireCentisecsPath 2>/dev/null").toIntOrNull() ?: 3000) / 100)
     }.flowOn(Dispatchers.IO)
 
     fun setMinFreeMemory(valueKBytes: Int): Boolean =
         runTuningCommand("echo $valueKBytes > $minFreeKbytesPath")
 
     fun getMinFreeMemory(): Flow<Int> = flow {
-        emit(readShellCommand("cat $minFreeKbytesPath").toIntOrNull() ?: (128 * 1024))
+        val paths = listOf(minFreeKbytesPath, "/proc/sys/vm/extra_free_kbytes")
+        var value = 128 * 1024
+        for (path in paths) {
+            val result = readShellCommand("cat $path 2>/dev/null").trim()
+            if (result.isNotEmpty()) {
+                val parsed = result.toIntOrNull()
+                if (parsed != null) {
+                    value = parsed
+                    break
+                }
+            }
+        }
+        emit(value)
     }.flowOn(Dispatchers.IO)
 
 

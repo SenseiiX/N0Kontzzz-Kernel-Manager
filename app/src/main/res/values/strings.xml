@@ -445,6 +445,10 @@
     <string name="swappiness_explanation">Controls how aggressively the kernel moves data from RAM to storage. Low values (0–10) make the system focus more on using RAM, high values (60–100) use swap more frequently to save RAM.</string>
     <string name="dirty_ratio_explanation">Sets the percentage of RAM used for write cache before forcing writes to storage. Higher values = better performance but risk of data loss during crashes.</string>
     <string name="dirty_background_ratio_explanation">Sets when the kernel starts gradually writing cache to storage in the background. Helps maintain stable performance by reducing lag during large writes.</string>
+    <string name="feedback_adjusted_bg_ratio">Adjusted background ratio to %1$d%%</string>
+    <string name="feedback_adjusted_total_ratio">Adjusted total ratio to %1$d%%</string>
+    <string name="error_bg_ratio_less_than_total">Background ratio must be less than total ratio</string>
+    <string name="min_free_memory_warning">Warning: 1024 KB = 1 MB. Too high values can cause app crashes.</string>
     <string name="min_free_memory_explanation">Sets the minimum amount of RAM that must always remain free. Higher values make the system more responsive but reduce RAM available for applications.</string>
     <string name="dirty_expire_explanation">Sets how long cache data can persist before being forced to write to storage. Lower values = safer data but reduced performance.</string>
     <string name="dirty_writeback_explanation">Sets the time interval for the kernel to check and write expired cache. Affects how often the system performs automatic cache cleanup.</string>

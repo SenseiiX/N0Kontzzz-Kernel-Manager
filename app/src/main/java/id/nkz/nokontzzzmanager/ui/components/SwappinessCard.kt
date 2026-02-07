@@ -212,7 +212,7 @@ fun SwappinessCard(
                             description = stringResource(id = R.string.min_free_memory_desc),
                             color = MaterialTheme.colorScheme.primary,
                             onClick = { showMinFreeMemoryDialog = true },
-                            shape = getRoundedCornerShape(5, 6) // Sixth card in group of 6
+                            shape = getRoundedCornerShape(5, 6)
                         )
                     }
                 }
@@ -351,7 +351,8 @@ fun SwappinessCard(
             onApplyClicked = { newValue: Int ->
                 vm.setMinFreeMemory(newValue)
                 showMinFreeMemoryDialog = false
-            }
+            },
+            additionalInfo = stringResource(id = R.string.min_free_memory_warning)
         )
     }
 

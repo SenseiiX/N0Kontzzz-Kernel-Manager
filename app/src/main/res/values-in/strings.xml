@@ -446,6 +446,10 @@
     <string name="swappiness_explanation">Mengontrol seberapa agresif kernel memindahkan data dari RAM ke penyimpanan. Nilai rendah (0–10) membuat sistem lebih fokus menggunakan RAM, nilai tinggi (60–100) menggunakan swap lebih sering untuk menghemat RAM.</string>
     <string name="dirty_ratio_explanation">Menetapkan persentase RAM yang digunakan untuk cache tulis sebelum memaksa penulisan ke penyimpanan. Nilai lebih tinggi = performa lebih baik tetapi risiko kehilangan data saat crash.</string>
     <string name="dirty_background_ratio_explanation">Menentukan kapan kernel mulai secara bertahap menulis cache ke penyimpanan di latar belakang. Membantu menjaga performa stabil dengan mengurangi lag saat penulisan besar.</string>
+    <string name="feedback_adjusted_bg_ratio">Menyesuaikan rasio latar belakang ke %1$d%%</string>
+    <string name="feedback_adjusted_total_ratio">Menyesuaikan rasio total ke %1$d%%</string>
+    <string name="error_bg_ratio_less_than_total">Rasio latar belakang harus kurang dari rasio total</string>
+    <string name="min_free_memory_warning">Peringatan: 1024 KB = 1 MB. Nilai yang terlalu tinggi dapat menyebabkan aplikasi crash.</string>
     <string name="min_free_memory_explanation">Menentukan jumlah minimum RAM yang harus selalu bebas. Nilai lebih tinggi membuat sistem lebih responsif tetapi mengurangi RAM yang tersedia untuk aplikasi.</string>
     <string name="dirty_expire_explanation">Menentukan berapa lama data cache dapat bertahan sebelum dipaksa menulis ke penyimpanan. Nilai lebih rendah = data lebih aman tetapi performa berkurang.</string>
     <string name="dirty_writeback_explanation">Menetapkan interval waktu bagi kernel untuk memeriksa dan menulis cache yang sudah kedaluwarsa. Mempengaruhi seberapa sering sistem melakukan pembersihan cache otomatis.</string>

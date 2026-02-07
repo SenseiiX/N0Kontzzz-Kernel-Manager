@@ -858,14 +858,39 @@ class TuningViewModel @Inject constructor(
     fun setDirtyRatio(value: Int) = viewModelScope.launch(Dispatchers.IO) {
         if (repo.setDirtyRatio(value)) {
             preferenceManager.setDirtyRatio(value)
-            repo.getDirtyRatio().take(1).collect { _dirtyRatio.value = it }
+            _dirtyRatio.value = value
+            
+            // Validation: dirty_background_ratio should be < dirty_ratio
+            if (_dirtyBackgroundRatio.value >= value) {
+                val newBg = (value - 1).coerceAtLeast(0)
+                if (repo.setDirtyBackgroundRatio(newBg)) {
+                    preferenceManager.setDirtyBackgroundRatio(newBg)
+                    _dirtyBackgroundRatio.value = newBg
+                    _rebootCommandFeedback.emit(application.getString(R.string.feedback_adjusted_bg_ratio, newBg))
+                }
+            }
         }
     }
 
     fun setDirtyBackgroundRatio(value: Int) = viewModelScope.launch(Dispatchers.IO) {
+        // Validation: dirty_background_ratio should be < dirty_ratio
+        if (value >= _dirtyRatio.value) {
+            val newRatio = value + 1
+            if (newRatio <= 100) {
+                if (repo.setDirtyRatio(newRatio)) {
+                    preferenceManager.setDirtyRatio(newRatio)
+                    _dirtyRatio.value = newRatio
+                    _rebootCommandFeedback.emit(application.getString(R.string.feedback_adjusted_total_ratio, newRatio))
+                }
+            } else {
+                _rebootCommandFeedback.emit(application.getString(R.string.error_bg_ratio_less_than_total))
+                return@launch
+            }
+        }
+
         if (repo.setDirtyBackgroundRatio(value)) {
             preferenceManager.setDirtyBackgroundRatio(value)
-            repo.getDirtyBackgroundRatio().take(1).collect { _dirtyBackgroundRatio.value = it }
+            _dirtyBackgroundRatio.value = value
         }
     }
 
