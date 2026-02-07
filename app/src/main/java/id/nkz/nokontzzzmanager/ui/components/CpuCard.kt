@@ -92,19 +92,22 @@ private fun CpuHeaderSection(
     deviceCodename: String,
     info: RealtimeCpuInfo
 ) {
-    val (marketingName, boardName) = remember(board, deviceCodename) {
-        when (board.uppercase()) {
-            "SM8250" -> {
-                val codename = deviceCodename.lowercase()
-                when (codename) {
-                    in listOf("munch", "alioth") -> "Qualcomm® Snapdragon™ 870 5G" to "SM8250-AC"
-                    in listOf("apollo", "lmi") -> "Qualcomm® Snapdragon™ 865 5G" to "SM8250"
-                    else -> "Sus... Are you spoofing? \u0D9E" to "SM8250 (Impostor)"
+    val (marketingName, boardName) = remember(board, deviceCodename, soc) {
+        val upperBoard = board.uppercase()
+        val lowerCodename = deviceCodename.lowercase()
+        
+        when {
+            upperBoard == "SM8250" || upperBoard == "SM8250-AB" || upperBoard == "SM8250-AC" -> {
+                when (lowerCodename) {
+                    "munch" -> "Poco F4 / Xiaomi 12S" to upperBoard
+                    "alioth" -> "Poco F3 / Redmi K40" to upperBoard
+                    "apollo" -> "Xiaomi Mi 10T" to upperBoard
+                    "lmi" -> "Redmi K30 Pro" to upperBoard
+                    else -> (if (soc.isNotBlank() && soc != "Unknown SoC") soc else "Qualcomm® Snapdragon™ 865 Family") to upperBoard
                 }
             }
-            "SM8250-AB" -> "Qualcomm® Snapdragon™ 865+ 5G" to "SM8250-AB"
-            "SM8250-AC" -> "Qualcomm® Snapdragon™ 870 5G" to "SM8250-AC"
-            else -> "Definitely not Kona family" to ""
+            soc.isNotBlank() && soc != "Unknown SoC" && soc != "N/A" -> soc to board
+            else -> "Central Processing Unit" to board
         }
     }
 
@@ -116,19 +119,20 @@ private fun CpuHeaderSection(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = marketingName,
-                style = MaterialTheme.typography.headlineSmall, // M3 Typography
+                style = MaterialTheme.typography.titleLarge, // Using titleLarge for better sizing
+                fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
             
             if (boardName.isNotEmpty()) {
                 Text(
                     text = boardName,
-                    style = MaterialTheme.typography.labelLarge,
+                    style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                 )
             }
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             Surface( // Using Surface for the label background
                 shape = RoundedCornerShape(8.dp),
@@ -139,7 +143,8 @@ private fun CpuHeaderSection(
                         (info.soc.isNotBlank() && info.soc != "Unknown SoC" && info.soc != "N/A"))
                         stringResource(R.string.cpu_soc_label) else stringResource(R.string.cpu_cpu_label),
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                 )
             }
@@ -168,6 +173,7 @@ private fun CpuCoresSection(info: RealtimeCpuInfo, clusters: ImmutableList<CpuCl
         Text(
             text = stringResource(R.string.cpu_cores_title),
             style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface
         )
         
@@ -186,13 +192,18 @@ private fun CpuCoresSection(info: RealtimeCpuInfo, clusters: ImmutableList<CpuCl
                 freqsInRow.forEachIndexed { cardIndexInRow, freq ->
                     val absoluteIndex = rowIndex * itemsPerRow + cardIndexInRow
                     
-                    val shape = when (absoluteIndex) {
-                        0 -> RoundedCornerShape(topStart = 12.dp, topEnd = 4.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
-                        3 -> RoundedCornerShape(topStart = 4.dp, topEnd = 12.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
-                        4 -> RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 12.dp, bottomEnd = 4.dp)
-                        7 -> RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 4.dp, bottomEnd = 12.dp)
-                        else -> RoundedCornerShape(4.dp)
-                    }
+                    // Dynamic shape calculation for any number of cores
+                    val isFirstRow = rowIndex == 0
+                    val isLastRow = rowIndex == (totalCores - 1) / itemsPerRow
+                    val isFirstInRow = cardIndexInRow == 0
+                    val isLastInRow = cardIndexInRow == freqsInRow.size - 1 || cardIndexInRow == itemsPerRow - 1
+
+                    val shape = RoundedCornerShape(
+                        topStart = if (isFirstRow && isFirstInRow) 12.dp else 4.dp,
+                        topEnd = if (isFirstRow && isLastInRow) 12.dp else 4.dp,
+                        bottomStart = if (isLastRow && isFirstInRow) 12.dp else 4.dp,
+                        bottomEnd = if (isLastRow && isLastInRow) 12.dp else 4.dp
+                    )
 
                     Surface(
                         modifier = Modifier.weight(1f),
@@ -250,8 +261,9 @@ private fun CpuCoresSection(info: RealtimeCpuInfo, clusters: ImmutableList<CpuCl
         // --- CPU Clusters Section ---
         if (clusters.isNotEmpty()) {
             Text(
-                text = "CPU Clusters", // Title for this section
+                text = stringResource(id = R.string.cpu_clusters_title), // Localized Title
                 style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -260,10 +272,10 @@ private fun CpuCoresSection(info: RealtimeCpuInfo, clusters: ImmutableList<CpuCl
                     Spacer(modifier = Modifier.height(2.dp))
                 }
                 // Determine rounded corners based on position
-                val shape = when (index) {
-                    0 if index == clusters.size - 1 -> RoundedCornerShape(12.dp) // Only item
-                    0 -> RoundedCornerShape(12.dp, 12.dp, 4.dp, 4.dp) // First item
-                    clusters.size - 1 -> RoundedCornerShape(4.dp, 4.dp, 12.dp, 12.dp) // Last item
+                val shape = when {
+                    clusters.size == 1 -> RoundedCornerShape(12.dp)
+                    index == 0 -> RoundedCornerShape(12.dp, 12.dp, 4.dp, 4.dp) // First item
+                    index == clusters.size - 1 -> RoundedCornerShape(4.dp, 4.dp, 12.dp, 12.dp) // Last item
                     else -> RoundedCornerShape(4.dp) // Middle items
                 }
 

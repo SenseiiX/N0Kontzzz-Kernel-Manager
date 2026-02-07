@@ -35,6 +35,7 @@
     <!-- Settings strings -->
 
     <!-- ... string lainnya ... -->
+    <string name="cpu_clusters_title">CPU Clusters</string>
     <string name="central_proccessing_unit_cpu">Central Processing Unit (CPU)</string>
     <string name="cpu_governor_label">Governor:</string>
     <string name="cpu_cores_title" translatable="false">CPU Cores</string>
