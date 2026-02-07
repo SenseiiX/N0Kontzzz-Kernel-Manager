@@ -547,17 +547,27 @@ class TuningRepository @Inject constructor(
     }.flowOn(Dispatchers.IO)
 
     fun getGpuUsage(): Flow<Int> = flow {
-        val rawOutput = readShellCommand("cat /sys/class/kgsl/kgsl-3d0/gpu_busy_percentage").trim()
-
-        if (rawOutput.isEmpty()) {
-            emit(0)
-            return@flow
+        val paths = listOf(
+            "/sys/class/kgsl/kgsl-3d0/gpu_busy_percentage",
+            "/sys/class/kgsl/kgsl-3d0/usage",
+            "/sys/class/devfreq/1c00000.gpu/device/gpu_busy_percentage",
+            "/sys/kernel/gpu/gpu_busy"
+        )
+        
+        var usage = 0
+        for (path in paths) {
+            val rawOutput = readShellCommand("cat $path").trim()
+            if (rawOutput.isNotEmpty()) {
+                val cleanedOutput = rawOutput.replace("%", "").trim()
+                val parsed = cleanedOutput.toIntOrNull()
+                if (parsed != null) {
+                    usage = parsed.coerceIn(0, 100)
+                    break
+                }
+            }
         }
 
-        val cleanedOutput = rawOutput.replace("%", "").trim()
-        val usage = cleanedOutput.toIntOrNull() ?: 0
-
-        emit(usage.coerceIn(0, 100))
+        emit(usage)
     }.flowOn(Dispatchers.IO)
 
 

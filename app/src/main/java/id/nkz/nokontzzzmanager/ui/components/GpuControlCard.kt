@@ -235,20 +235,22 @@ fun GpuControlCard(
                         description = stringResource(id = R.string.gpu_frequency_desc),
                         icon = Icons.Default.Speed
                     ) {
+                        val isFreqAvailable = availableGpuFrequencies.isNotEmpty()
+                        
                         // Cards for GPU frequency control with dialogs
                         Column(
                             modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(2.dp) // Changed from 12.dp to 2.dp as per your other requirements
+                            verticalArrangement = Arrangement.spacedBy(2.dp)
                         ) {
                             // Min Frequency Card
                             Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clickable { showMinFreqDialog = true },
+                                    .clickable(enabled = isFreqAvailable) { showMinFreqDialog = true },
                                 colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surface
+                                    containerColor = if (isFreqAvailable) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
                                 ),
-                                shape = getRoundedCornerShape(0, 2) // First card in group of 2
+                                shape = getRoundedCornerShape(0, 2)
                             ) {
                                 Row(
                                     modifier = Modifier
@@ -264,20 +266,22 @@ fun GpuControlCard(
                                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                                         )
                                         Text(
-                                            text = stringResource(id = R.string.cpu_freq_mhz, gpuMinFreq),
+                                            text = if (isFreqAvailable) stringResource(id = R.string.cpu_freq_mhz, gpuMinFreq) else stringResource(id = R.string.common_na),
                                             fontSize = 16.sp,
                                             fontWeight = FontWeight.Medium,
-                                            color = MaterialTheme.colorScheme.primary,
+                                            color = if (isFreqAvailable) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
                                             maxLines = 1,
                                             overflow = TextOverflow.Ellipsis
                                         )
                                     }
-                                    Icon(
-                                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                                        contentDescription = stringResource(id = R.string.change_min_frequency),
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(20.dp)
-                                    )
+                                    if (isFreqAvailable) {
+                                        Icon(
+                                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                            contentDescription = stringResource(id = R.string.change_min_frequency),
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    }
                                 }
                             }
 
@@ -285,11 +289,11 @@ fun GpuControlCard(
                             Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clickable { showMaxFreqDialog = true },
+                                    .clickable(enabled = isFreqAvailable) { showMaxFreqDialog = true },
                                 colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surface
+                                    containerColor = if (isFreqAvailable) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
                                 ),
-                                shape = getRoundedCornerShape(1, 2) // Second card in group of 2
+                                shape = getRoundedCornerShape(1, 2)
                             ) {
                                 Row(
                                     modifier = Modifier
@@ -305,26 +309,26 @@ fun GpuControlCard(
                                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                                         )
                                         Text(
-                                            text = stringResource(id = R.string.cpu_freq_mhz, gpuMaxFreq),
+                                            text = if (isFreqAvailable) stringResource(id = R.string.cpu_freq_mhz, gpuMaxFreq) else stringResource(id = R.string.common_na),
                                             fontSize = 16.sp,
                                             fontWeight = FontWeight.Medium,
-                                            color = MaterialTheme.colorScheme.primary,
+                                            color = if (isFreqAvailable) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
                                             maxLines = 1,
                                             overflow = TextOverflow.Ellipsis
                                         )
                                     }
-                                    Icon(
-                                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                                        contentDescription = stringResource(id = R.string.change_max_frequency),
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(20.dp)
-                                    )
+                                    if (isFreqAvailable) {
+                                        Icon(
+                                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                            contentDescription = stringResource(id = R.string.change_max_frequency),
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
-
-
 
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -339,14 +343,14 @@ fun GpuControlCard(
                         val maxPowerLevel = maxOf(gpuPowerLevelRange.first, gpuPowerLevelRange.second)
                         
                         Column(
-                            verticalArrangement = Arrangement.spacedBy(2.dp) // Changed from 12.dp to 2.dp as per your other requirements
+                            verticalArrangement = Arrangement.spacedBy(2.dp)
                         ) {
                             // GPU Power Level Card
                             Card(
                                 colors = CardDefaults.cardColors(
                                     containerColor = MaterialTheme.colorScheme.surface
                                 ),
-                                shape = getRoundedCornerShape(0, 2) // First card in group of 2
+                                shape = getRoundedCornerShape(0, 2)
                             ) {
                                 Column(
                                     modifier = Modifier
@@ -360,15 +364,23 @@ fun GpuControlCard(
                                         horizontalArrangement = Arrangement.SpaceBetween,
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Text(
-                                            text = stringResource(id = R.string.power_level),
-                                            fontSize = 12.sp,
-                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                                        )
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = stringResource(id = R.string.power_level),
+                                                fontSize = 12.sp,
+                                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                            )
+                                            Text(
+                                                text = "Note: Level 0 is usually Max Performance",
+                                                fontSize = 10.sp,
+                                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+                                                fontWeight = FontWeight.Medium
+                                            )
+                                        }
                                         Text(
                                             text = tempPowerLevel.toInt().toString(),
                                             fontSize = 16.sp,
-                                            fontWeight = FontWeight.Medium,
+                                            fontWeight = FontWeight.Bold,
                                             color = MaterialTheme.colorScheme.primary
                                         )
                                     }

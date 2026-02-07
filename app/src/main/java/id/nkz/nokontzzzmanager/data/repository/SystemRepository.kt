@@ -1440,8 +1440,18 @@ class SystemRepository @Inject constructor(
     }
 
     // GPU Throttling functions
+    private fun getGpuThrottlingPath(): String? {
+        val paths = listOf(
+            "/sys/class/kgsl/kgsl-3d0/throttling",
+            "/sys/class/kgsl/kgsl-3d0/devfreq/throttling",
+            "/sys/kernel/gpu/gpu_throttling"
+        )
+        return paths.find { File(it).exists() }
+    }
+
     private suspend fun getGpuThrottlingStatus(): Boolean? {
-        val result = readFileToString("/sys/class/kgsl/kgsl-3d0/throttling", "GPU Throttling Status")
+        val path = getGpuThrottlingPath() ?: return null
+        val result = readFileToString(path, "GPU Throttling Status")
         return when (result?.trim()) {
             "1", "Y", "yes", "on", "enabled" -> true
             "0", "N", "no", "off", "disabled" -> false
@@ -1454,8 +1464,9 @@ class SystemRepository @Inject constructor(
     }
 
     suspend fun setGpuThrottling(enabled: Boolean): Boolean {
+        val path = getGpuThrottlingPath() ?: return false
         val value = if (enabled) "1" else "0"
-        return writeStringToFile("/sys/class/kgsl/kgsl-3d0/throttling", value, "GPU Throttling")
+        return writeStringToFile(path, value, "GPU Throttling")
     }
 
     // I/O Scheduler functions
