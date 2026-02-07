@@ -42,10 +42,10 @@ private fun formatTimeWithSeconds(timeInMillis: Long): String {
 // Helper function to format storage size
 @Composable
 private fun formatStorageSize(bytes: Long): String {
-    val tb = 1024L * 1024 * 1024 * 1024
-    val gb = 1024L * 1024 * 1024
-    val mb = 1024L * 1024
-    val kb = 1024L
+    val tb = 1_000_000_000_000L
+    val gb = 1_000_000_000L
+    val mb = 1_000_000L
+    val kb = 1_000L
 
     return when {
         bytes >= tb -> stringResource(id = R.string.storage_tb, bytes.toDouble() / tb)
