@@ -3,49 +3,35 @@ package id.nkz.nokontzzzmanager.ui.components
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues // Added PaddingValues import
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.offset
-import androidx.compose.runtime.*
-import kotlinx.coroutines.delay
-import androidx.compose.ui.Modifier
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import id.nkz.nokontzzzmanager.R
 
 data class Developer(val name: Int, val role: Int, val githubUsername: String, val drawableResId: Int)
@@ -76,7 +62,7 @@ fun AboutCard(
     var showCreditsDialog by remember { mutableStateOf(false) }
 
     Card(
-        modifier = modifier,
+        modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp, 8.dp, 24.dp, 24.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
@@ -85,7 +71,7 @@ fun AboutCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp, 16.dp, 16.dp, 8.dp),
+                .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Header Section
@@ -112,7 +98,8 @@ fun AboutCard(
                 Text(
                     text = stringResource(id = R.string.about),
                     style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
 
@@ -121,14 +108,16 @@ fun AboutCard(
                 text = stringResource(id = R.string.desc_about),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface,
-                lineHeight = MaterialTheme.typography.bodyMedium.lineHeight
+                lineHeight = 20.sp
             )
 
             // Action Section
-            Column {
-                // Social Links Row
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 val uriHandler = LocalUriHandler.current
+                
+                // Social Links Row
                 Row(
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -136,254 +125,216 @@ fun AboutCard(
                         text = stringResource(id = R.string.follow_us),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.SemiBold
                     )
 
-                    // Telegram Button
                     IconButton(
                         onClick = { uriHandler.openUri(telegramLink) },
-                        modifier = Modifier.size(48.dp)
+                        modifier = Modifier.size(40.dp)
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.telegram),
                             contentDescription = stringResource(id = R.string.telegram),
-                            modifier = Modifier.size(32.dp)
+                            modifier = Modifier.size(24.dp),
+                            tint = Color.Unspecified // Keep original telegram colors
                         )
                     }
                 }
 
-                // Add spacing between social links and credits badge
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Source Code Button
-                val sourceCodeLink = stringResource(R.string.source_code_link)
-                OutlinedButton(
-                    onClick = { uriHandler.openUri(sourceCodeLink) },
-                    modifier = Modifier.height(32.dp),
-                    contentPadding = PaddingValues(horizontal = 12.dp)
+                // Source Code and Credits
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Code,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = stringResource(id = R.string.source_code),
-                        fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.labelMedium
-                    )
-                }
-                // Add spacing between Source Code and Credits badge
-                Spacer(modifier = Modifier.height(8.dp))
+                    val sourceCodeLink = stringResource(R.string.source_code_link)
+                    OutlinedButton(
+                        onClick = { uriHandler.openUri(sourceCodeLink) },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Code,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(id = R.string.source_code),
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
 
-                // Credits Badge
-                OutlinedButton(
-                    onClick = { showCreditsDialog = true },
-                    modifier = Modifier.height(32.dp),
-                    contentPadding = PaddingValues(horizontal = 12.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Star,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = stringResource(id = R.string.credits),
-                        fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.labelMedium
-                    )
+                    OutlinedButton(
+                        onClick = { showCreditsDialog = true },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Star,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(id = R.string.credits),
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
         }
     }
 
     if (showCreditsDialog) {
-    AnimatedVisibility(
-        visible = showCreditsDialog,
-        enter = fadeIn(animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessLow)),
-        exit = fadeOut(animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMediumLow))
+        CreditsDialog(
+            onDismiss = { showCreditsDialog = false }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CreditsDialog(
+    onDismiss: () -> Unit
+) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
-            AlertDialog(
-                onDismissRequest = { showCreditsDialog = false },
-                title = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        Box(
+            modifier = Modifier.fillMaxSize().background(Color.Transparent),
+            contentAlignment = Alignment.Center
+        ) {
+            AnimatedVisibility(
+                visible = true,
+                enter = fadeIn(animationSpec = spring(stiffness = Spring.StiffnessLow)) + 
+                        scaleIn(initialScale = 0.95f, animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessLow)),
+                exit = fadeOut(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) + 
+                       scaleOut(targetScale = 0.95f, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+            ) {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(0.9f).fillMaxHeight(0.85f),
+                    shape = RoundedCornerShape(28.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainerLow,
+                    tonalElevation = 6.dp
+                ) {
+                    Column(
+                        modifier = Modifier.padding(24.dp),
+                        verticalArrangement = Arrangement.spacedBy(20.dp)
                     ) {
-                        Text(stringResource(id = R.string.credits))
-                    }
-                },
-                text = {
-                    val scrollState = rememberScrollState()
-                    var isScrollbarVisible by remember { mutableStateOf(true) }
-                    
-                    LaunchedEffect(scrollState) {
-                        snapshotFlow { scrollState.value }
-                            .collect {
-                                isScrollbarVisible = true
-                                delay(1000) // Hide scrollbar after 1 second of inactivity
-                                isScrollbarVisible = false
-                            }
-                    }
-                    
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(400.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .verticalScroll(scrollState)
-                                .padding(end = 12.dp), // Add padding to make space for scrollbar
-                            verticalArrangement = Arrangement.spacedBy(0.dp) // Remove default spacing since we use custom Spacer
+                        // Header
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            // Lead Developer Section
-                            Text(
-                                text = stringResource(id = R.string.developer),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                            
-                            Spacer(modifier = Modifier.height(16.dp)) // Add spacing between title and first card
-                            
-                            DeveloperCreditItem(developer = leadDeveloper, position = 0, totalItems = 1)
-                            
-                            // Separator
-                            Spacer(modifier = Modifier.height(16.dp)) // Reduce spacing before section title
-                            
-                            // Individual Contributors Section
-                            Text(
-                                text = stringResource(id = R.string.individual_contributors),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                            
-                            Spacer(modifier = Modifier.height(16.dp)) // Add spacing between title and first card
-                            
-                            individualContributors.forEachIndexed { index, developer ->
-                                if (index > 0) {
-                                    Spacer(modifier = Modifier.height(2.dp))
-                                }
-                                DeveloperCreditItem(developer = developer, position = index, totalItems = individualContributors.size)
-                            }
-                            
-                            // Repository Contributors Section
-                            Spacer(modifier = Modifier.height(16.dp)) // Reduce spacing before section title
-                            
-                            Text(
-                                text = stringResource(id = R.string.repository_contributors),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                            
-                            Spacer(modifier = Modifier.height(16.dp)) // Add spacing between title and first card
-                            
-                            repositoryContributors.forEachIndexed { index, repo ->
-                                if (index > 0) {
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                }
-                                RepositoryCreditItem(repository = repo, position = index, totalItems = repositoryContributors.size)
-                            }
-                            
-                            // Add some padding at the end
-                            Spacer(modifier = Modifier.height(8.dp))
-                        }
-                        
-                        // Custom scrollbar with fade animation - properly positioned on the right
-                        // Using a separate Box to position the entire scrollbar component
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.CenterEnd)
-                                .fillMaxHeight()
-                        ) {
-                            // Track - always present but only visible when animated container is visible
                             Box(
                                 modifier = Modifier
-                                    .fillMaxHeight()
-                                    .width(6.dp)
+                                    .size(56.dp)
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(MaterialTheme.colorScheme.primaryContainer),
+                                contentAlignment = Alignment.Center
                             ) {
-                                AnimatedVisibility(
-                                    visible = isScrollbarVisible,
-                                    enter = fadeIn(animationSpec = tween(durationMillis = 300)),
-                                    exit = fadeOut(animationSpec = tween(durationMillis = 300))
-                                ) {
-                                    // Track background
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxHeight()
-                                            .width(6.dp)
-                                            .background(
-                                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                                                shape = RoundedCornerShape(3.dp)
-                                            )
-                                    )
-                                }
+                                Icon(
+                                    imageVector = Icons.Default.Star,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(28.dp),
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
                             }
-                            
-                            // Thumb - separate element that can be positioned independently
-                            val thumbOffset by remember {
-                                derivedStateOf {
-                                    if (scrollState.maxValue > 0) {
-                                        val trackHeight = 400f // Total height of the scrollbar track
-                                        val thumbHeight = 30f // Height of the thumb
-                                        val availableTrackHeight = trackHeight - thumbHeight
-                                        val ratio = scrollState.value.toFloat() / scrollState.maxValue
-                                        (availableTrackHeight * ratio).dp
-                                    } else 0.dp
-                                }
+                            Column {
+                                Text(
+                                    text = stringResource(R.string.credits),
+                                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = stringResource(R.string.individual_contributors),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        // List of credits
+                        LazyColumn(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(2.dp)
+                        ) {
+                            // Developer Section
+                            item {
+                                Text(
+                                    text = stringResource(id = R.string.developer),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(vertical = 8.dp)
+                                )
+                            }
+                            item {
+                                DeveloperCreditItem(developer = leadDeveloper, position = 0, totalItems = 1)
                             }
 
-                            Box(
-                                modifier = Modifier
-                                    .align(Alignment.TopEnd) // Position at top-right of parent Box
-                                    .offset(y = thumbOffset)
-                                    .width(6.dp)
-                                    .height(30.dp) // Fixed height for thumb
-                            ) {
-                                AnimatedVisibility(
-                                    visible = isScrollbarVisible,
-                                    enter = fadeIn(animationSpec = tween(durationMillis = 300)),
-                                    exit = fadeOut(animationSpec = tween(durationMillis = 300))
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .fillMaxHeight()
-                                            .background(
-                                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                                                shape = RoundedCornerShape(3.dp)
-                                            )
-                                    )
-                                }
+                            // Contributors Section
+                            item {
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    text = stringResource(id = R.string.individual_contributors),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(vertical = 8.dp)
+                                )
+                            }
+                            itemsIndexed(individualContributors) { index, developer ->
+                                DeveloperCreditItem(developer = developer, position = index, totalItems = individualContributors.size)
+                            }
+
+                            // Repositories Section
+                            item {
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    text = stringResource(id = R.string.repository_contributors),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(vertical = 8.dp)
+                                )
+                            }
+                            itemsIndexed(repositoryContributors) { index, repo ->
+                                RepositoryCreditItem(repository = repo, position = index, totalItems = repositoryContributors.size)
                             }
                         }
-                    }
-                },
-                confirmButton = {
-                    Button(onClick = { showCreditsDialog = false }) {
-                        Text(stringResource(android.R.string.ok))
+
+                        // Dismiss Button
+                        OutlinedButton(
+                            onClick = onDismiss,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Text(stringResource(id = R.string.close), fontWeight = FontWeight.Medium)
+                        }
                     }
                 }
-            )
+            }
         }
     }
 }
 
 @Composable
-fun DeveloperCreditItem(developer: Developer, position: Int, totalItems: Int) {
+private fun DeveloperCreditItem(developer: Developer, position: Int, totalItems: Int) {
     val uriHandler = LocalUriHandler.current
     val githubProfileUrl = "https://github.com/${developer.githubUsername}"
     val developerName = stringResource(id = developer.name)
     
-    // Determine rounded corners based on position
-    val shape = when (position) {
-        0 if position == totalItems - 1 -> RoundedCornerShape(24.dp) // Only item
-        0 -> RoundedCornerShape(24.dp, 24.dp, 4.dp, 4.dp) // First item: top corners 24dp, bottom 8dp
-        totalItems - 1 -> RoundedCornerShape(4.dp, 4.dp, 24.dp, 24.dp) // Last item: top corners 8dp, bottom 24dp
-        else -> RoundedCornerShape(4.dp) // Middle items: all corners 8dp
+    val shape = when {
+        totalItems == 1 -> RoundedCornerShape(16.dp)
+        position == 0 -> RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
+        position == totalItems - 1 -> RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 16.dp, bottomEnd = 16.dp)
+        else -> RoundedCornerShape(4.dp)
     }
 
     Surface(
@@ -391,7 +342,7 @@ fun DeveloperCreditItem(developer: Developer, position: Int, totalItems: Int) {
             .fillMaxWidth()
             .clickable { uriHandler.openUri(githubProfileUrl) },
         shape = shape,
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        color = MaterialTheme.colorScheme.surfaceContainer,
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -402,7 +353,7 @@ fun DeveloperCreditItem(developer: Developer, position: Int, totalItems: Int) {
         ) {
             Image(
                 painter = painterResource(id = developer.drawableResId),
-                contentDescription = stringResource(id = R.string.developer_profile_picture, developerName),
+                contentDescription = null,
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)
@@ -412,7 +363,8 @@ fun DeveloperCreditItem(developer: Developer, position: Int, totalItems: Int) {
                 Text(
                     text = developerName,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = stringResource(id = developer.role),
@@ -431,15 +383,14 @@ fun DeveloperCreditItem(developer: Developer, position: Int, totalItems: Int) {
 }
 
 @Composable
-fun RepositoryCreditItem(repository: RepositoryContributor, position: Int, totalItems: Int) {
+private fun RepositoryCreditItem(repository: RepositoryContributor, position: Int, totalItems: Int) {
     val uriHandler = LocalUriHandler.current
     
-    // Determine rounded corners based on position
-    val shape = when (position) {
-        0 if position == totalItems - 1 -> RoundedCornerShape(24.dp) // Only item
-        0 -> RoundedCornerShape(24.dp, 24.dp, 4.dp, 4.dp) // First item: top corners 24dp, bottom 8dp
-        totalItems - 1 -> RoundedCornerShape(4.dp, 4.dp, 24.dp, 24.dp) // Last item: top corners 8dp, bottom 24dp
-        else -> RoundedCornerShape(4.dp) // Middle items: all corners 8dp
+    val shape = when {
+        totalItems == 1 -> RoundedCornerShape(16.dp)
+        position == 0 -> RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
+        position == totalItems - 1 -> RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 16.dp, bottomEnd = 16.dp)
+        else -> RoundedCornerShape(4.dp)
     }
 
     Surface(
@@ -447,7 +398,7 @@ fun RepositoryCreditItem(repository: RepositoryContributor, position: Int, total
             .fillMaxWidth()
             .clickable { uriHandler.openUri(repository.url) },
         shape = shape,
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        color = MaterialTheme.colorScheme.surfaceContainer,
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -456,26 +407,26 @@ fun RepositoryCreditItem(repository: RepositoryContributor, position: Int, total
                 .fillMaxWidth()
                 .padding(12.dp)
         ) {
-            // Repository icon
             Surface(
                 shape = CircleShape,
                 color = MaterialTheme.colorScheme.primaryContainer,
                 modifier = Modifier.size(48.dp)
             ) {
-                Image(
-                    painter = painterResource(id = repository.drawableResId),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(24.dp)
-                        .align(Alignment.CenterVertically)
-                )
+                Box(contentAlignment = Alignment.Center) {
+                    Image(
+                        painter = painterResource(id = repository.drawableResId),
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
             }
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = stringResource(id = repository.name),
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = stringResource(id = repository.description),
