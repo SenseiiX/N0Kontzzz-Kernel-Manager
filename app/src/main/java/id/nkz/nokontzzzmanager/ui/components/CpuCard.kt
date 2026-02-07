@@ -92,22 +92,31 @@ private fun CpuHeaderSection(
     deviceCodename: String,
     info: RealtimeCpuInfo
 ) {
-    val (marketingName, boardName) = remember(board, deviceCodename, soc) {
+    val (marketingName, subtitle) = remember(board, deviceCodename, soc) {
         val upperBoard = board.uppercase()
         val lowerCodename = deviceCodename.lowercase()
         
+        val chipName = when {
+            upperBoard == "SM8250-AC" || lowerCodename == "munch" || lowerCodename == "alioth" -> "Snapdragon® 870"
+            upperBoard == "SM8250-AB" -> "Snapdragon® 865+"
+            upperBoard == "SM8250" -> "Snapdragon® 865"
+            soc.contains("Snapdragon", ignoreCase = true) -> soc.replace("Qualcomm® ", "").replace("™", "®")
+            else -> soc
+        }
+
         when {
             upperBoard == "SM8250" || upperBoard == "SM8250-AB" || upperBoard == "SM8250-AC" -> {
-                when (lowerCodename) {
-                    "munch" -> "POCO F4 / Redmi K40S" to upperBoard
-                    "alioth" -> "Redmi K40 / POCO F3 / Mi 11X" to upperBoard
-                    "apollo" -> "Redmi K30S Ultra / Mi 10T / Pro" to upperBoard
-                    "lmi" -> "Redmi K30 Pro / POCO F2 Pro" to upperBoard
-                    else -> (if (soc.isNotBlank() && soc != "Unknown SoC") soc else "Qualcomm® Snapdragon™ 865 Family") to upperBoard
+                val deviceName = when (lowerCodename) {
+                    "munch" -> "POCO F4 / Redmi K40S"
+                    "alioth" -> "Redmi K40 / POCO F3 / Mi 11X"
+                    "apollo" -> "Redmi K30S Ultra / Mi 10T / Pro"
+                    "lmi" -> "Redmi K30 Pro / POCO F2 Pro"
+                    else -> (if (soc.isNotBlank() && soc != "Unknown SoC") soc else "Qualcomm® Snapdragon™ 865 Family")
                 }
+                deviceName to "$upperBoard - $chipName"
             }
-            soc.isNotBlank() && soc != "Unknown SoC" && soc != "N/A" -> soc to board
-            else -> "Central Processing Unit" to board
+            soc.isNotBlank() && soc != "Unknown SoC" && soc != "N/A" -> soc to upperBoard
+            else -> "Central Processing Unit" to upperBoard
         }
     }
 
@@ -124,10 +133,13 @@ private fun CpuHeaderSection(
                 color = MaterialTheme.colorScheme.onSurface
             )
             
-            if (boardName.isNotEmpty()) {
+            if (subtitle.isNotEmpty()) {
                 Text(
-                    text = boardName,
-                    style = MaterialTheme.typography.labelMedium,
+                    text = subtitle,
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                )
+            }
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                 )
             }
