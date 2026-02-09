@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,7 +28,8 @@ import id.nkz.nokontzzzmanager.R
 import id.nkz.nokontzzzmanager.data.model.RealtimeGpuInfo
 import kotlinx.collections.immutable.ImmutableList
 import androidx.compose.foundation.clickable
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.animation.AnimatedVisibility
@@ -38,6 +40,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import android.widget.Toast
+import android.content.ClipData
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.ui.platform.LocalContext
 
@@ -182,10 +185,12 @@ private fun GpuDriverDialog(
     info: RealtimeGpuInfo,
     onDismiss: () -> Unit
 ) {
-    val clipboardManager = LocalClipboardManager.current
+    val clipboard = LocalClipboard.current
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val unknownVendor = stringResource(R.string.unknown_vendor)
     
-    val vendor = remember(info.model) {
+    val vendor = remember(info.model, unknownVendor) {
         when {
             info.model.contains("Adreno", ignoreCase = true) -> "Qualcomm"
             info.model.contains("Mali", ignoreCase = true) -> "ARM"
@@ -193,7 +198,7 @@ private fun GpuDriverDialog(
             info.model.contains("Xclipse", ignoreCase = true) -> "Samsung (AMD RDNA)"
             info.model.contains("Immortalis", ignoreCase = true) -> "ARM"
             info.model.contains("Vivante", ignoreCase = true) -> "VeriSilicon"
-            else -> context.getString(R.string.unknown_vendor)
+            else -> unknownVendor
         }
     }
 
@@ -308,7 +313,10 @@ private fun GpuDriverDialog(
                                         
                                         IconButton(
                                             onClick = {
-                                                clipboardManager.setText(AnnotatedString("$label: $value"))
+                                                scope.launch {
+                                                    val clipData = ClipData.newPlainText(label, value)
+                                                    clipboard.setClipEntry(ClipEntry(clipData))
+                                                }
                                                 Toast.makeText(context, copiedText, Toast.LENGTH_SHORT).show()
                                             },
                                             modifier = Modifier.size(32.dp)
