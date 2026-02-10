@@ -58,11 +58,7 @@ class BootReceiver : BroadcastReceiver() {
         // Start Boot Restore Service (Foreground)
         try {
             val restoreIntent = Intent(context, id.nkz.nokontzzzmanager.service.BootRestoreService::class.java)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(restoreIntent)
-            } else {
-                context.startService(restoreIntent)
-            }
+            context.startForegroundService(restoreIntent)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to start BootRestoreService", e)
         }
