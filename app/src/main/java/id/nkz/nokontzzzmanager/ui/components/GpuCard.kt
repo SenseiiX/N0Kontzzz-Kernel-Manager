@@ -30,7 +30,6 @@ import kotlinx.collections.immutable.ImmutableList
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
