@@ -194,6 +194,7 @@ class MainActivity : ComponentActivity() {
                     "battery_history" -> stringResource(id = R.string.battery_history_title) // Define title for Battery History screen
                     "custom_tunable" -> stringResource(id = R.string.custom_tunable_title)
                     "app_profiles" -> stringResource(id = R.string.app_profiles_title)
+                    "bg_blocker" -> stringResource(id = R.string.bg_blocker_title)
                     "process_monitor" -> stringResource(id = R.string.process_monitor_title)
                     "permission_manager" -> stringResource(id = R.string.permission_manager_title)
                     "dexopt" -> stringResource(id = R.string.dexopt_title)
@@ -506,6 +507,23 @@ class MainActivity : ComponentActivity() {
                             }
                         ) {
                             AppProfilesScreen(navController = navController)
+                        }
+                        composable(
+                            "bg_blocker",
+                            enterTransition = {
+                                slideInHorizontally(initialOffsetX = { fullWidth -> fullWidth }, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                            },
+                            exitTransition = {
+                                slideOutHorizontally(targetOffsetX = { fullWidth -> -fullWidth }, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                            },
+                            popEnterTransition = {
+                                slideInHorizontally(initialOffsetX = { fullWidth -> -fullWidth }, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                            },
+                            popExitTransition = {
+                                slideOutHorizontally(targetOffsetX = { fullWidth -> fullWidth }, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                            }
+                        ) {
+                            BgBlockerScreen(navController = navController)
                         }
                         composable(
                             "process_monitor",

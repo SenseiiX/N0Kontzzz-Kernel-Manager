@@ -711,4 +711,13 @@
     <string name="up">Up</string>
     <string name="tunable_path_invalid">Path must start with /</string>
     <string name="tunable_unsafe_input">Input contains unsafe characters (; | &amp;&amp; $ ` ( ) &gt; &lt; \\)</string>
+
+    <!-- Background App Blocker -->
+    <string name="bg_blocker_title">Background App Blocker</string>
+    <string name="bg_blocker_desc">Block specific apps from running in the background to save battery and memory.</string>
+    <string name="bg_blocker_add_app">Add App to Blocklist</string>
+    <string name="bg_blocker_no_apps">No apps blocked. Tap + to add one.</string>
+    <string name="bg_blocker_reset_confirm_title">Reset Blocklist?</string>
+    <string name="bg_blocker_reset_confirm_msg">Are you sure you want to reset the blocklist to the default values?</string>
+    <string name="bg_blocker_not_installed">Not installed</string>
 </resources>

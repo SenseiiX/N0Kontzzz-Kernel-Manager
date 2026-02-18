@@ -63,6 +63,12 @@ class MiscViewModel @Inject constructor(
     private val _applyNetworkStorageOnBoot = MutableStateFlow(preferenceManager.isApplyNetworkStorageOnBoot())
     val applyNetworkStorageOnBoot: StateFlow<Boolean> = _applyNetworkStorageOnBoot.asStateFlow()
 
+    private val _bgBlocklist = MutableStateFlow<String>("")
+    val bgBlocklist: StateFlow<String> = _bgBlocklist.asStateFlow()
+
+    private val _isBgBlockerAvailable = MutableStateFlow<Boolean?>(null)
+    val isBgBlockerAvailable: StateFlow<Boolean?> = _isBgBlockerAvailable.asStateFlow()
+
     private val _batteryMonitorEnabled = MutableStateFlow(preferenceManager.isBatteryMonitorEnabled())
     val batteryMonitorEnabled: StateFlow<Boolean> = _batteryMonitorEnabled.asStateFlow()
 
@@ -165,6 +171,22 @@ class MiscViewModel @Inject constructor(
 
             // Load I/O scheduler
             loadIoScheduler()
+
+            // Check Background Blocker
+            val bgBlockerAvailable = systemRepository.isBgBlockerAvailable()
+            if (bgBlockerAvailable) {
+                var currentBlocklist = systemRepository.getBgBlocklist()
+                if (currentBlocklist.isBlank()) {
+                    currentBlocklist = preferenceManager.getBgBlocklist() ?: "com.shopee.id,com.lazada.android,com.tokopedia.tkpd"
+                    // If even prefs is empty, use default and apply it to kernel
+                    systemRepository.setBgBlocklist(currentBlocklist)
+                }
+                _bgBlocklist.value = currentBlocklist
+                preferenceManager.setBgBlocklist(currentBlocklist)
+                _isBgBlockerAvailable.value = true
+            } else {
+                _isBgBlockerAvailable.value = false
+            }
 
             // Fix for restored backup state where permission is missing
             if (_batteryMonitorEnabled.value && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
@@ -378,5 +400,18 @@ class MiscViewModel @Inject constructor(
     fun setApplyNetworkStorageOnBoot(enabled: Boolean) {
         _applyNetworkStorageOnBoot.value = enabled
         preferenceManager.setApplyNetworkStorageOnBoot(enabled)
+    }
+
+    fun updateBgBlocklist(blocklist: String) {
+        viewModelScope.launch {
+            val success = systemRepository.setBgBlocklist(blocklist)
+            if (success) {
+                _bgBlocklist.value = blocklist
+                preferenceManager.setBgBlocklist(blocklist)
+            } else {
+                // If failed, reload actual value from kernel
+                _bgBlocklist.value = systemRepository.getBgBlocklist()
+            }
+        }
     }
 }

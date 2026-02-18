@@ -710,4 +710,13 @@
     <string name="up">Atas</string>
     <string name="tunable_path_invalid">Lokasi file harus diawali dengan /</string>
     <string name="tunable_unsafe_input">Input mengandung karakter berbahaya (; | &amp;&amp; $ ` ( ) &gt; &lt; \\)</string>
+
+    <!-- Background App Blocker -->
+    <string name="bg_blocker_title">Background App Blocker</string>
+    <string name="bg_blocker_desc">Blokir aplikasi tertentu agar tidak berjalan di latar belakang untuk menghemat baterai dan memori.</string>
+    <string name="bg_blocker_add_app">Tambah Aplikasi ke Daftar Blokir</string>
+    <string name="bg_blocker_no_apps">Belum ada aplikasi yang diblokir. Ketuk + untuk menambah.</string>
+    <string name="bg_blocker_reset_confirm_title">Reset Daftar Blokir?</string>
+    <string name="bg_blocker_reset_confirm_msg">Apakah Anda yakin ingin mereset daftar blokir ke nilai default?</string>
+    <string name="bg_blocker_not_installed">Tidak terinstal</string>
 </resources>

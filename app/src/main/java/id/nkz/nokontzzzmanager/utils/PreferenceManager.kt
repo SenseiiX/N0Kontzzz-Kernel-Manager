@@ -43,6 +43,7 @@ class PreferenceManager @Inject constructor(
         private const val KEY_IO_SCHEDULER = "io_scheduler"
         private const val KEY_APPLY_NETWORK_STORAGE_ON_BOOT = "apply_network_storage_on_boot"
         private const val KEY_LAST_APPLIED_BOOT_ID = "last_applied_boot_id"
+        private const val KEY_BG_BLOCKLIST = "bg_blocklist"
 
         // Set on Boot Keys
         private const val KEY_APPLY_PERFORMANCE_MODE_ON_BOOT = "apply_performance_mode_on_boot"
@@ -339,6 +340,16 @@ class PreferenceManager @Inject constructor(
     fun getLastAppliedBootId(): String? {
         return credentialPrefs()?.getString(KEY_LAST_APPLIED_BOOT_ID, null)
             ?: deviceProtectedPrefs().getString(KEY_LAST_APPLIED_BOOT_ID, null)
+    }
+
+    fun setBgBlocklist(blocklist: String) {
+        credentialPrefs()?.edit { putString(KEY_BG_BLOCKLIST, blocklist) }
+        deviceProtectedPrefs().edit { putString(KEY_BG_BLOCKLIST, blocklist) }
+    }
+
+    fun getBgBlocklist(): String? {
+        return credentialPrefs()?.getString(KEY_BG_BLOCKLIST, null)
+            ?: deviceProtectedPrefs().getString(KEY_BG_BLOCKLIST, null)
     }
 
     // Set on Boot Methods

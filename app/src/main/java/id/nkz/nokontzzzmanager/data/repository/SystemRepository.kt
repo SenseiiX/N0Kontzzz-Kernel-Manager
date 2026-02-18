@@ -1396,6 +1396,41 @@ class SystemRepository @Inject constructor(
         return writeStringToFile(forceFastChargePath, value, "USB Fast Charge")
     }
 
+    // Background App Blocker functions
+    private suspend fun getAvailableBgBlocklistPath(): String? {
+        val paths = listOf(
+            "/sys/kernel/n0kz_attributes/bg_blocklist",
+            "/sys/kernel/e404/bg_blocklist"
+        )
+        for (path in paths) {
+            if (File(path).exists()) return path
+        }
+        for (path in paths) {
+            if (readFileToString(path, "Background Blocker Check", true) != null) return path
+        }
+        return null
+    }
+
+    suspend fun isBgBlockerAvailable(): Boolean {
+        return getAvailableBgBlocklistPath() != null
+    }
+
+    suspend fun getBgBlocklist(): String {
+        val path = getAvailableBgBlocklistPath()
+        if (path != null) {
+            return readFileToString(path, "Background Blocker List") ?: ""
+        }
+        return ""
+    }
+
+    suspend fun setBgBlocklist(blocklist: String): Boolean {
+        val path = getAvailableBgBlocklistPath()
+        if (path != null) {
+            return writeStringToFile(path, blocklist, "Background Blocker List")
+        }
+        return false
+    }
+
     // TCP Congestion Control Algorithm functions
 
     private suspend fun getCurrentTcpCongestionAlgorithm(): String? {
