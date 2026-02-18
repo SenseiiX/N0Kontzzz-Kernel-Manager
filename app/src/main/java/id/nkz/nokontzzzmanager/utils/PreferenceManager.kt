@@ -44,6 +44,7 @@ class PreferenceManager @Inject constructor(
         private const val KEY_APPLY_NETWORK_STORAGE_ON_BOOT = "apply_network_storage_on_boot"
         private const val KEY_LAST_APPLIED_BOOT_ID = "last_applied_boot_id"
         private const val KEY_BG_BLOCKLIST = "bg_blocklist"
+        private const val KEY_APPLY_BG_BLOCKER_ON_BOOT = "apply_bg_blocker_on_boot"
 
         // Set on Boot Keys
         private const val KEY_APPLY_PERFORMANCE_MODE_ON_BOOT = "apply_performance_mode_on_boot"
@@ -350,6 +351,16 @@ class PreferenceManager @Inject constructor(
     fun getBgBlocklist(): String? {
         return credentialPrefs()?.getString(KEY_BG_BLOCKLIST, null)
             ?: deviceProtectedPrefs().getString(KEY_BG_BLOCKLIST, null)
+    }
+
+    fun setApplyBgBlockerOnBoot(enabled: Boolean) {
+        credentialPrefs()?.edit { putBoolean(KEY_APPLY_BG_BLOCKER_ON_BOOT, enabled) }
+        deviceProtectedPrefs().edit { putBoolean(KEY_APPLY_BG_BLOCKER_ON_BOOT, enabled) }
+    }
+
+    fun isApplyBgBlockerOnBoot(): Boolean {
+        return credentialPrefs()?.getBoolean(KEY_APPLY_BG_BLOCKER_ON_BOOT, false)
+            ?: deviceProtectedPrefs().getBoolean(KEY_APPLY_BG_BLOCKER_ON_BOOT, false)
     }
 
     // Set on Boot Methods

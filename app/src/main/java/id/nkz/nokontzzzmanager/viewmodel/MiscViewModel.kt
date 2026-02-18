@@ -69,6 +69,9 @@ class MiscViewModel @Inject constructor(
     private val _isBgBlockerAvailable = MutableStateFlow<Boolean?>(null)
     val isBgBlockerAvailable: StateFlow<Boolean?> = _isBgBlockerAvailable.asStateFlow()
 
+    private val _applyBgBlockerOnBoot = MutableStateFlow(preferenceManager.isApplyBgBlockerOnBoot())
+    val applyBgBlockerOnBoot: StateFlow<Boolean> = _applyBgBlockerOnBoot.asStateFlow()
+
     private val _batteryMonitorEnabled = MutableStateFlow(preferenceManager.isBatteryMonitorEnabled())
     val batteryMonitorEnabled: StateFlow<Boolean> = _batteryMonitorEnabled.asStateFlow()
 
@@ -413,5 +416,10 @@ class MiscViewModel @Inject constructor(
                 _bgBlocklist.value = systemRepository.getBgBlocklist()
             }
         }
+    }
+
+    fun setApplyBgBlockerOnBoot(enabled: Boolean) {
+        _applyBgBlockerOnBoot.value = enabled
+        preferenceManager.setApplyBgBlockerOnBoot(enabled)
     }
 }

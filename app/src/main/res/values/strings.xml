@@ -720,4 +720,6 @@
     <string name="bg_blocker_reset_confirm_title">Reset Blocklist?</string>
     <string name="bg_blocker_reset_confirm_msg">Are you sure you want to reset the blocklist to the default values?</string>
     <string name="bg_blocker_not_installed">Not installed</string>
+    <string name="bg_blocker_apply_on_boot">Apply on Boot</string>
+    <string name="bg_blocker_apply_on_boot_desc">Automatically apply the blocklist after every reboot.</string>
 </resources>

@@ -719,4 +719,6 @@
     <string name="bg_blocker_reset_confirm_title">Reset Daftar Blokir?</string>
     <string name="bg_blocker_reset_confirm_msg">Apakah Anda yakin ingin mereset daftar blokir ke nilai default?</string>
     <string name="bg_blocker_not_installed">Tidak terinstal</string>
+    <string name="bg_blocker_apply_on_boot">Terapkan saat Boot</string>
+    <string name="bg_blocker_apply_on_boot_desc">Secara otomatis menerapkan daftar blokir setelah setiap reboot.</string>
 </resources>

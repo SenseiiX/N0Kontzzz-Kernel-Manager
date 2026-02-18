@@ -38,6 +38,7 @@ fun BgBlockerScreen(
 ) {
     val bgBlocklist by miscViewModel.bgBlocklist.collectAsStateWithLifecycle()
     val isBgBlockerAvailable by miscViewModel.isBgBlockerAvailable.collectAsStateWithLifecycle()
+    val applyOnBoot by miscViewModel.applyBgBlockerOnBoot.collectAsStateWithLifecycle()
     
     val filteredApps by appProfilesViewModel.filteredApps.collectAsStateWithLifecycle()
     val isLoadingApps by appProfilesViewModel.isLoadingApps.collectAsStateWithLifecycle()
@@ -124,9 +125,81 @@ fun BgBlockerScreen(
                     IndeterminateExpressiveLoadingIndicator()
                 }
             } else {
+                // Set on Boot Card
+                Card(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                    ),
+                    onClick = {
+                        miscViewModel.setApplyBgBlockerOnBoot(!applyOnBoot)
+                    }
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Icon with themed background
+                        Box(
+                            modifier = Modifier
+                                .size(42.dp)
+                                .background(
+                                    color = if (applyOnBoot) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+                                    shape = CircleShape
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Save,
+                                contentDescription = null,
+                                tint = if (applyOnBoot) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(id = R.string.bg_blocker_apply_on_boot),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = stringResource(id = R.string.bg_blocker_apply_on_boot_desc),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        Switch(
+                            checked = applyOnBoot,
+                            onCheckedChange = null,
+                            thumbContent = if (applyOnBoot) {
+                                {
+                                    Icon(
+                                        imageVector = Icons.Default.Check,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(SwitchDefaults.IconSize),
+                                    )
+                                }
+                            } else {
+                                {
+                                    Icon(
+                                        imageVector = Icons.Default.Close,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(SwitchDefaults.IconSize),
+                                    )
+                                }
+                            }
+                        )
+                    }
+                }
+
                 // Actions Header
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
                     horizontalArrangement = Arrangement.End
                 ) {
                     OutlinedButton(

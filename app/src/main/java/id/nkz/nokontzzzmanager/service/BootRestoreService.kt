@@ -116,6 +116,13 @@ class BootRestoreService : Service() {
             batchCommands.add("echo 1 > /sys/kernel/fast_charge/force_fast_charge 2>/dev/null || true")
         }
 
+        // 3. Background Blocker
+        if (preferenceManager.isApplyBgBlockerOnBoot()) {
+            val blocklist = preferenceManager.getBgBlocklist() ?: "com.shopee.id,com.lazada.android,com.tokopedia.tkpd"
+            // Use systemRepository directly to find correct path and write with root
+            systemRepository.setBgBlocklist(blocklist)
+        }
+
         // Apply all at once
         if (batchCommands.isNotEmpty()) {
             tuningRepository.runBatchTuning(batchCommands)
