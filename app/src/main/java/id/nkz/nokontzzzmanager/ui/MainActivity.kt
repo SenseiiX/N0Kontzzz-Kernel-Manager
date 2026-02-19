@@ -631,6 +631,9 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         
+        // Refresh battery monitor notification if enabled
+        mainViewModel.refreshBatteryMonitor(this)
+        
         // Check root status again in case user granted root access
         lifecycleScope.launch {
             if (!rootRepo.checkRootFresh()) {

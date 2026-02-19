@@ -175,4 +175,10 @@ class MainViewModel @Inject constructor(
             }
         }
     }
+
+    fun refreshBatteryMonitor(context: android.content.Context) {
+        if (preferenceManager.isBatteryMonitorEnabled()) {
+            id.nkz.nokontzzzmanager.service.BatteryMonitorService.updateIcon(context)
+        }
+    }
 }

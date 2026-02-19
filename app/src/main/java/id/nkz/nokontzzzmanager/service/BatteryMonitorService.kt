@@ -26,6 +26,7 @@ import id.nkz.nokontzzzmanager.R
 import id.nkz.nokontzzzmanager.ui.MainActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
@@ -84,12 +85,16 @@ class BatteryMonitorService : Service() {
     private var hasResetForThisChargeCycle = false
 
     private var isRunning = false
+    private var monitoringJob: Job? = null
+    private var lastManualUpdateTime = 0L
+    private val MANUAL_UPDATE_THROTTLE_MS = 2000L
 
     // Screen on-time tracking
     private var screenReceiver: BroadcastReceiver? = null
     private var screenOnAccumMs: Long = 0L
     private var screenOnStartAtElapsed: Long? = null
     private var powerReceiver: BroadcastReceiver? = null
+    private var batteryReceiver: BroadcastReceiver? = null
     private var windowStartElapsed: Long = -1L
     private var windowStartUptime: Long = -1L
     private var windowAccumMs: Long = 0L // Accumulated window time from previous sessions (for reboot persistence)
@@ -133,6 +138,7 @@ class BatteryMonitorService : Service() {
         restoreStateIfAny()
         initScreenTracking()
         initPowerTracking()
+        initBatteryTracking()
         startMonitoring()
     }
 
@@ -166,13 +172,17 @@ class BatteryMonitorService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        scope.cancel()
         isRunning = false
+        monitoringJob?.cancel()
+        scope.cancel()
         try {
             screenReceiver?.let { unregisterReceiver(it) }
         } catch (_: Exception) { }
         try {
             powerReceiver?.let { unregisterReceiver(it) }
+        } catch (_: Exception) { }
+        try {
+            batteryReceiver?.let { unregisterReceiver(it) }
         } catch (_: Exception) { }
         persistState(sync = true)
     }
@@ -183,8 +193,7 @@ class BatteryMonitorService : Service() {
         if (intent?.action == ACTION_RESET) {
             try {
                 manualReset()
-                val stats = collectSystemStats()
-                updateNotification(stats)
+                triggerManualUpdate(immediate = true)
             } catch (_: Exception) { }
         } else if (intent?.action == ACTION_BOOT_START) {
             // History auto-reset
@@ -199,31 +208,39 @@ class BatteryMonitorService : Service() {
             if (preferenceManager.isMonitorAutoResetOnReboot()) {
                 manualReset()
             }
+            startMonitoring()
+            triggerManualUpdate(immediate = true)
         } else if (intent?.action == ACTION_UPDATE_ICON) {
-            try {
-                val stats = collectSystemStats()
-                updateNotification(stats)
-            } catch (_: Exception) { }
+            triggerManualUpdate(immediate = true)
+        } else {
+            startMonitoring()
+            triggerManualUpdate(immediate = false)
         }
         return START_STICKY
     }
 
     // === MAIN LOOP ===
     private fun startMonitoring() {
-        if (isRunning) return
+        if (monitoringJob?.isActive == true) return
         isRunning = true
 
         val pm = getSystemService(POWER_SERVICE) as PowerManager
 
-        scope.launch {
+        monitoringJob = scope.launch {
             // Immediate check upon starting to handle initial state correctly
             try {
                 updateNotification(collectSystemStats())
-            } catch (_: Exception) {}
+            } catch (e: Exception) {
+                Log.e("BatteryMonitorService", "Initial update failed", e)
+            }
 
             while (isRunning) {
-                val stats = collectSystemStats()
-                updateNotification(stats)
+                try {
+                    val stats = collectSystemStats()
+                    updateNotification(stats)
+                } catch (e: Exception) {
+                    Log.e("BatteryMonitorService", "Error in monitoring loop", e)
+                }
                 
                 // Adaptive delay: 5s if screen on, 60s if screen off (to match history save interval)
                 val d = nextDelayOverrideMs ?: if (pm.isInteractive) 5_000L else 60_000L
@@ -231,6 +248,33 @@ class BatteryMonitorService : Service() {
                 delay(d)
             }
         }
+    }
+
+    private fun triggerManualUpdate(immediate: Boolean = false) {
+        val now = SystemClock.elapsedRealtime()
+        if (!immediate && now - lastManualUpdateTime < MANUAL_UPDATE_THROTTLE_MS) return
+        lastManualUpdateTime = now
+        
+        scope.launch {
+            try {
+                val stats = collectSystemStats()
+                updateNotification(stats)
+            } catch (e: Exception) {
+                Log.e("BatteryMonitorService", "Manual update failed", e)
+            }
+        }
+    }
+
+    private fun initBatteryTracking() {
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                if (intent?.action == Intent.ACTION_BATTERY_CHANGED) {
+                    triggerManualUpdate(immediate = false)
+                }
+            }
+        }
+        batteryReceiver = receiver
+        registerReceiver(receiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
     }
 
     // === BATTERY LOGIC ===
