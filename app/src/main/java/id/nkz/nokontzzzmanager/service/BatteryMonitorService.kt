@@ -90,9 +90,6 @@ class BatteryMonitorService : Service() {
     private var lastManualUpdateTime = 0L
     private val MANUAL_UPDATE_THROTTLE_MS = 2000L
     
-    // Cache for Battery Intent
-    private var lastBatteryIntent: Intent? = null
-
     // Screen on-time tracking
     private var screenReceiver: BroadcastReceiver? = null
     private var screenOnAccumMs: Long = 0L
@@ -291,20 +288,19 @@ class BatteryMonitorService : Service() {
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
                 if (intent?.action == Intent.ACTION_BATTERY_CHANGED) {
-                    lastBatteryIntent = intent
                     triggerManualUpdate(immediate = false)
                 }
             }
         }
         batteryReceiver = receiver
-        lastBatteryIntent = registerReceiver(receiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+        registerReceiver(receiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
     }
 
     // === BATTERY LOGIC ===
     private fun collectSystemStats(): BatteryData {
         val bm = batteryManager ?: return BatteryData()
 
-        val intent = lastBatteryIntent ?: registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+        val intent = registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
         val level = intent?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
         val status = intent?.getIntExtra(BatteryManager.EXTRA_STATUS, -1) ?: -1
         val plugged = intent?.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) ?: 0
@@ -907,7 +903,17 @@ class BatteryMonitorService : Service() {
     // legacy stub removed; baseline is handled via sampling attribution
 
     private fun getChargingStatus(status: Int, plugged: Int): String {
-        return when (status) {
+        // Fallback check if intent status is unknown
+        val finalStatus = if (status == -1 || status == BatteryManager.BATTERY_STATUS_UNKNOWN) {
+             batteryManager?.getIntProperty(BatteryManager.BATTERY_PROPERTY_STATUS) ?: status
+        } else status
+
+        // Sanity check: if plugged is 0, it's likely not charging regardless of status (buggy kernels/ports)
+        if (plugged == 0 && finalStatus == BatteryManager.BATTERY_STATUS_CHARGING) {
+            return "Discharging"
+        }
+        
+        return when (finalStatus) {
             BatteryManager.BATTERY_STATUS_CHARGING -> "Charging"
             BatteryManager.BATTERY_STATUS_FULL -> "Full"
             BatteryManager.BATTERY_STATUS_DISCHARGING -> "Discharging"
