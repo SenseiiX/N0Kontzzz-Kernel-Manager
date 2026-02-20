@@ -32,6 +32,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.window.DialogProperties
@@ -93,14 +94,16 @@ fun AppProfilesScreen(
 
     Scaffold(
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    viewModel.loadInstalledApps()
-                    showAddDialog = true
-                },
-                modifier = Modifier.size(72.dp)
-            ) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.app_profiles_add_profile))
+            if (!showPermissionDialog) {
+                FloatingActionButton(
+                    onClick = {
+                        viewModel.loadInstalledApps()
+                        showAddDialog = true
+                    },
+                    modifier = Modifier.size(72.dp)
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.app_profiles_add_profile))
+                }
             }
         }
     ) { padding ->
@@ -110,34 +113,41 @@ fun AppProfilesScreen(
                     bottom = padding.calculateBottomPadding(),
                     start = padding.calculateStartPadding(LocalLayoutDirection.current),
                     end = padding.calculateEndPadding(LocalLayoutDirection.current),
-                    top = 0.dp // Set top padding to 0.dp
+                    top = 0.dp
                 )
                 .fillMaxSize()
         ) {
             if (showPermissionDialog) {
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .clickable {
-                            context.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
-                        }
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                Box(modifier = Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                context.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+                            }
                     ) {
-                        Icon(Icons.Default.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.onErrorContainer)
-                                                    Text(
-                                                        stringResource(R.string.app_profiles_permission_required),                            color = MaterialTheme.colorScheme.onErrorContainer,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
+                        Column(
+                            modifier = Modifier.padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.Warning, 
+                                contentDescription = null, 
+                                modifier = Modifier.size(48.dp),
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                            Text(
+                                stringResource(R.string.app_profiles_permission_required),
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.error,
+                                textAlign = TextAlign.Center
+                            )
+                        }
                     }
                 }
-            }
-
-            if (profiles == null) {
+            } else if (profiles == null) {
                 Box(modifier = Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
                     IndeterminateExpressiveLoadingIndicator()
                 }
