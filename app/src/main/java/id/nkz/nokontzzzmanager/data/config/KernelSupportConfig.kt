@@ -21,7 +21,8 @@ data class KernelSupportConfig(
             "andrian@ServerHive",
             "build-user@build-host",
             "senx@ubuntu",
-            "sensei@ServerHive"
+            "sensei@ServerHive",
+            "Senseix@Ubuntu"
         ),
         "n0kontzzz" to listOf(
             "bimoalfarrabi@github.com",
