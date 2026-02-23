@@ -103,17 +103,22 @@ class BootRestoreService : Service() {
         }
 
         // 2. Misc Settings
-        if (preferenceManager.getAvoidDirtyPte()) {
-            systemRepository.setAvoidDirtyPte(true)
-        }
-        if (preferenceManager.getKgslSkipZeroing()) {
-            systemRepository.setKgslSkipZeroing(true)
-        }
+        systemRepository.setAvoidDirtyPte(preferenceManager.getAvoidDirtyPte())
+        systemRepository.setKgslSkipZeroing(preferenceManager.getKgslSkipZeroing())
+        
+        // Only apply bypass charging and fast charge if the feature is actually supported/toggled
+        // to avoid unnecessary root calls for basic users, but for e404/n0kz we enforce the preference.
         if (preferenceManager.getBypassCharging()) {
             systemRepository.setBypassCharging(true)
+        } else {
+            // If it's OFF in pref, we ensure it's OFF in kernel (important if kernel defaults to ON)
+            systemRepository.setBypassCharging(false)
         }
+
         if (preferenceManager.getForceFastCharge()) {
             systemRepository.setForceFastCharge(true)
+        } else {
+            systemRepository.setForceFastCharge(false)
         }
 
         // 3. Background Blocker
