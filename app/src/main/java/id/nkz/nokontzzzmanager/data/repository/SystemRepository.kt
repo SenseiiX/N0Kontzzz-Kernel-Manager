@@ -1213,38 +1213,37 @@ class SystemRepository @Inject constructor(
         )
     }
 
+    // KGSL Paths
+    private val KGSL_PATHS = listOf(
+        "/sys/kernel/e404/kgsl_skip_zeroing",
+        "/sys/kernel/lunar_attributes/kgsl_skip_zeroing",
+        "/sys/kernel/lunar_attributes/lunar_kgsl_skip_zeroing",
+        "/sys/kernel/n0kz_attributes/kgsl_skip_zeroing",
+        "/sys/kernel/n0kz_attributes/n0kz_kgsl_skip_zeroing",
+        "/sys/kernel/fusionx_attributes/fusionx_kgsl_skip_zeroing",
+        "/sys/kernel/fusionx_attributes/kgsl_skip_zeroing"
+    )
+
     // Helper function to determine which KGSL path is available
     private suspend fun getAvailableKgslPath(): String? {
-        val paths = listOf(
-            "/sys/kernel/e404/kgsl_skip_zeroing",
-            "/sys/kernel/lunar_attributes/kgsl_skip_zeroing",
-            "/sys/kernel/lunar_attributes/lunar_kgsl_skip_zeroing",
-            "/sys/kernel/n0kz_attributes/kgsl_skip_zeroing",
-            "/sys/kernel/n0kz_attributes/n0kz_kgsl_skip_zeroing",
-            "/sys/kernel/fusionx_attributes/fusionx_kgsl_skip_zeroing",
-            "/sys/kernel/fusionx_attributes/kgsl_skip_zeroing"
-        )
-        
-        for (path in paths) {
+        // 1. Fast check: Standard file access
+        for (path in KGSL_PATHS) {
             try {
                 val file = File(path)
-                // Check if file exists
-                if (file.exists()) {
-                    return path
-                }
-            } catch (e: Exception) {
+                if (file.exists()) return path
+            } catch (_: Exception) {
                 // Continue to check the next path
             }
         }
         
-        // If direct file check fails, try to read the file using SU
-        for (path in paths) {
+        // 2. Slow check: Root access (if file exists but not visible/readable to app user)
+        for (path in KGSL_PATHS) {
             try {
-                val value = readFileToString(path, "KGSL Skip Pool Zeroing", false)
-                if (value != null) {
+                // attemptSu = true is default
+                if (readFileToString(path, "KGSL Skip Pool Zeroing Check") != null) {
                     return path
                 }
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 // Continue to check the next path
             }
         }
@@ -1271,34 +1270,7 @@ class SystemRepository @Inject constructor(
     }
 
     suspend fun isKgslFeatureAvailable(): Boolean {
-        // Try to get an available path
-        val path = getAvailableKgslPath()
-        if (path != null) {
-            return true
-        }
-        
-        // If no path found, try to actually read the value to see if feature is available
-        // This handles cases where file exists but needs SU permission to access
-        try {
-            val paths = listOf(
-                "/sys/kernel/e404/kgsl_skip_zeroing",
-                "/sys/kernel/lunar_attributes/kgsl_skip_zeroing",
-                "/sys/kernel/n0kz_attributes/kgsl_skip_zeroing",
-                "/sys/kernel/n0kz_attributes/n0kz_kgsl_skip_zeroing",
-                "/sys/kernel/fusionx_attributes/fusionx_kgsl_skip_zeroing"
-            )
-            
-            for (path in paths) {
-                val value = readFileToString(path, "KGSL Skip Pool Zeroing")
-                if (value != null) {
-                    return true
-                }
-            }
-        } catch (e: Exception) {
-            // Continue if reading fails
-        }
-        
-        return false
+        return getAvailableKgslPath() != null
     }
 
     // Helper function for testing
