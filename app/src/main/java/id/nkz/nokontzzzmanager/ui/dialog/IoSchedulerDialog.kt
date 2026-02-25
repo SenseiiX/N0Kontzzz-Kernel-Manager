@@ -109,7 +109,7 @@ fun IoSchedulerDialog(
                                 val isSelected = scheduler == currentScheduler
                                 Card(
                                     modifier = Modifier.fillMaxWidth(),
-                                    shape = getDialogListItemShape(index, availableSchedulers.size),
+                                    shape = getDialogListItemShape(index, availableSchedulers.size, isSelected),
                                     colors = CardDefaults.cardColors(
                                         containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
                                     ),
@@ -162,7 +162,8 @@ fun IoSchedulerDialog(
     }
 }
 
-private fun getDialogListItemShape(index: Int, totalItems: Int): RoundedCornerShape {
+private fun getDialogListItemShape(index: Int, totalItems: Int, isSelected: Boolean): RoundedCornerShape {
+    if (isSelected) return RoundedCornerShape(16.dp)
     return when {
         totalItems == 1 -> RoundedCornerShape(16.dp)
         index == 0 -> RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 4.dp, bottomEnd = 4.dp)

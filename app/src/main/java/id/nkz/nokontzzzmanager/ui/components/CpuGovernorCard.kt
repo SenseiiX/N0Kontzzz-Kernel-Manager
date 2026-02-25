@@ -349,7 +349,7 @@ private fun GovernorSelectionDialog(
                             val isSelected = governor == currentSelectedGovernor
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
-                                shape = getDialogListItemShape(index, sortedGovernors.size),
+                                shape = getDialogListItemShape(index, sortedGovernors.size, isSelected),
                                 colors = CardDefaults.cardColors(
                                     containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
                                 ),
@@ -464,7 +464,7 @@ private fun MinFrequencySelectionDialog(
                                 val isSelected = frequency == currentMinFreq
                                 Card(
                                     modifier = Modifier.fillMaxWidth(),
-                                    shape = getDialogListItemShape(index, sortedFrequencies.size),
+                                    shape = getDialogListItemShape(index, sortedFrequencies.size, isSelected),
                                     colors = CardDefaults.cardColors(
                                         containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
                                     ),
@@ -580,7 +580,7 @@ private fun MaxFrequencySelectionDialog(
                                 val isSelected = frequency == currentMaxFreq
                                 Card(
                                     modifier = Modifier.fillMaxWidth(),
-                                    shape = getDialogListItemShape(index, sortedFrequencies.size),
+                                    shape = getDialogListItemShape(index, sortedFrequencies.size, isSelected),
                                     colors = CardDefaults.cardColors(
                                         containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
                                     ),
@@ -690,7 +690,7 @@ private fun CoreStatusDialog(
                         itemsIndexed(coreStates) { index, isOnline ->
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
-                                shape = getDialogListItemShape(index, coreStates.size),
+                                shape = getDialogListItemShape(index, coreStates.size, false),
                                 colors = CardDefaults.cardColors(
                                     containerColor = if (isOnline) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
                                 ),
@@ -1035,7 +1035,8 @@ private fun ControlSection(
     }
 }
 
-private fun getDialogListItemShape(index: Int, totalItems: Int): RoundedCornerShape {
+private fun getDialogListItemShape(index: Int, totalItems: Int, isSelected: Boolean): RoundedCornerShape {
+    if (isSelected) return RoundedCornerShape(16.dp)
     return when {
         totalItems == 1 -> RoundedCornerShape(16.dp)
         index == 0 -> RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 4.dp, bottomEnd = 4.dp)

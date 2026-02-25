@@ -570,7 +570,7 @@ private fun NotificationIconSelectionDialog(
                             val isSelected = style == currentStyle
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
-                                shape = getDialogListItemShape(index, styles.size),
+                                shape = getDialogListItemShape(index, styles.size, isSelected),
                                 colors = CardDefaults.cardColors(
                                     containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
                                 ),
@@ -678,7 +678,7 @@ private fun LanguageSelectionDialog(
                             val isSelected = localeTag == currentLocale
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
-                                shape = getDialogListItemShape(index, languageOptions.size),
+                                shape = getDialogListItemShape(index, languageOptions.size, isSelected),
                                 colors = CardDefaults.cardColors(
                                     containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
                                 ),
@@ -777,7 +777,7 @@ private fun ThemeSelectionDialog(
                             val isSelected = themeMode == currentThemeMode
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
-                                shape = getDialogListItemShape(index, themeModes.size),
+                                shape = getDialogListItemShape(index, themeModes.size, isSelected),
                                 colors = CardDefaults.cardColors(
                                     containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
                                 ),
@@ -932,7 +932,8 @@ private fun getRoundedCornerShape(index: Int, totalItems: Int): RoundedCornerSha
     }
 }
 
-private fun getDialogListItemShape(index: Int, totalItems: Int): RoundedCornerShape {
+private fun getDialogListItemShape(index: Int, totalItems: Int, isSelected: Boolean): RoundedCornerShape {
+    if (isSelected) return RoundedCornerShape(16.dp)
     return when {
         totalItems == 1 -> RoundedCornerShape(16.dp)
         index == 0 -> RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 4.dp, bottomEnd = 4.dp)

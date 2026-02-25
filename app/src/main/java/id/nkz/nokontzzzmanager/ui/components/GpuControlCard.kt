@@ -601,7 +601,7 @@ private fun GpuFrequencySelectionDialog(
                                 val isSelected = frequency == currentFrequency
                                 Card(
                                     modifier = Modifier.fillMaxWidth(),
-                                    shape = getDialogListItemShape(index, sortedFrequencies.size),
+                                    shape = getDialogListItemShape(index, sortedFrequencies.size, isSelected),
                                     colors = CardDefaults.cardColors(
                                         containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
                                     ),
@@ -709,7 +709,7 @@ private fun GpuGovernorSelectionDialog(
                                 val isSelected = governor == currentGovernor
                                 Card(
                                     modifier = Modifier.fillMaxWidth(),
-                                    shape = getDialogListItemShape(index, sortedGovernors.size),
+                                    shape = getDialogListItemShape(index, sortedGovernors.size, isSelected),
                                     colors = CardDefaults.cardColors(
                                         containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
                                     ),
@@ -827,7 +827,8 @@ private fun getRoundedCornerShape(index: Int, totalItems: Int): RoundedCornerSha
     }
 }
 
-private fun getDialogListItemShape(index: Int, totalItems: Int): RoundedCornerShape {
+private fun getDialogListItemShape(index: Int, totalItems: Int, isSelected: Boolean): RoundedCornerShape {
+    if (isSelected) return RoundedCornerShape(16.dp)
     return when {
         totalItems == 1 -> RoundedCornerShape(16.dp)
         index == 0 -> RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 4.dp, bottomEnd = 4.dp)

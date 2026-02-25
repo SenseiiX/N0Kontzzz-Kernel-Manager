@@ -962,7 +962,7 @@ fun ZramSizeDialog(
                             val sizeMb = sizeBytes / (1024 * 1024)
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
-                                shape = getDialogListItemShape(index, zramOptions.size),
+                                shape = getDialogListItemShape(index, zramOptions.size, isSelected),
                                 colors = CardDefaults.cardColors(
                                     containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
                                 ),
@@ -1133,7 +1133,7 @@ fun CompressionAlgorithmDialog(
 
                                 Card(
                                     modifier = Modifier.fillMaxWidth(),
-                                    shape = getDialogListItemShape(index, compressionAlgorithms.size),
+                                    shape = getDialogListItemShape(index, compressionAlgorithms.size, isSelected),
                                     colors = CardDefaults.cardColors(
                                         containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
                                     )
@@ -1222,7 +1222,8 @@ fun CompressionAlgorithmDialog(
         })
 }
 
-private fun getDialogListItemShape(index: Int, totalItems: Int): RoundedCornerShape {
+private fun getDialogListItemShape(index: Int, totalItems: Int, isSelected: Boolean): RoundedCornerShape {
+    if (isSelected) return RoundedCornerShape(16.dp)
     return when {
         totalItems == 1 -> RoundedCornerShape(16.dp)
         index == 0 -> RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
