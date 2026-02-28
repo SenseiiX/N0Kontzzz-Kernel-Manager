@@ -180,11 +180,19 @@
 
 ## Technology Stack
 
-- [Kotlin](https://kotlinlang.org/)
-- [Jetpack Compose](https://developer.android.com/jetpack/compose)
-- [libsu](https://github.com/topjohnwu/libsu)
-- MVVM Architecture
-- Material Design 3
+N0Kontzzz Kernel Manager is built with a modern Android stack, prioritizing performance, stability, and maintainability:
+
+- **Language**: [Kotlin](https://kotlinlang.org/) — Utilizing Coroutines and Flow for efficient asynchronous programming.
+- **UI Framework**: [Jetpack Compose](https://developer.android.com/jetpack/compose) — Built with Material Design 3 Expressive components for a reactive and fluid user experience.
+- **Architecture**: **MVVM (Model-View-ViewModel)** — Implementing a clean separation of concerns and reactive data patterns.
+- **Root Management**: [libsu](https://github.com/topjohnwu/libsu) — Industry-standard library for secure and high-performance root shell execution.
+- **Dependency Injection**: [Dagger Hilt](https://dagger.dev/hilt/) — Simplifies DI and improves modularity across the application.
+- **Local Database**: [Room Persistence](https://developer.android.com/training/data-storage/room) — Reliable SQLite abstraction for storing battery history, profiles, and custom tunables.
+- **Background Tasks**: [WorkManager](https://developer.android.com/topic/libraries/architecture/workmanager) & Foreground Services — Ensures critical monitoring and automation persist reliably.
+- **Data Storage**: [DataStore Preferences](https://developer.android.com/topic/libraries/architecture/datastore) — Modern, thread-safe replacement for SharedPreferences.
+- **Serialization**: [Kotlinx Serialization](https://github.com/Kotlin/kotlinx.serialization) — Type-safe JSON parsing for configuration and backups.
+- **Image Loading**: [Coil](https://coil-kt.github.io/coil/) — Fast and lightweight image loading for UI assets.
+- **Navigation**: [Compose Navigation](https://developer.android.com/jetpack/compose/navigation) — Type-safe navigation handling within the single-activity architecture.
 
 ---
 
