@@ -105,12 +105,18 @@ class DexoptService : Service() {
             try {
                 dexoptRepository.updateLastLog("Starting optimization (Dedicated Shell)...")
                 
+                val commands = mutableListOf(
+                    "nice -n 19 cmd package compile -a -f -m speed-profile"
+                )
+                
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    commands.add("nice -n 19 cmd package compile -a -f --compile-layouts")
+                }
+                
+                commands.add("nice -n 19 cmd package bg-dexopt-job")
+
                 // Execute commands on the DEDICATED shell instance
-                dedicatedShell?.newJob()?.add(
-                    "nice -n 19 pm compile -a -f -m speed-profile",
-                    "nice -n 19 pm compile -a -f compile-layouts",
-                    "nice -n 19 pm bg-dexopt-job"
-                )?.to(callbackList)?.exec()
+                dedicatedShell?.newJob()?.add(*commands.toTypedArray())?.to(callbackList)?.exec()
 
                 if (isActive) {
                     dexoptRepository.updateLastLog("Dexopt process finished.")
@@ -194,6 +200,8 @@ class DexoptService : Service() {
                 dedicatedShell?.close()
                 
                 // Force kill the android compile processes to stop them immediately
+                Shell.cmd("pkill -f \"package compile\"").exec()
+                Shell.cmd("pkill -f \"package bg-dexopt-job\"").exec()
                 Shell.cmd("pkill -f \"pm compile\"").exec()
                 Shell.cmd("pkill -f \"pm bg-dexopt-job\"").exec()
                 
