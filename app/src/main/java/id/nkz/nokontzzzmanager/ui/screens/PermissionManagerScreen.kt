@@ -25,6 +25,7 @@ import android.Manifest
 import android.app.AppOpsManager
 import android.os.Build
 import android.os.PowerManager
+import android.provider.Settings
 import id.nkz.nokontzzzmanager.data.repository.RootRepository
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
@@ -290,6 +291,14 @@ private fun getRelevantPermissions(context: Context, hasRoot: Boolean): List<App
         descRes = R.string.perm_fgs_desc,
         isGranted = fgsGranted,
         isInstallTime = true
+    ))
+
+    // 10. Display Over Other Apps
+    val overlayGranted = Settings.canDrawOverlays(context)
+    list.add(AppPermissionInfo(
+        titleRes = R.string.perm_overlay_title,
+        descRes = R.string.perm_overlay_desc,
+        isGranted = overlayGranted
     ))
 
     return list

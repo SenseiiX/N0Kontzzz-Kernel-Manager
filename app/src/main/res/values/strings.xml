@@ -604,6 +604,8 @@
     <string name="perm_boot_desc">Auto-start services and apply settings on device reboot.</string>
     <string name="perm_fgs_title">Foreground Service</string>
     <string name="perm_fgs_desc">Run critical monitoring services in the background.</string>
+    <string name="perm_overlay_title">Display Over Other Apps</string>
+    <string name="perm_overlay_desc">Required to show the real-time FPS overlay on top of games.</string>
 
     <!-- Backup & Restore -->
     <string name="backup_restore_title">Backup &amp; Restore</string>
