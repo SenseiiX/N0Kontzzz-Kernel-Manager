@@ -37,7 +37,8 @@ data class KernelSupportConfig(
             "build-user@build-host"
         ),
         "oxygen+" to listOf(
-            "danda@pavilion"
+            "danda@pavilion",
+            "candy@arch"
         )
     )
 )
