@@ -42,10 +42,10 @@ class FpsMonitorManager @Inject constructor(
     // Baseline refresh rate info
     private var refreshRate = 60f
 
-    fun startMonitoring(packageName: String) {
+    fun startMonitoring(packageName: String, preferredLayerPattern: String? = null, onLayerFound: (String) -> Unit = {}) {
         if (isMonitoring && currentPackageName == packageName) return
         
-        Log.d("FpsMonitor", "Starting monitoring for $packageName")
+        Log.d("FpsMonitor", "Starting monitoring for $packageName (preferred: $preferredLayerPattern)")
         stopMonitoring()
         
         isMonitoring = true
@@ -55,42 +55,68 @@ class FpsMonitorManager @Inject constructor(
         monitorJob = scope.launch {
             // Clear old latency data to ensure we get fresh frames
             rootRepository.run("dumpsys SurfaceFlinger --latency-clear")
-            
+            // Small delay to allow buffer to start filling
+            delay(500)
+
             refreshRate = getRefreshRate()
             Log.d("FpsMonitor", "Detected base refresh rate: $refreshRate")
-            
+
             var currentLayer: String? = null
             var candidateIndex = 0
             var allCandidates = listOf<String>()
-            
+            var layerValidated = false
+            var currentLayerFailureCount = 0
+
             while (isMonitoring && isActive) {
                 // Refresh candidates if we don't have a working layer
                 if (currentLayer == null) {
-                    allCandidates = getCandidateLayers(packageName)
+                    allCandidates = getCandidateLayers(packageName, preferredLayerPattern)
                     candidateIndex = 0
                     if (allCandidates.isNotEmpty()) {
                         currentLayer = cleanLayerName(allCandidates[candidateIndex])
-                        Log.d("FpsMonitor", "Trying first candidate: $currentLayer")
+                        Log.d("FpsMonitor", "Trying candidate: $currentLayer")
                     }
                 }
 
                 if (currentLayer != null) {
                     val latencyData = getSurfaceFlingerLatency(currentLayer)
                     val success = processLatencyData(latencyData)
-                    
+
                     if (!success) {
-                        // If this layer didn't work, try the next one in the next loop
-                        candidateIndex++
-                        if (candidateIndex < allCandidates.size) {
-                            currentLayer = cleanLayerName(allCandidates[candidateIndex])
-                            Log.v("FpsMonitor", "Layer $candidateIndex failed, trying next: $currentLayer")
-                        } else {
-                            // Cycled through all, reset to find new ones
-                            currentLayer = null
-                            delay(1000) // wait a bit before re-scanning
+                        currentLayerFailureCount++
+
+                        // Patience logic: Give the preferred layer more time to "wake up"
+                        val maxRetries = if (preferredLayerPattern != null && currentLayer.contains(preferredLayerPattern)) 5 else 2
+
+                        if (currentLayerFailureCount >= maxRetries) {
+                            Log.v("FpsMonitor", "Layer $currentLayer consistently empty, trying next.")
+                            candidateIndex++
+                            currentLayerFailureCount = 0
+
+                            if (candidateIndex < allCandidates.size) {
+                                currentLayer = cleanLayerName(allCandidates[candidateIndex])
+                                Log.v("FpsMonitor", "Switching to next candidate: $currentLayer")
+                            } else {
+                                // Cycled through all, reset to find new ones
+                                currentLayer = null
+                                delay(1000) 
+                            }
+                        }
+                    } else {
+                        currentLayerFailureCount = 0
+                        if (!layerValidated) {
+                            // Success! Save this pattern
+                            val fullRaw = allCandidates[candidateIndex]
+                            val pattern = extractPattern(fullRaw)
+                            if (pattern != null) {
+                                Log.i("FpsMonitor", "Valid rendering layer found: $pattern. Saving for future use.")
+                                onLayerFound(pattern)
+                                layerValidated = true
+                            }
                         }
                     }
-                } else {
+                }
+ else {
                     Log.w("FpsMonitor", "No valid rendering layers found for $packageName")
                     _fpsData.value = _fpsData.value.copy(currentFps = 0f)
                     delay(2000)
@@ -190,7 +216,28 @@ class FpsMonitorManager @Inject constructor(
         }
     }
 
-    private suspend fun getCandidateLayers(packageName: String): List<String> {
+    private fun extractPattern(rawName: String): String? {
+        var cleaned = if (rawName.startsWith("RequestedLayerState{") && rawName.endsWith("}")) {
+            rawName.substring("RequestedLayerState{".length, rawName.length - 1)
+        } else rawName
+        
+        // 1. Strip the leading HEX hash if present (e.g., "132fcce SurfaceView...")
+        // Usually 7-8 chars followed by a space.
+        val firstSpace = cleaned.indexOf(' ')
+        if (firstSpace != -1 && firstSpace <= 10) {
+            val prefix = cleaned.substring(0, firstSpace)
+            // If prefix is alphanumeric and not a known keyword, strip it
+            if (prefix.all { it.isLetterOrDigit() }) {
+                cleaned = cleaned.substring(firstSpace + 1).trim()
+            }
+        }
+
+        // 2. Split by # to get the stable part of the name
+        val index = cleaned.indexOf('#')
+        return if (index != -1) cleaned.substring(0, index).trim() else null
+    }
+
+    private suspend fun getCandidateLayers(packageName: String, preferredPattern: String? = null): List<String> {
         return try {
             val output = rootRepository.run("dumpsys SurfaceFlinger --list")
             val lines = output.lines().filter { it.isNotBlank() }
@@ -205,9 +252,16 @@ class FpsMonitorManager @Inject constructor(
 
             val validCandidates = candidateLayers.filter { layer ->
                 excludedKeywords.none { keyword -> layer.contains(keyword, ignoreCase = true) }
-            }.sortedWith(compareByDescending<String> { it.contains("BLAST", ignoreCase = true) }
+            }.sortedWith(
+                // 1. If we have a preferred pattern, put it at the absolute top
+                compareByDescending<String> { preferredPattern != null && it.contains(preferredPattern) }
+                // 2. BLAST is usually the primary renderer on Android 12+
+                .thenByDescending { it.contains("BLAST", ignoreCase = true) }
+                // 3. SurfaceView is standard for games
                 .thenByDescending { it.contains("SurfaceView", ignoreCase = true) }
-                .thenByDescending { it.contains("#") })
+                // 4. Layers with # usually have rendering data
+                .thenByDescending { it.contains("#") }
+            )
 
             Log.d("FpsMonitor", "Found ${validCandidates.size} potential rendering layers for $packageName")
             validCandidates
@@ -273,7 +327,8 @@ class FpsMonitorManager @Inject constructor(
             val dynamicRefreshRate = 1_000_000_000f / refreshPeriodNs.toFloat()
             val expectedFrameTimeMs = refreshPeriodNs / 1_000_000f
 
-            val frameTimes = mutableListOf<Float>()
+            val frameIntervals = mutableListOf<Float>()
+            var lastEndNs = 0L
             var janks = 0
 
             // SurfaceFlinger output typically starts with the refresh period, then 128 lines of timestamps
@@ -281,39 +336,40 @@ class FpsMonitorManager @Inject constructor(
                 val parts = lines[i].trim().split("\\s+".toRegex())
                 if (parts.size >= 3) {
                     val start = parts[0].toLongOrNull() ?: 0L
-                    val submit = parts[1].toLongOrNull() ?: 0L
                     val end = parts[2].toLongOrNull() ?: 0L
 
                     // Ignore pending frames (Long.MAX_VALUE)
                     if (start == 0L || end == 0L || end == Long.MAX_VALUE) continue
 
-                    val frameTimeNs = end - start
-                    val frameTimeMs = frameTimeNs / 1_000_000f
-                    
-                    if (frameTimeMs > 0 && frameTimeMs < 1000) { // sanity check
-                        frameTimes.add(frameTimeMs)
-                        if (isBenchmarking) {
-                            recordedFrameTimes.add(frameTimeMs)
-                        }
-                        
-                        // Jank is determined based on the dynamic expected frame time
-                        if (frameTimeMs > expectedFrameTimeMs * 1.5f) {
-                            janks++
-                            if (isBenchmarking) totalJankCount++
+                    // Calculate FPS based on interval between consecutive frames
+                    if (lastEndNs != 0L) {
+                        val intervalMs = (end - lastEndNs) / 1_000_000f
+                        if (intervalMs > 0 && intervalMs < 500) { // sanity check
+                            frameIntervals.add(intervalMs)
+                            if (isBenchmarking) {
+                                recordedFrameTimes.add(intervalMs)
+                            }
                             
-                            if (frameTimeMs > expectedFrameTimeMs * 3f) {
-                                if (isBenchmarking) totalBigJankCount++
+                            // Jank detection based on interval
+                            if (intervalMs > expectedFrameTimeMs * 1.5f) {
+                                janks++
+                                if (isBenchmarking) totalJankCount++
+                                
+                                if (intervalMs > expectedFrameTimeMs * 3f) {
+                                    if (isBenchmarking) totalBigJankCount++
+                                }
                             }
                         }
                     }
+                    lastEndNs = end
                 }
             }
 
-            if (frameTimes.isNotEmpty()) {
-                val avgFrameTime = frameTimes.average().toFloat()
-                val fps = 1000f / avgFrameTime
+            if (frameIntervals.isNotEmpty()) {
+                val avgInterval = frameIntervals.average().toFloat()
+                val fps = 1000f / avgInterval
                 
-                val sorted = frameTimes.sortedDescending()
+                val sorted = frameIntervals.sortedDescending()
                 val top1PercentIndex = (sorted.size * 0.01).toInt().coerceAtMost(sorted.size - 1)
                 val top01PercentIndex = (sorted.size * 0.001).toInt().coerceAtMost(sorted.size - 1)
                 
@@ -321,10 +377,10 @@ class FpsMonitorManager @Inject constructor(
                 val fps01Low = 1000f / sorted[top01PercentIndex].coerceAtLeast(1f)
 
                 _fpsData.value = _fpsData.value.copy(
-                    currentFps = fps.coerceAtMost(dynamicRefreshRate),
+                    currentFps = fps.coerceAtMost(dynamicRefreshRate + 1f),
                     fps1Low = fps1Low.coerceAtMost(dynamicRefreshRate),
                     fps01Low = fps01Low.coerceAtMost(dynamicRefreshRate),
-                    frameTimeMs = avgFrameTime,
+                    frameTimeMs = avgInterval,
                     jankCount = janks
                 )
                 return true

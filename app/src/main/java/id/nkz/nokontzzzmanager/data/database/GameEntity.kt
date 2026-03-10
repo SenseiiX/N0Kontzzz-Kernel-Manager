@@ -9,5 +9,6 @@ data class GameEntity(
     val packageName: String,
     val appName: String,
     val isBenchmarkEnabled: Boolean = true,
-    val targetFps: Int = 60
+    val targetFps: Int = 60,
+    val preferredLayerPattern: String? = null
 )

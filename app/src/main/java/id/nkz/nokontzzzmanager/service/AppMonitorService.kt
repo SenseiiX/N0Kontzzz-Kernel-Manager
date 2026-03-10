@@ -223,7 +223,7 @@ class AppMonitorService : Service() {
             val game = gameRepository.getGameByPackageName(packageName).first()
             if (game != null && game.isBenchmarkEnabled) {
                 Log.d("AppMonitorService", "App $packageName is a registered game with overlay enabled. Starting overlay.")
-                startFpsOverlay(packageName)
+                startFpsOverlay(game)
             } else {
                 Log.d("AppMonitorService", "App $packageName is not a registered game or overlay is disabled.")
                 stopFpsOverlay()
@@ -234,8 +234,17 @@ class AppMonitorService : Service() {
         }
     }
 
-    private fun startFpsOverlay(packageName: String) {
-        fpsMonitorManager.startMonitoring(packageName)
+    private fun startFpsOverlay(game: id.nkz.nokontzzzmanager.data.database.GameEntity) {
+        fpsMonitorManager.startMonitoring(
+            packageName = game.packageName,
+            preferredLayerPattern = game.preferredLayerPattern,
+            onLayerFound = { pattern ->
+                // Update the game entity with the newly found pattern
+                serviceScope.launch {
+                    gameRepository.insertGame(game.copy(preferredLayerPattern = pattern))
+                }
+            }
+        )
         val intent = Intent(this, FpsOverlayService::class.java)
         startService(intent)
     }

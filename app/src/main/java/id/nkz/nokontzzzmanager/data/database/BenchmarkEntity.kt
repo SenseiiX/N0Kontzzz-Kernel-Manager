@@ -16,5 +16,13 @@ data class BenchmarkEntity(
     val fps01Low: Float,
     val jankCount: Int,
     val bigJankCount: Int,
-    val frameTimeDataJson: String? = null // For storing frame time graph data
+    val avgCpuUsage: Float = 0f,
+    val avgGpuUsage: Float = 0f,
+    val avgTemp: Float = 0f,
+    val frameTimeDataJson: String? = null,
+    val cpuUsageDataJson: String? = null,
+    val gpuUsageDataJson: String? = null,
+    val tempDataJson: String? = null,
+    val cpuTempDataJson: String? = null,
+    val gpuFreqDataJson: String? = null
 )
