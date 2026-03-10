@@ -77,6 +77,7 @@ import java.util.Locale
 import android.content.Intent
 import android.provider.Settings
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.ui.graphics.Shape
@@ -443,111 +444,145 @@ fun BatteryHistoryGraph(
         Triple(0f, max, "%/hr")
     }
 
+    val steps = 4
+    val yLabels = List(steps + 1) { i ->
+        minY + (maxY - minY) * i / steps
+    }
+
     Column(modifier = Modifier.fillMaxSize()) {
-        Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
-            Canvas(modifier = Modifier.fillMaxSize().padding(vertical = 24.dp)) {
-                val width = size.width
-                val height = size.height
-                val timeRange = (maxTime - minTime).coerceAtLeast(1L)
-                val valRange = (maxY - minY).coerceAtLeast(1f)
-
-                if (mode == BatteryGraphMode.SPEED) {
-                    // Draw Zero Line
-                    val zeroY = height * (1 - (0f - minY) / valRange)
-                    drawLine(
-                        color = Color.Gray.copy(alpha = 0.5f),
-                        start = Offset(0f, zeroY),
-                        end = Offset(width, zeroY),
-                        strokeWidth = 1.dp.toPx(),
-                        pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f))
-                    )
-
-                    val chargePath = Path()
-                    val dischargePath = Path()
-
-                    data.forEachIndexed { index, entry ->
-                        val x = width * (entry.timestamp - minTime) / timeRange
-                        
-                        // Charge Path (Positive current, else 0)
-                        val chargeVal = entry.currentMa.coerceAtLeast(0f)
-                        val chargeY = height * (1 - (chargeVal - minY) / valRange)
-                        if (index == 0) chargePath.moveTo(x, chargeY) else chargePath.lineTo(x, chargeY)
-
-                        // Discharge Path (Negative current, else 0)
-                        val dischargeVal = entry.currentMa.coerceAtMost(0f)
-                        val dischargeY = height * (1 - (dischargeVal - minY) / valRange)
-                        if (index == 0) dischargePath.moveTo(x, dischargeY) else dischargePath.lineTo(x, dischargeY)
-                    }
-
-                    drawPath(
-                        path = chargePath,
-                        color = primaryColor,
-                        style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
-                    )
-                    drawPath(
-                        path = dischargePath,
-                        color = secondaryColor,
-                        style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
-                    )
-
-                } else {
-                    // DRAIN MODE
-                    val activePath = Path()
-                    val idlePath = Path()
-                    
-                    data.forEachIndexed { index, entry ->
-                        val x = width * (entry.timestamp - minTime) / timeRange
-                        
-                        val activeY = height * (1 - entry.activeDrainRate / valRange)
-                        if (index == 0) activePath.moveTo(x, activeY) else activePath.lineTo(x, activeY)
-                        
-                        val idleY = height * (1 - entry.idleDrainRate / valRange)
-                        if (index == 0) idlePath.moveTo(x, idleY) else idlePath.lineTo(x, idleY)
-                    }
-                    
-                    drawPath(
-                        path = activePath,
-                        color = primaryColor,
-                        style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
-                    )
-                    drawPath(
-                        path = idlePath,
-                        color = secondaryColor,
-                        style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
+        Row(modifier = Modifier.weight(1f).fillMaxWidth()) {
+            val yAxisWidth = 48.dp
+            // Y-Axis Labels
+            Column(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .padding(vertical = 24.dp)
+                    .width(yAxisWidth),
+                verticalArrangement = Arrangement.SpaceBetween,
+                horizontalAlignment = Alignment.End
+            ) {
+                yLabels.reversed().forEachIndexed { index, yVal ->
+                    Text(
+                        text = if (index == 0) "${"%.0f".format(yVal)} $labelSuffix" else "%.0f".format(yVal),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Visible,
+                        softWrap = false
                     )
                 }
             }
 
-            // Labels
-            Text(
-                text = "${"%.0f".format(maxY)} $labelSuffix",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.align(Alignment.TopStart)
-            )
-            Text(
-                text = "${"%.0f".format(minY)} $labelSuffix",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.align(Alignment.BottomStart)
-            )
+            Spacer(modifier = Modifier.width(4.dp))
+
+            Box(modifier = Modifier.weight(1f)) {
+                Canvas(modifier = Modifier.fillMaxSize().padding(vertical = 24.dp)) {
+                    val width = size.width
+                    val height = size.height
+                    val timeRange = (maxTime - minTime).coerceAtLeast(1L)
+                    val vRange = (maxY - minY).coerceAtLeast(1f)
+
+                    // Draw Grid Lines
+                    yLabels.forEach { yVal ->
+                        val y = height * (1 - (yVal - minY) / vRange)
+                        drawLine(
+                            color = Color.Gray.copy(alpha = 0.15f),
+                            start = Offset(0f, y),
+                            end = Offset(width, y),
+                            strokeWidth = 0.5.dp.toPx()
+                        )
+                    }
+
+                    if (mode == BatteryGraphMode.SPEED) {
+                        // Draw Zero Line
+                        val zeroY = height * (1 - (0f - minY) / vRange)
+                        drawLine(
+                            color = Color.Gray.copy(alpha = 0.4f),
+                            start = Offset(0f, zeroY),
+                            end = Offset(width, zeroY),
+                            strokeWidth = 1.dp.toPx(),
+                            pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f))
+                        )
+
+                        val chargePath = Path()
+                        val dischargePath = Path()
+
+                        data.forEachIndexed { index, entry ->
+                            val x = width * (entry.timestamp - minTime) / timeRange
+                            
+                            // Charge Path (Positive current, else 0)
+                            val chargeVal = entry.currentMa.coerceAtLeast(0f)
+                            val chargeY = height * (1 - (chargeVal - minY) / vRange)
+                            if (index == 0) chargePath.moveTo(x, chargeY) else chargePath.lineTo(x, chargeY)
+
+                            // Discharge Path (Negative current, else 0)
+                            val dischargeVal = entry.currentMa.coerceAtMost(0f)
+                            val dischargeY = height * (1 - (dischargeVal - minY) / vRange)
+                            if (index == 0) dischargePath.moveTo(x, dischargeY) else dischargePath.lineTo(x, dischargeY)
+                        }
+
+                        drawPath(
+                            path = chargePath,
+                            color = primaryColor,
+                            style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
+                        )
+                        drawPath(
+                            path = dischargePath,
+                            color = secondaryColor,
+                            style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
+                        )
+
+                    } else {
+                        // DRAIN MODE
+                        val activePath = Path()
+                        val idlePath = Path()
+                        
+                        data.forEachIndexed { index, entry ->
+                            val x = width * (entry.timestamp - minTime) / timeRange
+                            
+                            val activeY = height * (1 - entry.activeDrainRate / vRange)
+                            if (index == 0) activePath.moveTo(x, activeY) else activePath.lineTo(x, activeY)
+                            
+                            val idleY = height * (1 - entry.idleDrainRate / vRange)
+                            if (index == 0) idlePath.moveTo(x, idleY) else idlePath.lineTo(x, idleY)
+                        }
+                        
+                        drawPath(
+                            path = activePath,
+                            color = primaryColor,
+                            style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
+                        )
+                        drawPath(
+                            path = idlePath,
+                            color = secondaryColor,
+                            style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
+                        )
+                    }
+                }
+            }
         }
         
         // Time Labels
         Row(
             modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = timeFormat.format(Date(minTime)),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                text = timeFormat.format(Date(maxTime)),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Spacer(modifier = Modifier.width(52.dp)) // Aligns with Y-axis column (48 + 4)
+            Row(
+                modifier = Modifier.weight(1f),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = timeFormat.format(Date(minTime)),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = timeFormat.format(Date(maxTime)),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }
