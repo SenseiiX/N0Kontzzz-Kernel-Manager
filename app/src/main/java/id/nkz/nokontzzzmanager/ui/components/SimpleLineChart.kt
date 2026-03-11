@@ -119,3 +119,99 @@ fun SimpleLineChart(
         drawPath(path = path, color = lineColor, style = Stroke(width = 2.dp.toPx()))
     }
 }
+
+@Composable
+fun MultiLineChart(
+    dataSets: List<List<Float>>,
+    lineColors: List<Color>,
+    labels: List<String>,
+    modifier: Modifier = Modifier,
+    unit: String = ""
+) {
+    if (dataSets.isEmpty() || dataSets.all { it.isEmpty() }) return
+
+    val maxVal = dataSets.flatten().maxOrNull()?.coerceAtLeast(1f) ?: 1f
+    val minVal = 0f
+    
+    val onSurfaceColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f).toArgb()
+    val gridLineColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
+    val defaultPrimaryColor = MaterialTheme.colorScheme.primary
+    val textPaint = remember {
+        Paint().apply {
+            color = onSurfaceColor
+            textSize = 24f
+            textAlign = Paint.Align.RIGHT
+            typeface = Typeface.DEFAULT
+        }
+    }
+
+    Canvas(modifier = modifier.fillMaxWidth().height(180.dp)) {
+        val labelWidth = 60f
+        val legendHeight = 30f
+        val width = size.width - labelWidth
+        val height = size.height - legendHeight
+        val maxPoints = dataSets.maxOf { it.size }
+        val stepX = width / (maxPoints - 1).coerceAtLeast(1)
+
+        // Draw Grid and Labels
+        val gridCount = 4
+        for (i in 0..gridCount) {
+            val labelValue = (maxVal * i / gridCount).toInt()
+            val y = height - (i.toFloat() / gridCount * height)
+
+            drawLine(
+                color = gridLineColor,
+                start = Offset(labelWidth, y),
+                end = Offset(size.width, y),
+                strokeWidth = 1.dp.toPx()
+            )
+
+            drawIntoCanvas { canvas ->
+                canvas.nativeCanvas.drawText(labelValue.toString(), labelWidth - 10f, y + 10f, textPaint)
+            }
+        }
+
+        // Draw Lines
+        dataSets.forEachIndexed { setIndex, data ->
+            if (data.isEmpty()) return@forEachIndexed
+            
+            val path = Path()
+            val lineColor = lineColors.getOrElse(setIndex) { defaultPrimaryColor }
+            
+            data.forEachIndexed { index, value ->
+                val x = labelWidth + (index * stepX)
+                val y = height - ((value - minVal) / (maxVal - minVal) * height)
+                
+                if (index == 0) {
+                    path.moveTo(x, y)
+                } else {
+                    path.lineTo(x, y)
+                }
+            }
+            drawPath(path = path, color = lineColor, style = Stroke(width = 2.dp.toPx()))
+        }
+        
+        // Draw Legend
+        var currentLegendX = labelWidth
+        labels.forEachIndexed { index, label ->
+            val color = lineColors.getOrElse(index) { defaultPrimaryColor }
+            val rectSize = 10.dp.toPx()
+            
+            drawRect(
+                color = color,
+                topLeft = Offset(currentLegendX, height + 10.dp.toPx()),
+                size = androidx.compose.ui.geometry.Size(rectSize, rectSize)
+            )
+            
+            drawIntoCanvas { canvas ->
+                val paint = Paint().apply {
+                    this.color = onSurfaceColor
+                    this.textSize = 24f
+                    this.textAlign = Paint.Align.LEFT
+                }
+                canvas.nativeCanvas.drawText(label, currentLegendX + rectSize + 5.dp.toPx(), height + 10.dp.toPx() + rectSize, paint)
+                currentLegendX += paint.measureText(label) + rectSize + 30.dp.toPx()
+            }
+        }
+    }
+}

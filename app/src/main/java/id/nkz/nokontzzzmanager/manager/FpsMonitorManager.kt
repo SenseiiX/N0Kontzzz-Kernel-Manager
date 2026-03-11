@@ -42,6 +42,11 @@ class FpsMonitorManager @Inject constructor(
     private val recordedTemp = mutableListOf<Float>()
     private val recordedCpuTemp = mutableListOf<Float>()
     private val recordedGpuFreq = mutableListOf<Int>()
+    private val recordedCpuFreqLittle = mutableListOf<Int>()
+    private val recordedCpuFreqBig = mutableListOf<Int>()
+    private val recordedCpuFreqPrime = mutableListOf<Int>()
+    private val recordedBatteryPower = mutableListOf<Float>()
+    private val recordedBatteryLevel = mutableListOf<Int>()
     private var totalJankCount = 0
     private var totalBigJankCount = 0
     
@@ -75,6 +80,43 @@ class FpsMonitorManager @Inject constructor(
             
             // Secondary job for polling system metrics (CPU, GPU, Temp) during benchmarking
             val metricsJob = launch {
+                // Pre-calculate clusters core mapping once
+                val clusters = systemRepository.getCpuClusters()
+                val cores = Runtime.getRuntime().availableProcessors()
+                
+                // For simplified tracking, we'll try to map the clusters based on their name
+                val littleClusterCores = mutableListOf<Int>()
+                val bigClusterCores = mutableListOf<Int>()
+                val primeClusterCores = mutableListOf<Int>()
+                
+                try {
+                    val coreFreqRanges = mutableMapOf<Int, Pair<Int, Int>>()
+                    for (i in 0 until cores) {
+                        val minPath = "/sys/devices/system/cpu/cpu$i/cpufreq/cpuinfo_min_freq"
+                        val maxPath = "/sys/devices/system/cpu/cpu$i/cpufreq/cpuinfo_max_freq"
+                        
+                        // Using rootRepository for frequency reading to avoid permission issues
+                        val minStr = rootRepository.run("cat $minPath").trim()
+                        val maxStr = rootRepository.run("cat $maxPath").trim()
+                        
+                        val min = minStr.toIntOrNull() ?: 0
+                        val max = maxStr.toIntOrNull() ?: 0
+                        if (max > 0) coreFreqRanges[i] = Pair(min, max)
+                    }
+                    
+                    val frequencyGroups = coreFreqRanges.values.distinct().sortedBy { it.second }
+                    frequencyGroups.forEachIndexed { index, pair ->
+                        val coresInThisGroup = coreFreqRanges.filter { it.value == pair }.keys
+                        when {
+                            index == 0 -> littleClusterCores.addAll(coresInThisGroup)
+                            index == frequencyGroups.size - 1 && frequencyGroups.size > 1 -> primeClusterCores.addAll(coresInThisGroup)
+                            else -> bigClusterCores.addAll(coresInThisGroup)
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e("FpsMonitor", "Error identifying clusters", e)
+                }
+
                 while (isActive) {
                     if (isBenchmarking) {
                         try {
@@ -87,6 +129,25 @@ class FpsMonitorManager @Inject constructor(
                             recordedGpuUsage.add(gpuInfo.usagePercentage ?: 0f)
                             recordedGpuFreq.add(gpuInfo.currentFreq)
                             recordedTemp.add(batteryInfo.temp)
+                            
+                            // Record Cluster Frequencies (average of online cores in cluster)
+                            if (littleClusterCores.isNotEmpty()) {
+                                val avgFreq = littleClusterCores.map { cpuInfo.freqs.getOrNull(it) ?: 0 }.filter { it > 0 }.let { if (it.isEmpty()) 0 else it.average().toInt() }
+                                recordedCpuFreqLittle.add(avgFreq)
+                            }
+                            if (bigClusterCores.isNotEmpty()) {
+                                val avgFreq = bigClusterCores.map { cpuInfo.freqs.getOrNull(it) ?: 0 }.filter { it > 0 }.let { if (it.isEmpty()) 0 else it.average().toInt() }
+                                recordedCpuFreqBig.add(avgFreq)
+                            }
+                            if (primeClusterCores.isNotEmpty()) {
+                                val avgFreq = primeClusterCores.map { cpuInfo.freqs.getOrNull(it) ?: 0 }.filter { it > 0 }.let { if (it.isEmpty()) 0 else it.average().toInt() }
+                                recordedCpuFreqPrime.add(avgFreq)
+                            }
+                            
+                            // Record Battery Info
+                            recordedBatteryPower.add(batteryInfo.chargingWattage)
+                            recordedBatteryLevel.add(batteryInfo.level)
+                            
                         } catch (e: Exception) {
                             Log.e("FpsMonitor", "Error polling metrics", e)
                         }
@@ -177,6 +238,16 @@ class FpsMonitorManager @Inject constructor(
         isBenchmarking = true
         benchmarkStartTime = System.currentTimeMillis()
         recordedFrameTimes.clear()
+        recordedCpuUsage.clear()
+        recordedGpuUsage.clear()
+        recordedTemp.clear()
+        recordedCpuTemp.clear()
+        recordedGpuFreq.clear()
+        recordedCpuFreqLittle.clear()
+        recordedCpuFreqBig.clear()
+        recordedCpuFreqPrime.clear()
+        recordedBatteryPower.clear()
+        recordedBatteryLevel.clear()
         totalJankCount = 0
         totalBigJankCount = 0
         _fpsData.value = _fpsData.value.copy(
@@ -203,7 +274,12 @@ class FpsMonitorManager @Inject constructor(
         val gpuUsageHistory: List<Float>,
         val tempHistory: List<Float>,
         val cpuTempHistory: List<Float>,
-        val gpuFreqHistory: List<Int>
+        val gpuFreqHistory: List<Int>,
+        val cpuFreqLittleHistory: List<Int>,
+        val cpuFreqBigHistory: List<Int>,
+        val cpuFreqPrimeHistory: List<Int>,
+        val batteryPowerHistory: List<Float>,
+        val batteryLevelHistory: List<Int>
     )
 
     fun stopBenchmarking(): BenchmarkResult? {
@@ -242,7 +318,12 @@ class FpsMonitorManager @Inject constructor(
             gpuUsageHistory = recordedGpuUsage.toList(),
             tempHistory = recordedTemp.toList(),
             cpuTempHistory = recordedCpuTemp.toList(),
-            gpuFreqHistory = recordedGpuFreq.toList()
+            gpuFreqHistory = recordedGpuFreq.toList(),
+            cpuFreqLittleHistory = recordedCpuFreqLittle.toList(),
+            cpuFreqBigHistory = recordedCpuFreqBig.toList(),
+            cpuFreqPrimeHistory = recordedCpuFreqPrime.toList(),
+            batteryPowerHistory = recordedBatteryPower.toList(),
+            batteryLevelHistory = recordedBatteryLevel.toList()
         )
     }
 

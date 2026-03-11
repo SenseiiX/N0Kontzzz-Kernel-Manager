@@ -768,6 +768,9 @@
     <string name="benchmark_cpu_temp">CPU Temperature</string>
     <string name="benchmark_gpu_usage">GPU Usage</string>
     <string name="benchmark_gpu_freq">GPU Frequency</string>
+    <string name="benchmark_cpu_clusters">CPU Cluster Frequencies</string>
+    <string name="benchmark_battery_power">Battery Power Consumption</string>
+    <string name="benchmark_battery_level">Battery Level</string>
     <string name="benchmark_battery_temp">Battery Temperature</string>
     <string name="benchmark_no_data">No data recorded</string>
     <string name="benchmark_delete_confirm">Delete this benchmark record?</string>

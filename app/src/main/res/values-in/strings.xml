@@ -767,6 +767,9 @@
     <string name="benchmark_cpu_temp">Suhu CPU</string>
     <string name="benchmark_gpu_usage">Penggunaan GPU</string>
     <string name="benchmark_gpu_freq">Frekuensi GPU</string>
+    <string name="benchmark_cpu_clusters">Frekuensi Cluster CPU</string>
+    <string name="benchmark_battery_power">Konsumsi Daya Baterai</string>
+    <string name="benchmark_battery_level">Level Baterai</string>
     <string name="benchmark_battery_temp">Suhu Baterai</string>
     <string name="benchmark_no_data">Tidak ada data tercatat</string>
     <string name="benchmark_delete_confirm">Hapus rekaman benchmark ini?</string>

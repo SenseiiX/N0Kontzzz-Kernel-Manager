@@ -24,5 +24,10 @@ data class BenchmarkEntity(
     val gpuUsageDataJson: String? = null,
     val tempDataJson: String? = null,
     val cpuTempDataJson: String? = null,
-    val gpuFreqDataJson: String? = null
+    val gpuFreqDataJson: String? = null,
+    val cpuFreqLittleDataJson: String? = null,
+    val cpuFreqBigDataJson: String? = null,
+    val cpuFreqPrimeDataJson: String? = null,
+    val batteryPowerDataJson: String? = null,
+    val batteryLevelDataJson: String? = null
 )

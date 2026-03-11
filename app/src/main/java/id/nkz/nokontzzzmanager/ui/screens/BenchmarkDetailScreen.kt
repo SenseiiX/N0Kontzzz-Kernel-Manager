@@ -21,6 +21,7 @@ import androidx.navigation.NavController
 import id.nkz.nokontzzzmanager.R
 import id.nkz.nokontzzzmanager.data.database.BenchmarkEntity
 import id.nkz.nokontzzzmanager.ui.components.SimpleLineChart
+import id.nkz.nokontzzzmanager.ui.components.MultiLineChart
 import id.nkz.nokontzzzmanager.viewmodel.BenchmarkDetailViewModel
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
@@ -44,6 +45,11 @@ fun BenchmarkDetailScreen(
     val colorTemp = MaterialTheme.colorScheme.error
     val colorCpuTemp = MaterialTheme.colorScheme.tertiary
     val colorGpuFreq = MaterialTheme.colorScheme.secondary
+    val colorBatteryPower = MaterialTheme.colorScheme.error
+    val colorBatteryLevel = MaterialTheme.colorScheme.primary
+    val colorLittle = MaterialTheme.colorScheme.primary
+    val colorBig = MaterialTheme.colorScheme.secondary
+    val colorPrime = MaterialTheme.colorScheme.tertiary
 
     benchmark?.let { b ->
         val frameIntervals = remember(b.frameTimeDataJson) { decodeJsonList(b.frameTimeDataJson) }
@@ -127,6 +133,62 @@ fun BenchmarkDetailScreen(
                     data = decodeJsonList(b.gpuFreqDataJson),
                     lineColor = colorGpuFreq,
                     unit = "MHz"
+                )
+            }
+
+            // CPU Clusters Freq Graph
+            item {
+                val little = decodeJsonList(b.cpuFreqLittleDataJson)
+                val big = decodeJsonList(b.cpuFreqBigDataJson)
+                val prime = decodeJsonList(b.cpuFreqPrimeDataJson)
+                
+                if (little.isNotEmpty() || big.isNotEmpty() || prime.isNotEmpty()) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(24.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(Icons.Default.Speed, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                                Text(text = stringResource(R.string.benchmark_cpu_clusters), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                            }
+                            
+                            Spacer(modifier = Modifier.height(16.dp))
+                            
+                            MultiLineChart(
+                                dataSets = listOf(little, big, prime),
+                                lineColors = listOf(colorLittle, colorBig, colorPrime),
+                                labels = listOf("Little", "Big", "Prime"),
+                                unit = "MHz"
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Battery Power Graph
+            item {
+                ChartCard(
+                    title = stringResource(R.string.benchmark_battery_power),
+                    icon = Icons.Default.BatteryChargingFull,
+                    data = decodeJsonList(b.batteryPowerDataJson),
+                    lineColor = colorBatteryPower,
+                    unit = "W"
+                )
+            }
+
+            // Battery Level Graph
+            item {
+                ChartCard(
+                    title = stringResource(R.string.benchmark_battery_level),
+                    icon = Icons.Default.BatteryFull,
+                    data = decodeJsonList(b.batteryLevelDataJson),
+                    lineColor = colorBatteryLevel,
+                    unit = "%"
                 )
             }
 
@@ -246,8 +308,14 @@ fun ChartCard(
                 Text(text = title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                 Spacer(modifier = Modifier.weight(1f))
                 if (data.isNotEmpty()) {
+                    val avgValue = data.average()
+                    val formattedAvg = if (unit == "W" || unit == "ms" || unit == "°C") {
+                        String.format("%.2f", avgValue)
+                    } else {
+                        avgValue.toInt().toString()
+                    }
                     Text(
-                        text = "Avg: ${data.average().toInt()} $unit",
+                        text = "Avg: $formattedAvg $unit",
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

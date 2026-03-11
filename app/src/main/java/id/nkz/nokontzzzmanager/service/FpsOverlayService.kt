@@ -223,7 +223,12 @@ class FpsOverlayService : Service(), androidx.lifecycle.LifecycleOwner, ViewMode
                 gpuUsageDataJson = Json.encodeToString(result.gpuUsageHistory),
                 tempDataJson = Json.encodeToString(result.tempHistory),
                 cpuTempDataJson = Json.encodeToString(result.cpuTempHistory),
-                gpuFreqDataJson = Json.encodeToString(result.gpuFreqHistory)
+                gpuFreqDataJson = Json.encodeToString(result.gpuFreqHistory),
+                cpuFreqLittleDataJson = Json.encodeToString(result.cpuFreqLittleHistory),
+                cpuFreqBigDataJson = Json.encodeToString(result.cpuFreqBigHistory),
+                cpuFreqPrimeDataJson = Json.encodeToString(result.cpuFreqPrimeHistory),
+                batteryPowerDataJson = Json.encodeToString(result.batteryPowerHistory),
+                batteryLevelDataJson = Json.encodeToString(result.batteryLevelHistory)
             )
             benchmarkRepository.insertBenchmark(entity)
         }
