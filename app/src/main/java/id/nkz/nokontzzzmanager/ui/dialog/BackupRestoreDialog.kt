@@ -25,9 +25,9 @@ import id.nkz.nokontzzzmanager.data.model.BackupPreview
 @Composable
 fun BackupRestoreDialog(
     onDismiss: () -> Unit,
-    onBackup: (Boolean, Boolean, Boolean, Boolean, Boolean) -> Unit,
+    onBackup: (Boolean, Boolean, Boolean, Boolean, Boolean, Boolean, Boolean) -> Unit,
     onSelectFile: () -> Unit,
-    onRestore: (Boolean, Boolean, Boolean, Boolean, Boolean) -> Unit,
+    onRestore: (Boolean, Boolean, Boolean, Boolean, Boolean, Boolean, Boolean) -> Unit,
     preview: BackupPreview? = null
 ) {
     var selectedTab by remember { mutableIntStateOf(0) } // 0 for Backup, 1 for Restore
@@ -38,6 +38,8 @@ fun BackupRestoreDialog(
     var includeBattery by remember { mutableStateOf(true) }
     var includeOther by remember { mutableStateOf(true) }
     var includeCustomTunables by remember { mutableStateOf(true) }
+    var includeAppProfiles by remember { mutableStateOf(true) }
+    var includeGames by remember { mutableStateOf(true) }
 
     // Sync checkboxes with preview when it arrives
     LaunchedEffect(preview) {
@@ -48,6 +50,8 @@ fun BackupRestoreDialog(
             includeBattery = preview.hasBattery
             includeOther = preview.hasOther
             includeCustomTunables = preview.hasCustomTunables
+            includeAppProfiles = preview.hasAppProfiles
+            includeGames = preview.hasGames
         }
     }
 
@@ -175,6 +179,24 @@ fun BackupRestoreDialog(
                                     shape = RoundedCornerShape(8.dp)
                                 )
                             }
+                            if (selectedTab == 0 || preview?.hasAppProfiles == true) {
+                                BackupCheckboxItem(
+                                    label = stringResource(R.string.category_app_profiles),
+                                    description = stringResource(R.string.desc_app_profiles),
+                                    checked = includeAppProfiles,
+                                    onCheckedChange = { includeAppProfiles = it },
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                            }
+                            if (selectedTab == 0 || preview?.hasGames == true) {
+                                BackupCheckboxItem(
+                                    label = stringResource(R.string.category_games),
+                                    description = stringResource(R.string.desc_games),
+                                    checked = includeGames,
+                                    onCheckedChange = { includeGames = it },
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                            }
                             if (selectedTab == 0 || preview?.hasOther == true) {
                                 BackupCheckboxItem(
                                     label = stringResource(R.string.category_other),
@@ -199,15 +221,15 @@ fun BackupRestoreDialog(
                             Text(stringResource(R.string.cancel))
                         }
                         
-                        val isRestoreReady = selectedTab == 1 && preview != null && (includeTuning || includeNetwork || includeBattery || includeOther || includeCustomTunables)
-                        val isBackupReady = selectedTab == 0 && (includeTuning || includeNetwork || includeBattery || includeOther || includeCustomTunables)
+                        val isRestoreReady = selectedTab == 1 && preview != null && (includeTuning || includeNetwork || includeBattery || includeOther || includeCustomTunables || includeAppProfiles || includeGames)
+                        val isBackupReady = selectedTab == 0 && (includeTuning || includeNetwork || includeBattery || includeOther || includeCustomTunables || includeAppProfiles || includeGames)
 
                         Button(
                             onClick = {
                                 if (selectedTab == 0) {
-                                    onBackup(includeTuning, includeNetwork, includeBattery, includeOther, includeCustomTunables)
+                                    onBackup(includeTuning, includeNetwork, includeBattery, includeOther, includeCustomTunables, includeAppProfiles, includeGames)
                                 } else {
-                                    onRestore(includeTuning, includeNetwork, includeBattery, includeOther, includeCustomTunables)
+                                    onRestore(includeTuning, includeNetwork, includeBattery, includeOther, includeCustomTunables, includeAppProfiles, includeGames)
                                 }
                             },
                             modifier = Modifier.weight(1f),

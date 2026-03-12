@@ -622,6 +622,10 @@
     <string name="desc_network_storage">Includes TCP Congestion Algorithm and I/O Scheduler.</string>
     <string name="desc_battery">Includes Bypass Charging, USB Fast Charge, Charging Control limits, and Battery Monitor state.</string>
     <string name="desc_other">Includes KGSL Skip Pool Zeroing and Notification Icon style.</string>
+    <string name="category_app_profiles">Per-App Profiles</string>
+    <string name="desc_app_profiles">Includes individual performance and charging settings for each app.</string>
+    <string name="category_games">FPS Games List</string>
+    <string name="desc_games">Includes the list of games and target FPS settings for the FPS Meter.</string>
     <string name="backup_success">Backup created successfully</string>
     <string name="restore_success">Settings restored successfully</string>
     <string name="error_backup">Backup failed</string>

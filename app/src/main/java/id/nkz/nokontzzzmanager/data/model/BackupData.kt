@@ -1,5 +1,7 @@
 package id.nkz.nokontzzzmanager.data.model
 
+import id.nkz.nokontzzzmanager.data.database.AppProfileEntity
+import id.nkz.nokontzzzmanager.data.database.GameEntity
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -9,11 +11,37 @@ data class BackupData(
     val battery: BatterySettings? = null,
     val other: OtherSettings? = null,
     val customTunables: List<CustomTunableBackupItem>? = null,
+    val appProfiles: List<AppProfileBackupItem>? = null,
+    val games: List<GameBackupItem>? = null,
     val timestamp: Long = System.currentTimeMillis()
 ) {
     val isValid: Boolean
-        get() = tuning != null || networkStorage != null || battery != null || other != null || customTunables != null
+        get() = tuning != null || networkStorage != null || battery != null || other != null || 
+                customTunables != null || appProfiles != null || games != null
 }
+
+@Serializable
+data class AppProfileBackupItem(
+    val packageName: String,
+    val appName: String,
+    val performanceMode: String,
+    val kgslSkipZeroing: Boolean,
+    val bypassCharging: Boolean,
+    val allowDirtyPte: Boolean,
+    val cpuConfigJson: String? = null,
+    val gpuConfigJson: String? = null,
+    val thermalProfile: Int? = null,
+    val isEnabled: Boolean
+)
+
+@Serializable
+data class GameBackupItem(
+    val packageName: String,
+    val appName: String,
+    val isBenchmarkEnabled: Boolean,
+    val targetFps: Int,
+    val preferredLayerPattern: String? = null
+)
 
 @Serializable
 data class CustomTunableBackupItem(
@@ -70,5 +98,7 @@ data class BackupPreview(
     val hasBattery: Boolean,
     val hasOther: Boolean,
     val hasCustomTunables: Boolean,
+    val hasAppProfiles: Boolean,
+    val hasGames: Boolean,
     val timestamp: Long
 )

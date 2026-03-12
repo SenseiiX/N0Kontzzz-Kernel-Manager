@@ -22,7 +22,9 @@ class BackupRepository @Inject constructor(
     private val persistentSettingsManager: PersistentSettingsManager,
     private val systemRepository: SystemRepository,
     private val tuningRepository: TuningRepository,
-    private val customTunableRepository: CustomTunableRepository
+    private val customTunableRepository: CustomTunableRepository,
+    private val appProfileRepository: AppProfileRepository,
+    private val gameRepository: GameRepository
 ) {
     private val json = Json { prettyPrint = true; ignoreUnknownKeys = true }
 
@@ -32,7 +34,9 @@ class BackupRepository @Inject constructor(
         includeNetwork: Boolean,
         includeBattery: Boolean,
         includeOther: Boolean,
-        includeCustomTunables: Boolean
+        includeCustomTunables: Boolean,
+        includeAppProfiles: Boolean,
+        includeGames: Boolean
     ): Result<String> {
         return try {
             val tuningSettings = if (includeTuning) {
@@ -86,13 +90,44 @@ class BackupRepository @Inject constructor(
                     CustomTunableBackupItem(it.path, it.value, it.applyOnBoot)
                 }
             } else null
+            
+            val appProfiles = if (includeAppProfiles) {
+                appProfileRepository.getAllProfiles().first().map {
+                    AppProfileBackupItem(
+                        packageName = it.packageName,
+                        appName = it.appName,
+                        performanceMode = it.performanceMode,
+                        kgslSkipZeroing = it.kgslSkipZeroing,
+                        bypassCharging = it.bypassCharging,
+                        allowDirtyPte = it.allowDirtyPte,
+                        cpuConfigJson = it.cpuConfigJson,
+                        gpuConfigJson = it.gpuConfigJson,
+                        thermalProfile = it.thermalProfile,
+                        isEnabled = it.isEnabled
+                    )
+                }
+            } else null
+            
+            val games = if (includeGames) {
+                gameRepository.getAllGames().first().map {
+                    GameBackupItem(
+                        packageName = it.packageName,
+                        appName = it.appName,
+                        isBenchmarkEnabled = it.isBenchmarkEnabled,
+                        targetFps = it.targetFps,
+                        preferredLayerPattern = it.preferredLayerPattern
+                    )
+                }
+            } else null
 
             val backupData = BackupData(
                 tuning = tuningSettings,
                 networkStorage = networkSettings,
                 battery = batterySettings,
                 other = otherSettings,
-                customTunables = customTunables
+                customTunables = customTunables,
+                appProfiles = appProfiles,
+                games = games
             )
 
             val jsonString = json.encodeToString(backupData)
@@ -114,7 +149,9 @@ class BackupRepository @Inject constructor(
             restoreNetwork: Boolean,
             restoreBattery: Boolean,
             restoreOther: Boolean,
-            restoreCustomTunables: Boolean
+            restoreCustomTunables: Boolean,
+            restoreAppProfiles: Boolean,
+            restoreGames: Boolean
         ): Result<Boolean> {
             return try {
                 val jsonString = context.contentResolver.openInputStream(uri)?.use { inputStream ->
@@ -127,7 +164,8 @@ class BackupRepository @Inject constructor(
                                 return Result.failure(Exception("Invalid or empty backup file"))
                             }
                 
-                            if (restoreTuning && backupData.tuning != null) {                    // Restore Thermal Mode
+                            if (restoreTuning && backupData.tuning != null) {
+                    // Restore Thermal Mode
                     backupData.tuning.thermalMode?.let { persistentSettingsManager.saveThermalMode(it) }
     
                     // Restore CPU Settings (Governor & Freq) with Validation
@@ -259,6 +297,39 @@ class BackupRepository @Inject constructor(
                         )
                     }
                 }
+                
+                if (restoreAppProfiles && !backupData.appProfiles.isNullOrEmpty()) {
+                    backupData.appProfiles.forEach { item ->
+                        appProfileRepository.insertProfile(
+                            id.nkz.nokontzzzmanager.data.database.AppProfileEntity(
+                                packageName = item.packageName,
+                                appName = item.appName,
+                                performanceMode = item.performanceMode,
+                                kgslSkipZeroing = item.kgslSkipZeroing,
+                                bypassCharging = item.bypassCharging,
+                                allowDirtyPte = item.allowDirtyPte,
+                                cpuConfigJson = item.cpuConfigJson,
+                                gpuConfigJson = item.gpuConfigJson,
+                                thermalProfile = item.thermalProfile,
+                                isEnabled = item.isEnabled
+                            )
+                        )
+                    }
+                }
+                
+                if (restoreGames && !backupData.games.isNullOrEmpty()) {
+                    backupData.games.forEach { item ->
+                        gameRepository.insertGame(
+                            id.nkz.nokontzzzmanager.data.database.GameEntity(
+                                packageName = item.packageName,
+                                appName = item.appName,
+                                isBenchmarkEnabled = item.isBenchmarkEnabled,
+                                targetFps = item.targetFps,
+                                preferredLayerPattern = item.preferredLayerPattern
+                            )
+                        )
+                    }
+                }
     
                 Result.success(true)
             } catch (e: Exception) {
@@ -266,6 +337,7 @@ class BackupRepository @Inject constructor(
                 Result.failure(e)
             }
         }
+
     suspend fun getBackupPreview(uri: Uri): Result<BackupPreview> {
         return try {
             val jsonString = context.contentResolver.openInputStream(uri)?.use { inputStream ->
@@ -285,6 +357,8 @@ class BackupRepository @Inject constructor(
                     hasBattery = data.battery != null,
                     hasOther = data.other != null,
                     hasCustomTunables = !data.customTunables.isNullOrEmpty(),
+                    hasAppProfiles = !data.appProfiles.isNullOrEmpty(),
+                    hasGames = !data.games.isNullOrEmpty(),
                     timestamp = data.timestamp
                 )
             )

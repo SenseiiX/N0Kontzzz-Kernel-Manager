@@ -126,9 +126,9 @@ class SettingsViewModel @Inject constructor(
         _selectedRestoreUri.value = null
     }
 
-    fun backupSettings(uri: Uri, includeTuning: Boolean, includeNetwork: Boolean, includeBattery: Boolean, includeOther: Boolean, includeCustomTunables: Boolean) {
+    fun backupSettings(uri: Uri, includeTuning: Boolean, includeNetwork: Boolean, includeBattery: Boolean, includeOther: Boolean, includeCustomTunables: Boolean, includeAppProfiles: Boolean, includeGames: Boolean) {
         viewModelScope.launch {
-            val result = backupRepository.createBackup(uri, includeTuning, includeNetwork, includeBattery, includeOther, includeCustomTunables)
+            val result = backupRepository.createBackup(uri, includeTuning, includeNetwork, includeBattery, includeOther, includeCustomTunables, includeAppProfiles, includeGames)
             if (result.isSuccess) {
                 _backupRestoreEvent.emit(context.getString(R.string.backup_success))
             } else {
@@ -137,9 +137,9 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun restoreSettings(uri: Uri, restoreTuning: Boolean, restoreNetwork: Boolean, restoreBattery: Boolean, restoreOther: Boolean, restoreCustomTunables: Boolean) {
+    fun restoreSettings(uri: Uri, restoreTuning: Boolean, restoreNetwork: Boolean, restoreBattery: Boolean, restoreOther: Boolean, restoreCustomTunables: Boolean, restoreAppProfiles: Boolean, restoreGames: Boolean) {
         viewModelScope.launch {
-            val result = backupRepository.restoreBackup(uri, restoreTuning, restoreNetwork, restoreBattery, restoreOther, restoreCustomTunables)
+            val result = backupRepository.restoreBackup(uri, restoreTuning, restoreNetwork, restoreBattery, restoreOther, restoreCustomTunables, restoreAppProfiles, restoreGames)
             if (result.isSuccess) {
                 _backupRestoreEvent.emit(context.getString(R.string.restore_success))
                 // Refresh local states if needed

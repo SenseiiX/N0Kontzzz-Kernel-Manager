@@ -57,7 +57,9 @@ private data class PendingBackupOptions(
     val network: Boolean,
     val battery: Boolean,
     val other: Boolean,
-    val customTunables: Boolean
+    val customTunables: Boolean,
+    val appProfiles: Boolean,
+    val games: Boolean
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -103,7 +105,7 @@ fun SettingsScreen(
     ) { uri ->
         if (uri != null && pendingOptions != null) {
             val ops = pendingOptions!!
-            viewModel.backupSettings(uri, ops.tuning, ops.network, ops.battery, ops.other, ops.customTunables)
+            viewModel.backupSettings(uri, ops.tuning, ops.network, ops.battery, ops.other, ops.customTunables, ops.appProfiles, ops.games)
         }
         pendingOptions = null
     }
@@ -491,8 +493,8 @@ fun SettingsScreen(
                 showBackupDialog = false
                 viewModel.clearBackupPreview()
             },
-            onBackup = { tuning, network, battery, other, customTunables ->
-                pendingOptions = PendingBackupOptions(tuning, network, battery, other, customTunables)
+            onBackup = { tuning, network, battery, other, customTunables, appProfiles, games ->
+                pendingOptions = PendingBackupOptions(tuning, network, battery, other, customTunables, appProfiles, games)
                 showBackupDialog = false
                 backupLauncher.launch(backupFileName)
             },
@@ -500,9 +502,9 @@ fun SettingsScreen(
                 showBackupDialog = false
                 restoreFilePickerLauncher.launch(arrayOf("application/json"))
             },
-            onRestore = { tuning, network, battery, other, customTunables ->
+            onRestore = { tuning, network, battery, other, customTunables, appProfiles, games ->
                 selectedRestoreUri?.let { uri ->
-                    viewModel.restoreSettings(uri, tuning, network, battery, other, customTunables)
+                    viewModel.restoreSettings(uri, tuning, network, battery, other, customTunables, appProfiles, games)
                 }
                 showBackupDialog = false
             },

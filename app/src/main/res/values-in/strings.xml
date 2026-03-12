@@ -622,6 +622,10 @@
     <string name="desc_network_storage">Termasuk Algoritma TCP Congestion dan I/O Scheduler.</string>
     <string name="desc_battery">Termasuk Bypass Charging, USB Fast Charge, Batas Kontrol Pengisian, dan status Monitor Baterai.</string>
     <string name="desc_other">Termasuk KGSL Skip Pool Zeroing dan gaya Ikon Notifikasi.</string>
+    <string name="category_app_profiles">Profil Per-Aplikasi</string>
+    <string name="desc_app_profiles">Termasuk pengaturan performa dan pengisian daya individu untuk tiap aplikasi.</string>
+    <string name="category_games">Daftar Game FPS</string>
+    <string name="desc_games">Termasuk daftar game dan pengaturan target FPS untuk Meter FPS.</string>
     <string name="backup_success">Cadangan berhasil dibuat</string>
     <string name="restore_success">Pengaturan berhasil dipulihkan</string>
     <string name="error_backup">Pencadangan gagal</string>
