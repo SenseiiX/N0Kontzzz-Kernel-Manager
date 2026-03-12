@@ -8,6 +8,8 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.SportsEsports
@@ -492,7 +494,24 @@ fun GameItem(
 
             Switch(
                 checked = game.isBenchmarkEnabled,
-                onCheckedChange = { onToggleBenchmark(game, it) }
+                onCheckedChange = { onToggleBenchmark(game, it) },
+                thumbContent = if (game.isBenchmarkEnabled) {
+                    {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = null,
+                            modifier = Modifier.size(SwitchDefaults.IconSize),
+                        )
+                    }
+                } else {
+                    {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = null,
+                            modifier = Modifier.size(SwitchDefaults.IconSize),
+                        )
+                    }
+                }
             )
 
             IconButton(onClick = { onDelete(game) }) {
