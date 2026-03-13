@@ -533,6 +533,11 @@
     <string name="battery_history_config_battery_level">Baterai mencapai %1$d%%</string>
     <string name="battery_history_config_done">Selesai</string>
 
+    <string name="usage_access">Akses Penggunaan</string>
+    <string name="usage_access_desc">NKM memerlukan izin Akses Penggunaan untuk mendeteksi aplikasi yang sedang berjalan untuk fitur Profil Per-Aplikasi dan Monitor FPS. Mohon berikan izin ini.</string>
+    <string name="perm_data_sync_title">Sinkronisasi Data Latar Depan</string>
+    <string name="perm_data_sync_desc">Diperlukan untuk Android 14+ guna mempertahankan tuning sistem saat aplikasi berada di latar belakang.</string>
+
     <!-- Battery Optimization Dialog -->
     <string name="permissions_required">Izin Diperlukan</string>
     <string name="battery_optimization">Optimasi Baterai</string>

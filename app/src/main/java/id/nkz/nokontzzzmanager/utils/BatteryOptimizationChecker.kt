@@ -103,6 +103,21 @@ class BatteryOptimizationChecker(private val context: Context) {
         activity.startActivity(intent)
     }
 
+    enum class PermissionType { NONE, DATA_SYNC, USAGE_ACCESS, BATTERY_OPTIMIZATION }
+
+    fun getMissingPermission(): PermissionType {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && !hasDataSyncPermission()) {
+            return PermissionType.DATA_SYNC
+        }
+        if (!hasUsageAccess()) {
+            return PermissionType.USAGE_ACCESS
+        }
+        if (!isIgnoringBatteryOptimizations()) {
+            return PermissionType.BATTERY_OPTIMIZATION
+        }
+        return PermissionType.NONE
+    }
+
     fun checkAndRequestPermissions(activity: Activity) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && !hasDataSyncPermission()) {
             openAppSettings(activity)

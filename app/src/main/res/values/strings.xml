@@ -532,6 +532,11 @@
     <string name="battery_history_config_battery_level">Battery reaches %1$d%%</string>
     <string name="battery_history_config_done">Done</string>
 
+    <string name="usage_access">Usage Access</string>
+    <string name="usage_access_desc">NKM requires Usage Access permission to detect foreground applications for Per-App Profiles and FPS Monitor. Please grant this permission.</string>
+    <string name="perm_data_sync_title">Foreground Data Sync</string>
+    <string name="perm_data_sync_desc">Required for Android 14+ to maintain system tuning while the app is in the background.</string>
+
     <!-- Battery Optimization Dialog -->
     <string name="permissions_required">Permissions Required</string>
     <string name="battery_optimization">Battery Optimization</string>

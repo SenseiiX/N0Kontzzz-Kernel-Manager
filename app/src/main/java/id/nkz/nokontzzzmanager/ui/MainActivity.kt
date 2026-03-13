@@ -404,6 +404,27 @@ class MainActivity : ComponentActivity() {
                     }
                     // Only show permission dialog if device is rooted
                     if (showBatteryOptDialog && isRootAvailable == true) {
+                        val missingPermission = batteryOptChecker.getMissingPermission()
+                        val isRetryLimitReached = permissionDenialCount >= MAX_PERMISSION_RETRIES
+                        
+                        val dialogTitle = when (missingPermission) {
+                            BatteryOptimizationChecker.PermissionType.DATA_SYNC -> stringResource(R.string.perm_data_sync_title)
+                            BatteryOptimizationChecker.PermissionType.USAGE_ACCESS -> stringResource(R.string.usage_access)
+                            BatteryOptimizationChecker.PermissionType.BATTERY_OPTIMIZATION -> 
+                                if (isRetryLimitReached) stringResource(R.string.permissions_required) 
+                                else stringResource(R.string.battery_optimization)
+                            else -> null
+                        }
+                        
+                        val dialogDesc = when (missingPermission) {
+                            BatteryOptimizationChecker.PermissionType.DATA_SYNC -> stringResource(R.string.perm_data_sync_desc)
+                            BatteryOptimizationChecker.PermissionType.USAGE_ACCESS -> stringResource(R.string.usage_access_desc)
+                            BatteryOptimizationChecker.PermissionType.BATTERY_OPTIMIZATION -> 
+                                if (isRetryLimitReached) stringResource(R.string.battery_opt_desc_exit) 
+                                else stringResource(R.string.battery_opt_desc_later)
+                            else -> null
+                        }
+
                         BatteryOptDialog(
                             onDismiss = {
                                 // Only allow dismiss if we haven't exceeded retry limit
@@ -416,7 +437,9 @@ class MainActivity : ComponentActivity() {
                                 batteryOptChecker.checkAndRequestPermissions(this@MainActivity)
                             },
                             onExit = { finish() },
-                            showExitButton = permissionDenialCount >= MAX_PERMISSION_RETRIES
+                            showExitButton = isRetryLimitReached,
+                            title = dialogTitle,
+                            description = dialogDesc
                         )
                     }
 

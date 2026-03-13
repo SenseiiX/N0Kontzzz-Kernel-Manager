@@ -24,8 +24,17 @@ fun BatteryOptDialog(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
     onExit: () -> Unit,
-    showExitButton: Boolean = false
+    showExitButton: Boolean = false,
+    title: String? = null,
+    description: String? = null
 ) {
+    val displayTitle = title ?: if (showExitButton) stringResource(R.string.permissions_required) else stringResource(R.string.battery_optimization)
+    val displayDescription = description ?: if (showExitButton) {
+        stringResource(R.string.battery_opt_desc_exit)
+    } else {
+        stringResource(R.string.battery_opt_desc_later)
+    }
+
     BasicAlertDialog(
         onDismissRequest = { /* Prevent dismissal by tapping outside */ },
         modifier = Modifier.fillMaxWidth().wrapContentHeight(),
@@ -64,7 +73,7 @@ fun BatteryOptDialog(
                             )
                         }
                         Text(
-                            text = if (showExitButton) stringResource(R.string.permissions_required) else stringResource(R.string.battery_optimization),
+                            text = displayTitle,
                             style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.weight(1f)
@@ -73,11 +82,7 @@ fun BatteryOptDialog(
 
                     // Content
                     Text(
-                        text = if (showExitButton) {
-                            stringResource(R.string.battery_opt_desc_exit)
-                        } else {
-                            stringResource(R.string.battery_opt_desc_later)
-                        },
+                        text = displayDescription,
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
