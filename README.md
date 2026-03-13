@@ -34,6 +34,12 @@
 - **Process Monitor**  
   Real-time task manager that monitors CPU and RAM usage across all system and user processes. Features precise CPU delta calculation via `/proc` parsing, factual RAM usage (RSS) in MB, and advanced filtering options to distinguish between User and System/Root applications. Includes customizable sample rates and sorting capabilities.
 
+- **Wakelock Monitor**  
+  Real-time diagnostic tool for tracking system and kernel-level wakelocks. Designed to help users identify rogue services, drivers, or applications that prevent the device from entering Deep Sleep.
+  - **Deep Insight**: High-precision tracking of active counts, wakeup frequency, and total "prevent suspend" duration.
+  - **Heuristic Labeling**: Dynamically flags high-impact wakelocks to simplify the debugging of idle battery drain issues.
+  - **Optimized Performance**: Features an intelligent discovery system that caches successful kernel paths, ensuring near-instant telemetry updates.
+
 - **Thermal Management**  
   Access to system thermal zone data for in-depth debugging and monitoring of device temperature profiles.
 
