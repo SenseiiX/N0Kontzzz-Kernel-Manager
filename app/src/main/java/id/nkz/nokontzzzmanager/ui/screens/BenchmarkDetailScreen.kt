@@ -1,23 +1,28 @@
 package id.nkz.nokontzzzmanager.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.Image
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import id.nkz.nokontzzzmanager.R
 import id.nkz.nokontzzzmanager.data.database.BenchmarkEntity
 import id.nkz.nokontzzzmanager.ui.components.SimpleLineChart
@@ -230,21 +235,57 @@ fun BenchmarkDetailScreen(
 
 @Composable
 fun BenchmarkHeader(benchmark: BenchmarkEntity) {
+    val context = LocalContext.current
+    val appIcon = remember(benchmark.packageName) {
+        try {
+            context.packageManager.getApplicationIcon(benchmark.packageName)
+        } catch (e: Exception) {
+            null
+        }
+    }
+    
     val date = remember(benchmark.timestamp) {
         SimpleDateFormat("dd MMMM yyyy, HH:mm", Locale.getDefault()).format(Date(benchmark.timestamp))
     }
 
-    Column {
-        Text(
-            text = benchmark.appName,
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
-        )
-        Text(
-            text = date,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        appIcon?.let { drawable ->
+            Image(
+                painter = rememberDrawablePainter(drawable = drawable),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(52.dp)
+                    .clip(RoundedCornerShape(12.dp))
+            )
+        } ?: Box(
+            modifier = Modifier
+                .size(52.dp)
+                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.Apps,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        Column {
+            Text(
+                text = benchmark.appName,
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = date,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
 
