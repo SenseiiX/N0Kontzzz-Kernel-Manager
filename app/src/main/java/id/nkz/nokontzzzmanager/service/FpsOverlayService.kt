@@ -53,6 +53,7 @@ import id.nkz.nokontzzzmanager.data.database.BenchmarkEntity
 import id.nkz.nokontzzzmanager.data.repository.BenchmarkRepository
 import id.nkz.nokontzzzmanager.data.repository.GameRepository
 import id.nkz.nokontzzzmanager.manager.FpsMonitorManager
+import id.nkz.nokontzzzmanager.utils.CompressionUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -61,6 +62,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
+import android.widget.Toast
 
 @AndroidEntryPoint
 class FpsOverlayService : Service(), androidx.lifecycle.LifecycleOwner, ViewModelStoreOwner, SavedStateRegistryOwner {
@@ -113,6 +115,12 @@ class FpsOverlayService : Service(), androidx.lifecycle.LifecycleOwner, ViewMode
         
         windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
         showOverlay()
+
+        serviceScope.launch {
+            fpsMonitorManager.autoStopEvent.collect {
+                Toast.makeText(this@FpsOverlayService, getString(id.nkz.nokontzzzmanager.R.string.benchmark_auto_stopped), Toast.LENGTH_LONG).show()
+            }
+        }
     }
 
     private fun createNotificationChannel() {
@@ -258,17 +266,17 @@ class FpsOverlayService : Service(), androidx.lifecycle.LifecycleOwner, ViewMode
                 maxFps = result.maxFps,
                 minFps = result.minFps,
                 fpsVariance = result.fpsVariance,
-                frameTimeDataJson = Json.encodeToString(result.frameTimes),
-                cpuUsageDataJson = Json.encodeToString(result.cpuUsageHistory),
-                gpuUsageDataJson = Json.encodeToString(result.gpuUsageHistory),
-                tempDataJson = Json.encodeToString(result.tempHistory),
-                cpuTempDataJson = Json.encodeToString(result.cpuTempHistory),
-                gpuFreqDataJson = Json.encodeToString(result.gpuFreqHistory),
-                cpuFreqLittleDataJson = Json.encodeToString(result.cpuFreqLittleHistory),
-                cpuFreqBigDataJson = Json.encodeToString(result.cpuFreqBigHistory),
-                cpuFreqPrimeDataJson = Json.encodeToString(result.cpuFreqPrimeHistory),
-                batteryPowerDataJson = Json.encodeToString(result.batteryPowerHistory),
-                batteryLevelDataJson = Json.encodeToString(result.batteryLevelHistory)
+                frameTimeDataJson = CompressionUtils.compress(Json.encodeToString(result.frameTimes)),
+                cpuUsageDataJson = CompressionUtils.compress(Json.encodeToString(result.cpuUsageHistory)),
+                gpuUsageDataJson = CompressionUtils.compress(Json.encodeToString(result.gpuUsageHistory)),
+                tempDataJson = CompressionUtils.compress(Json.encodeToString(result.tempHistory)),
+                cpuTempDataJson = CompressionUtils.compress(Json.encodeToString(result.cpuTempHistory)),
+                gpuFreqDataJson = CompressionUtils.compress(Json.encodeToString(result.gpuFreqHistory)),
+                cpuFreqLittleDataJson = CompressionUtils.compress(Json.encodeToString(result.cpuFreqLittleHistory)),
+                cpuFreqBigDataJson = CompressionUtils.compress(Json.encodeToString(result.cpuFreqBigHistory)),
+                cpuFreqPrimeDataJson = CompressionUtils.compress(Json.encodeToString(result.cpuFreqPrimeHistory)),
+                batteryPowerDataJson = CompressionUtils.compress(Json.encodeToString(result.batteryPowerHistory)),
+                batteryLevelDataJson = CompressionUtils.compress(Json.encodeToString(result.batteryLevelHistory))
             )
             benchmarkRepository.insertBenchmark(entity)
         }

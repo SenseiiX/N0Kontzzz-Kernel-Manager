@@ -32,6 +32,7 @@ import id.nkz.nokontzzzmanager.data.database.BenchmarkEntity
 import id.nkz.nokontzzzmanager.ui.components.SimpleLineChart
 import id.nkz.nokontzzzmanager.ui.components.MultiLineChart
 import id.nkz.nokontzzzmanager.ui.components.IndeterminateExpressiveLoadingIndicator
+import id.nkz.nokontzzzmanager.utils.CompressionUtils
 import id.nkz.nokontzzzmanager.viewmodel.BenchmarkDetailViewModel
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
@@ -526,7 +527,8 @@ fun ChartCard(
 fun decodeJsonList(json: String?): List<Float> {
     return try {
         if (json != null) {
-            Json.decodeFromString<List<Float>>(json)
+            val decompressed = CompressionUtils.decompress(json)
+            Json.decodeFromString<List<Float>>(decompressed ?: "[]")
         } else emptyList()
     } catch (e: Exception) {
         emptyList()

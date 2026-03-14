@@ -39,6 +39,7 @@ import id.nkz.nokontzzzmanager.data.database.BenchmarkEntity
 import id.nkz.nokontzzzmanager.data.database.GameEntity
 import id.nkz.nokontzzzmanager.ui.components.IndeterminateExpressiveLoadingIndicator
 import id.nkz.nokontzzzmanager.ui.components.SimpleLineChart
+import id.nkz.nokontzzzmanager.utils.CompressionUtils
 import id.nkz.nokontzzzmanager.viewmodel.FpsMonitorViewModel
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
@@ -370,7 +371,8 @@ fun BenchmarkDetailDialog(
     val frameTimes = remember(benchmark.frameTimeDataJson) {
         try {
             if (benchmark.frameTimeDataJson != null) {
-                Json.decodeFromString<List<Float>>(benchmark.frameTimeDataJson)
+                val decompressed = CompressionUtils.decompress(benchmark.frameTimeDataJson)
+                Json.decodeFromString<List<Float>>(decompressed ?: "[]")
             } else emptyList()
         } catch (e: Exception) {
             emptyList()

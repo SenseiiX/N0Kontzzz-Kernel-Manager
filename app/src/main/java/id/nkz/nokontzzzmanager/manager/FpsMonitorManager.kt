@@ -8,6 +8,10 @@ import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+
 data class FpsData(
     val currentFps: Float = 0f,
     val fps1Low: Float = 0f,
@@ -19,7 +23,8 @@ data class FpsData(
     val isTracking: Boolean = false,
     val isBenchmarking: Boolean = false,
     val benchmarkStartTime: Long = 0L,
-    val currentBenchmarkDuration: Long = 0L
+    val currentBenchmarkDuration: Long = 0L,
+    val isAutoStopped: Boolean = false
 )
 
 @Singleton
@@ -27,8 +32,16 @@ class FpsMonitorManager @Inject constructor(
     private val rootRepository: RootRepository,
     private val systemRepository: id.nkz.nokontzzzmanager.data.repository.SystemRepository
 ) {
+    companion object {
+        // Limit to 60 minutes. With GZIP compression, this will easily fit in CursorWindow.
+        const val MAX_BENCHMARK_DURATION_MS = 60 * 60 * 1000L 
+    }
+
     private val _fpsData = MutableStateFlow(FpsData())
     val fpsData: StateFlow<FpsData> = _fpsData
+
+    private val _autoStopEvent = MutableSharedFlow<Unit>()
+    val autoStopEvent: SharedFlow<Unit> = _autoStopEvent.asSharedFlow()
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private var monitorJob: Job? = null
@@ -220,9 +233,18 @@ class FpsMonitorManager @Inject constructor(
                 }
                 
                 if (isBenchmarking) {
+                    val duration = System.currentTimeMillis() - benchmarkStartTime
                     _fpsData.value = _fpsData.value.copy(
-                        currentBenchmarkDuration = System.currentTimeMillis() - benchmarkStartTime
+                        currentBenchmarkDuration = duration
                     )
+                    
+                    if (duration >= MAX_BENCHMARK_DURATION_MS) {
+                        Log.w("FpsMonitor", "Benchmark reached max duration ($duration ms). Auto-stopping to prevent database crash.")
+                        scope.launch {
+                            _autoStopEvent.emit(Unit)
+                        }
+                        stopBenchmarking()
+                    }
                 }
                 
                 delay(1000) // update every second
