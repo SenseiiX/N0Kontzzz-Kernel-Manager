@@ -22,10 +22,15 @@ class BenchmarkDetailViewModel @Inject constructor(
     private val benchmarkRepository: BenchmarkRepository
 ) : ViewModel() {
 
-    private val benchmarkId: Long = checkNotNull(savedStateHandle["benchmarkId"])
+    private val benchmarkId: Long? = savedStateHandle["benchmarkId"]
 
-    val benchmark: StateFlow<BenchmarkEntity?> = benchmarkRepository.getBenchmarkById(benchmarkId)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    val benchmark: StateFlow<BenchmarkEntity?> = if (benchmarkId != null) {
+        benchmarkRepository.getBenchmarkById(benchmarkId)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    } else {
+        kotlinx.coroutines.flow.MutableStateFlow(null)
+    }
+
 
     private val _shareTrigger = MutableSharedFlow<Unit>()
     val shareTrigger: SharedFlow<Unit> = _shareTrigger.asSharedFlow()
