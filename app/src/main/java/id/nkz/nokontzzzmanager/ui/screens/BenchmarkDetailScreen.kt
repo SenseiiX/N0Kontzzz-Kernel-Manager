@@ -31,6 +31,7 @@ import id.nkz.nokontzzzmanager.R
 import id.nkz.nokontzzzmanager.data.database.BenchmarkEntity
 import id.nkz.nokontzzzmanager.ui.components.SimpleLineChart
 import id.nkz.nokontzzzmanager.ui.components.MultiLineChart
+import id.nkz.nokontzzzmanager.ui.components.IndeterminateExpressiveLoadingIndicator
 import id.nkz.nokontzzzmanager.viewmodel.BenchmarkDetailViewModel
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
@@ -44,6 +45,21 @@ import java.io.File
 import java.io.FileOutputStream
 import kotlinx.coroutines.launch
 
+import android.graphics.Canvas
+import android.graphics.Paint
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalConfiguration
+import android.widget.Toast
+
+import androidx.compose.ui.layout.Layout
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.ui.draw.alpha
+
 @Composable
 fun BenchmarkDetailScreen(
     navController: NavController,
@@ -53,18 +69,111 @@ fun BenchmarkDetailScreen(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val graphicsLayer = rememberGraphicsLayer()
+    var isCapturing by remember { mutableStateOf(false) }
     
     // Handle share trigger from ViewModel
     LaunchedEffect(Unit) {
         viewModel.shareTrigger.collect {
+            isCapturing = true
+        }
+    }
+    
+    if (isCapturing) {
+        LaunchedEffect(isCapturing) {
             coroutineScope.launch {
-                val bitmap = graphicsLayer.toImageBitmap().asAndroidBitmap()
-                shareBitmap(context, bitmap, "benchmark_${System.currentTimeMillis()}.png")
+                try {
+                    // Give more time for the hidden layout to stabilize
+                    kotlinx.coroutines.delay(1000)
+                    val bitmap = graphicsLayer.toImageBitmap().asAndroidBitmap()
+                    shareBitmap(context, bitmap, "benchmark_${System.currentTimeMillis()}.png")
+                } catch (e: Exception) {
+                    Toast.makeText(context, "Capture failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                } finally {
+                    isCapturing = false
+                }
             }
         }
     }
     
-    // Use Material 3 Color Roles for dynamic theme support and guaranteed contrast
+    benchmark?.let { b ->
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Main UI with LazyColumn
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                item {
+                    BenchmarkContent(b)
+                }
+            }
+
+            // Hidden full-height content for capture
+            if (isCapturing) {
+                // We use a custom Layout to bypass the parent's fillMaxSize constraints
+                // and allow the content to be measured at its full intrinsic height.
+                Layout(
+                    content = {
+                        Column(
+                            modifier = Modifier
+                                .background(MaterialTheme.colorScheme.surface)
+                                .padding(16.dp)
+                                .fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(2.dp)
+                        ) {
+                            BenchmarkContent(b)
+                        }
+                    },
+                    modifier = Modifier
+                        .alpha(0f) // Hide it from the user
+                        .drawWithContent {
+                            graphicsLayer.record {
+                                this@drawWithContent.drawContent()
+                            }
+                        }
+                ) { measurables, constraints ->
+                    // Measure with no height limit
+                    val placeables = measurables.map { 
+                        it.measure(constraints.copy(minHeight = 0, maxHeight = 15000)) 
+                    }
+                    val width = placeables.maxOfOrNull { it.width } ?: 0
+                    val height = placeables.maxOfOrNull { it.height } ?: 0
+                    
+                    layout(width, height) {
+                        placeables.forEach { it.placeRelative(0, 0) }
+                    }
+                }
+                
+                // Loading overlay
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        IndeterminateExpressiveLoadingIndicator(color = MaterialTheme.colorScheme.primary)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = stringResource(R.string.benchmark_generating_screenshot), 
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+            }
+        }
+    } ?: run {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+    }
+}
+
+@Composable
+fun BenchmarkContent(b: BenchmarkEntity) {
+    // Extract colors again or pass them as parameters. Let's extract for simplicity in refactor.
     val colorFps = MaterialTheme.colorScheme.primary
     val colorLow1 = MaterialTheme.colorScheme.tertiary
     val colorLow01 = MaterialTheme.colorScheme.error
@@ -80,191 +189,143 @@ fun BenchmarkDetailScreen(
     val colorBig = MaterialTheme.colorScheme.secondary
     val colorPrime = MaterialTheme.colorScheme.tertiary
 
-    benchmark?.let { b ->
-        val frameIntervals = remember(b.frameTimeDataJson) { decodeJsonList(b.frameTimeDataJson) }
-        val fpsOverTime = remember(frameIntervals) { calculateFpsOverTime(frameIntervals) }
+    val frameIntervals = remember(b.frameTimeDataJson) { decodeJsonList(b.frameTimeDataJson) }
+    val fpsOverTime = remember(frameIntervals) { calculateFpsOverTime(frameIntervals) }
 
-        val topCardShape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 8.dp, bottomEnd = 8.dp)
-        val middleCardShape = RoundedCornerShape(8.dp)
-        val bottomCardShape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = 24.dp, bottomEnd = 24.dp)
+    val topCardShape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 8.dp, bottomEnd = 8.dp)
+    val middleCardShape = RoundedCornerShape(8.dp)
+    val bottomCardShape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = 24.dp, bottomEnd = 24.dp)
 
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .drawWithContent {
-                    // Draw the content into the graphics layer
-                    graphicsLayer.record {
-                        this@drawWithContent.drawContent()
-                    }
-                    // Draw the graphics layer into the canvas
-                    drawLayer(graphicsLayer)
-                },
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(2.dp)
+    BenchmarkHeader(b)
+    Spacer(modifier = Modifier.height(14.dp))
+
+    BenchmarkSummaryCard(b, colorFps, colorLow1, colorLow01, shape = topCardShape)
+
+    // FPS Graph
+    ChartCard(
+        title = stringResource(R.string.benchmark_fps_stability),
+        icon = Icons.Default.Speed,
+        data = fpsOverTime,
+        lineColor = colorFps,
+        unit = "FPS",
+        targetValue = 60f,
+        shape = middleCardShape
+    )
+
+    // Frame Time Graph
+    ChartCard(
+        title = stringResource(R.string.benchmark_frame_time),
+        icon = Icons.Default.Timeline,
+        data = frameIntervals,
+        lineColor = colorFrameTime,
+        unit = "ms",
+        targetValue = 16.6f,
+        shape = middleCardShape
+    )
+
+    // CPU Usage Graph
+    ChartCard(
+        title = stringResource(R.string.benchmark_cpu_usage),
+        icon = Icons.Default.Memory,
+        data = decodeJsonList(b.cpuUsageDataJson),
+        lineColor = colorCpu,
+        unit = "%",
+        shape = middleCardShape
+    )
+
+    // CPU Clusters Freq Graph
+    val little = decodeJsonList(b.cpuFreqLittleDataJson)
+    val big = decodeJsonList(b.cpuFreqBigDataJson)
+    val prime = decodeJsonList(b.cpuFreqPrimeDataJson)
+    
+    if (little.isNotEmpty() || big.isNotEmpty() || prime.isNotEmpty()) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = middleCardShape,
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
         ) {
-            item {
-                BenchmarkHeader(b)
-                Spacer(modifier = Modifier.height(14.dp))
-            }
-
-            item {
-                BenchmarkSummaryCard(b, colorFps, colorLow1, colorLow01, shape = topCardShape)
-            }
-
-            // FPS Graph (Aggregated per second for accuracy)
-            item {
-                ChartCard(
-                    title = stringResource(R.string.benchmark_fps_stability),
-                    icon = Icons.Default.Speed,
-                    data = fpsOverTime,
-                    lineColor = colorFps,
-                    unit = "FPS",
-                    targetValue = 60f,
-                    shape = middleCardShape
-                )
-            }
-
-            // Frame Time Graph (Raw intervals to show jitter)
-            item {
-                ChartCard(
-                    title = stringResource(R.string.benchmark_frame_time),
-                    icon = Icons.Default.Timeline,
-                    data = frameIntervals,
-                    lineColor = colorFrameTime,
-                    unit = "ms",
-                    targetValue = 16.6f,
-                    shape = middleCardShape
-                )
-            }
-
-            // CPU Usage Graph
-            item {
-                ChartCard(
-                    title = stringResource(R.string.benchmark_cpu_usage),
-                    icon = Icons.Default.Memory,
-                    data = decodeJsonList(b.cpuUsageDataJson),
-                    lineColor = colorCpu,
-                    unit = "%",
-                    shape = middleCardShape
-                )
-            }
-
-            // CPU Clusters Freq Graph
-            item {
-                val little = decodeJsonList(b.cpuFreqLittleDataJson)
-                val big = decodeJsonList(b.cpuFreqBigDataJson)
-                val prime = decodeJsonList(b.cpuFreqPrimeDataJson)
-                
-                if (little.isNotEmpty() || big.isNotEmpty() || prime.isNotEmpty()) {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = middleCardShape,
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Icon(Icons.Default.Speed, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
-                                Text(text = stringResource(R.string.benchmark_cpu_clusters), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                            }
-                            
-                            Spacer(modifier = Modifier.height(16.dp))
-                            
-                            MultiLineChart(
-                                dataSets = listOf(little, big, prime),
-                                lineColors = listOf(colorLittle, colorBig, colorPrime),
-                                labels = listOf("Little", "Big", "Prime"),
-                                unit = "MHz"
-                            )
-                        }
-                    }
+            Column(modifier = Modifier.padding(16.dp)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(Icons.Default.Speed, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                    Text(text = stringResource(R.string.benchmark_cpu_clusters), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                 }
-            }
-
-            // CPU Temp Graph
-            item {
-                ChartCard(
-                    title = stringResource(R.string.benchmark_cpu_temp),
-                    icon = Icons.Default.DeviceThermostat,
-                    data = decodeJsonList(b.cpuTempDataJson),
-                    lineColor = colorCpuTemp,
-                    unit = "°C",
-                    shape = middleCardShape
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                MultiLineChart(
+                    dataSets = listOf(little, big, prime),
+                    lineColors = listOf(colorLittle, colorBig, colorPrime),
+                    labels = listOf("Little", "Big", "Prime"),
+                    unit = "MHz"
                 )
             }
-
-            // GPU Usage Graph
-            item {
-                ChartCard(
-                    title = stringResource(R.string.benchmark_gpu_usage),
-                    icon = Icons.Default.GraphicEq,
-                    data = decodeJsonList(b.gpuUsageDataJson),
-                    lineColor = colorGpu,
-                    unit = "%",
-                    shape = middleCardShape
-                )
-            }
-
-            // GPU Freq Graph
-            item {
-                ChartCard(
-                    title = stringResource(R.string.benchmark_gpu_freq),
-                    icon = Icons.Default.FlashOn,
-                    data = decodeJsonList(b.gpuFreqDataJson),
-                    lineColor = colorGpuFreq,
-                    unit = "MHz",
-                    shape = middleCardShape
-                )
-            }
-
-            // Battery Power Graph
-            item {
-                ChartCard(
-                    title = stringResource(R.string.benchmark_battery_power),
-                    icon = Icons.Default.BatteryChargingFull,
-                    data = decodeJsonList(b.batteryPowerDataJson),
-                    lineColor = colorBatteryPower,
-                    unit = "W",
-                    shape = middleCardShape
-                )
-            }
-
-            // Battery Level Graph
-            item {
-                ChartCard(
-                    title = stringResource(R.string.benchmark_battery_level),
-                    icon = Icons.Default.BatteryFull,
-                    data = decodeJsonList(b.batteryLevelDataJson),
-                    lineColor = colorBatteryLevel,
-                    unit = "%",
-                    shape = middleCardShape
-                )
-            }
-
-            // Temperature Graph
-            item {
-                ChartCard(
-                    title = stringResource(R.string.benchmark_battery_temp),
-                    icon = Icons.Default.Thermostat,
-                    data = decodeJsonList(b.tempDataJson),
-                    lineColor = colorTemp,
-                    unit = "°C",
-                    shape = bottomCardShape
-                )
-            }
-            
-            item {
-                Spacer(modifier = Modifier.height(32.dp))
-            }
-        }
-    } ?: run {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator()
         }
     }
+
+    // CPU Temp Graph
+    ChartCard(
+        title = stringResource(R.string.benchmark_cpu_temp),
+        icon = Icons.Default.DeviceThermostat,
+        data = decodeJsonList(b.cpuTempDataJson),
+        lineColor = colorCpuTemp,
+        unit = "°C",
+        shape = middleCardShape
+    )
+
+    // GPU Usage Graph
+    ChartCard(
+        title = stringResource(R.string.benchmark_gpu_usage),
+        icon = Icons.Default.GraphicEq,
+        data = decodeJsonList(b.gpuUsageDataJson),
+        lineColor = colorGpu,
+        unit = "%",
+        shape = middleCardShape
+    )
+
+    // GPU Freq Graph
+    ChartCard(
+        title = stringResource(R.string.benchmark_gpu_freq),
+        icon = Icons.Default.FlashOn,
+        data = decodeJsonList(b.gpuFreqDataJson),
+        lineColor = colorGpuFreq,
+        unit = "MHz",
+        shape = middleCardShape
+    )
+
+    // Battery Power Graph
+    ChartCard(
+        title = stringResource(R.string.benchmark_battery_power),
+        icon = Icons.Default.BatteryChargingFull,
+        data = decodeJsonList(b.batteryPowerDataJson),
+        lineColor = colorBatteryPower,
+        unit = "W",
+        shape = middleCardShape
+    )
+
+    // Battery Level Graph
+    ChartCard(
+        title = stringResource(R.string.benchmark_battery_level),
+        icon = Icons.Default.BatteryFull,
+        data = decodeJsonList(b.batteryLevelDataJson),
+        lineColor = colorBatteryLevel,
+        unit = "%",
+        shape = middleCardShape
+    )
+
+    // Temperature Graph
+    ChartCard(
+        title = stringResource(R.string.benchmark_battery_temp),
+        icon = Icons.Default.Thermostat,
+        data = decodeJsonList(b.tempDataJson),
+        lineColor = colorTemp,
+        unit = "°C",
+        shape = bottomCardShape
+    )
 }
+
 
 @Composable
 fun BenchmarkHeader(benchmark: BenchmarkEntity) {

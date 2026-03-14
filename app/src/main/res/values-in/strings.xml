@@ -813,5 +813,6 @@
     <string name="benchmark_battery_temp">Suhu Baterai</string>
     <string name="benchmark_no_data">Tidak ada data tercatat</string>
     <string name="benchmark_delete_confirm">Hapus rekaman benchmark ini?</string>
+    <string name="benchmark_generating_screenshot">Membuat Tangkapan Layar Panjang…</string>
     <string name="backup_file_name" translatable="false">nkm_backup.json</string>
 </resources>

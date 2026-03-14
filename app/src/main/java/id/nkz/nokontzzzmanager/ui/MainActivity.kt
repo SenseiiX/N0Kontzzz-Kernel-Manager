@@ -229,9 +229,12 @@ class MainActivity : ComponentActivity() {
                                 isAmoledMode = isAmoledMode,
                                 actions = {
                                     if (currentRoute?.startsWith("benchmark_detail/") == true) {
-                                        val benchmarkDetailViewModel: BenchmarkDetailViewModel = hiltViewModel()
-                                        IconButton(onClick = { benchmarkDetailViewModel.triggerShare() }) {
-                                            Icon(Icons.Default.Share, contentDescription = "Share Benchmark", tint = MaterialTheme.colorScheme.primary)
+                                        // Use the current NavBackStackEntry as the ViewModelStoreOwner to share the instance with the screen
+                                        navController.currentBackStackEntry?.let { backStackEntry ->
+                                            val benchmarkDetailViewModel: BenchmarkDetailViewModel = hiltViewModel(backStackEntry)
+                                            IconButton(onClick = { benchmarkDetailViewModel.triggerShare() }) {
+                                                Icon(Icons.Default.Share, contentDescription = "Share Benchmark", tint = MaterialTheme.colorScheme.primary)
+                                            }
                                         }
                                     }
                                     if (currentRoute == "kernel_log") {
