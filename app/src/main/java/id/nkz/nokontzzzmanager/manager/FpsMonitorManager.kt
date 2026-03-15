@@ -51,6 +51,8 @@ class FpsMonitorManager @Inject constructor(
     // Benchmarking data
     private var isBenchmarking = false
     private var benchmarkStartTime = 0L
+    private var lastTimestampNs = 0L
+    private var lastFrameEndNs = 0L
     private val recordedFrameTimes = mutableListOf<Float>()
     private val recordedCpuUsage = mutableListOf<Float>()
     private val recordedGpuUsage = mutableListOf<Float>()
@@ -93,6 +95,9 @@ class FpsMonitorManager @Inject constructor(
             var layerValidated = false
             var currentLayerFailureCount = 0
             
+            lastTimestampNs = 0L
+            lastFrameEndNs = 0L
+
             // Secondary job for polling system metrics (CPU, GPU, Temp) during benchmarking
             val metricsJob = launch {
                 // Pre-calculate clusters core mapping once
@@ -185,6 +190,8 @@ class FpsMonitorManager @Inject constructor(
                     if (allCandidates.isNotEmpty()) {
                         currentLayer = cleanLayerName(allCandidates[candidateIndex])
                         Log.d("FpsMonitor", "Trying candidate: $currentLayer")
+                        lastTimestampNs = 0L
+                        lastFrameEndNs = 0L
                     }
                 }
 
@@ -202,6 +209,8 @@ class FpsMonitorManager @Inject constructor(
                             Log.v("FpsMonitor", "Layer $currentLayer consistently empty, trying next.")
                             candidateIndex++
                             currentLayerFailureCount = 0
+                            lastTimestampNs = 0L
+                            lastFrameEndNs = 0L
 
                             if (candidateIndex < allCandidates.size) {
                                 currentLayer = cleanLayerName(allCandidates[candidateIndex])
@@ -247,7 +256,7 @@ class FpsMonitorManager @Inject constructor(
                     }
                 }
                 
-                delay(1000) // update every second
+                delay(500) // update every 500ms for safety on high refresh screens
             }
             metricsJob.cancel()
         }
@@ -395,7 +404,7 @@ class FpsMonitorManager @Inject constructor(
 
     private suspend fun getRefreshRate(): Float {
         return try {
-            val result = rootRepository.run("dumpsys display | grep -E \"mDefaultMode|refreshRate\" | grep -oE \"[0-9]+\\.[0-9]+\"")
+            val result = rootRepository.run("dumpsys display | grep -E \"mDefaultMode|refreshRate\" | grep -oE \"[0-9]+(\\.[0-9]+)?\"")
             val fps = result.trim().split("\n").firstOrNull { it.toFloatOrNull() ?: 0f > 10f }?.toFloatOrNull()
             
             if (fps != null && fps < 1000f) {
@@ -518,10 +527,16 @@ class FpsMonitorManager @Inject constructor(
             // VRR Compensation: Calculate dynamic refresh rate from SurfaceFlinger's actual refresh period
             val dynamicRefreshRate = 1_000_000_000f / refreshPeriodNs.toFloat()
             val expectedFrameTimeMs = refreshPeriodNs / 1_000_000f
+            
+            // Dynamically update base refresh rate if we detect higher (like 90/120Hz)
+            if (dynamicRefreshRate > refreshRate && dynamicRefreshRate < 241f) {
+                refreshRate = dynamicRefreshRate
+                Log.d("FpsMonitor", "Updated refresh rate baseline to $refreshRate")
+            }
 
             val frameIntervals = mutableListOf<Float>()
-            var lastEndNs = 0L
             var janks = 0
+            var newLastTimestampNs = lastTimestampNs
 
             // SurfaceFlinger output typically starts with the refresh period, then 128 lines of timestamps
             for (i in 1 until lines.size) {
@@ -530,12 +545,15 @@ class FpsMonitorManager @Inject constructor(
                     val start = parts[0].toLongOrNull() ?: 0L
                     val end = parts[2].toLongOrNull() ?: 0L
 
-                    // Ignore pending frames (Long.MAX_VALUE)
+                    // Ignore pending frames (Long.MAX_VALUE) or zero timestamps
                     if (start == 0L || end == 0L || end == Long.MAX_VALUE) continue
+                    
+                    // Skip frames already processed in previous poll
+                    if (end <= lastTimestampNs) continue
 
                     // Calculate FPS based on interval between consecutive frames
-                    if (lastEndNs != 0L) {
-                        val intervalMs = (end - lastEndNs) / 1_000_000f
+                    if (lastFrameEndNs != 0L) {
+                        val intervalMs = (end - lastFrameEndNs) / 1_000_000f
                         if (intervalMs > 0 && intervalMs < 500) { // sanity check
                             frameIntervals.add(intervalMs)
                             if (isBenchmarking) {
@@ -553,9 +571,12 @@ class FpsMonitorManager @Inject constructor(
                             }
                         }
                     }
-                    lastEndNs = end
+                    lastFrameEndNs = end
+                    if (end > newLastTimestampNs) newLastTimestampNs = end
                 }
             }
+
+            lastTimestampNs = newLastTimestampNs
 
             if (frameIntervals.isNotEmpty()) {
                 val avgInterval = frameIntervals.average().toFloat()
