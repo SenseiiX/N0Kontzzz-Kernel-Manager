@@ -48,6 +48,7 @@ class MainViewModel @Inject constructor(
                 if ((versionLine.contains("4.19.404R", ignoreCase = true) ||
                      versionLine.contains("5.10.404R", ignoreCase = true)) &&
                     (versionLine.contains("vyn@zorin", ignoreCase = true) ||
+                     versionLine.contains("vyn@fedora", ignoreCase = true) ||
                      versionLine.contains("build-user@build-host", ignoreCase = true))) {
                     return true
                 }
