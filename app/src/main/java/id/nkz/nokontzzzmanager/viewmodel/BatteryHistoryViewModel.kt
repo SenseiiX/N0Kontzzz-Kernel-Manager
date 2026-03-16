@@ -318,6 +318,10 @@ class BatteryHistoryViewModel @Inject constructor(
         val avgChargeTemp = if (chargeEntries.isNotEmpty()) chargeEntries.map { it.temperature.toDouble() }.average() else 0.0
         val maxChargeTemp = if (chargeEntries.isNotEmpty()) chargeEntries.maxOf { it.temperature } else 0f
 
+        val chargeStartLevel = if (currentFilter == HistoryFilter.SINCE_UNPLUGGED && chargeEntries.isNotEmpty()) chargeEntries.first().batteryLevel else 0
+        val chargeEndLevel = if (currentFilter == HistoryFilter.SINCE_UNPLUGGED && chargeEntries.isNotEmpty()) chargeEntries.last().batteryLevel else 0
+        val chargeDurationMs = if (currentFilter == HistoryFilter.SINCE_UNPLUGGED && chargeEntries.size >= 2) chargeEntries.last().timestamp - chargeEntries.first().timestamp else 0L
+
         val avgDischarge = if (dischargeEntries.isNotEmpty()) dischargeEntries.map { kotlin.math.abs(it.currentMa) }.average() else 0.0
         val maxDischarge = if (dischargeEntries.isNotEmpty()) dischargeEntries.minOf { it.currentMa }.let { kotlin.math.abs(it) } else 0f
         val avgDischargeTemp = if (dischargeEntries.isNotEmpty()) dischargeEntries.map { it.temperature.toDouble() }.average() else 0.0
@@ -421,6 +425,9 @@ class BatteryHistoryViewModel @Inject constructor(
             totalDischargeMah = totalDischargeMah,
             screenOnMah = screenOnMah,
             screenOffMah = screenOffMah,
+            chargeStartLevel = chargeStartLevel,
+            chargeEndLevel = chargeEndLevel,
+            chargeDurationMs = chargeDurationMs,
             isSyncedWithMonitor = useMonitorStats && isMonitorEnabled
         )
     }

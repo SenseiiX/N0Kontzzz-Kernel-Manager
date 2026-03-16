@@ -681,6 +681,24 @@ fun BatteryHistoryStatsCard(
                 }
             }
 
+            if (stats.chargeStartLevel > 0 || stats.chargeEndLevel > 0) {
+                val sessionItems = listOf(
+                    stringResource(R.string.stats_charge_range) to "${stats.chargeStartLevel}% -> ${stats.chargeEndLevel}%",
+                    stringResource(R.string.stats_charge_duration) to formatDuration(stats.chargeDurationMs)
+                )
+
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    sessionItems.forEachIndexed { index, item ->
+                        StatItemCard(
+                            label = item.first,
+                            value = item.second,
+                            index = index,
+                            totalCount = sessionItems.size
+                        )
+                    }
+                }
+            }
+
             if (stats.avgChargeCurrent > 0) {
                 val chargeItems = listOf(
                     stringResource(R.string.stats_avg_charge_speed) to "%.0f mA".format(stats.avgChargeCurrent),
