@@ -431,13 +431,13 @@ class BatteryMonitorService : Service() {
             lastSamplePercent = computeCurrentBatteryPercent(level, currentCharge)
         }
 
-        val currentScreenOnMs = screenOnAccumMs + (screenOnStartAtElapsed?.let { nowElapsed - it } ?: 0L)
-        val currentSessionWindowMs = if (windowStartElapsed >= 0L) (nowElapsed - windowStartElapsed) else 0L
-        val windowMs = windowAccumMs + currentSessionWindowMs
+        val currentScreenOnMs = screenOnAccumMs + (screenOnStartAtElapsed?.let { nowElapsed - it } ?: 0L).coerceAtLeast(0L)
+        val currentSessionWindowMs = if (windowStartElapsed >= 0L) (nowElapsed - windowStartElapsed).coerceAtLeast(0L) else 0L
+        val windowMs = (windowAccumMs + currentSessionWindowMs).coerceAtLeast(0L)
         val screenOffMs = (windowMs - currentScreenOnMs).coerceAtLeast(0L)
 
-        val currentSessionAwakeMs = if (windowStartUptime >= 0L) (nowUptime - windowStartUptime) else 0L
-        val awakeMs = awakeAccumMs + currentSessionAwakeMs
+        val currentSessionAwakeMs = if (windowStartUptime >= 0L) (nowUptime - windowStartUptime).coerceAtLeast(0L) else 0L
+        val awakeMs = (awakeAccumMs + currentSessionAwakeMs).coerceAtLeast(0L)
         val deepSleepMs = (windowMs - awakeMs).coerceAtLeast(0L)
         val awakeOffMs = (awakeMs - currentScreenOnMs).coerceAtLeast(0L)
         // Deep Sleep % of screen-off time, gunakan ms agar akurat; hindari lonjakan jika total < 1s
@@ -611,6 +611,7 @@ class BatteryMonitorService : Service() {
     }
 
     private fun onPowerConnected() {
+        Log.d("BatteryMonitorService", "onPowerConnected")
         // Legacy: check history auto-reset
         if (preferenceManager.isAutoResetOnCharging()) {
             fullReset()
@@ -624,23 +625,23 @@ class BatteryMonitorService : Service() {
             val now = SystemClock.elapsedRealtime()
             val nowUp = SystemClock.uptimeMillis()
             if (windowStartElapsed >= 0) {
-                windowAccumMs += (now - windowStartElapsed)
+                windowAccumMs += (now - windowStartElapsed).coerceAtLeast(0L)
                 windowStartElapsed = -1L
             }
             if (windowStartUptime >= 0) {
-                awakeAccumMs += (nowUp - windowStartUptime)
+                awakeAccumMs += (nowUp - windowStartUptime).coerceAtLeast(0L)
                 windowStartUptime = -1L
             }
             val start = screenOnStartAtElapsed
             if (start != null) {
-                screenOnAccumMs += (now - start)
+                screenOnAccumMs += (now - start).coerceAtLeast(0L)
                 screenOnStartAtElapsed = null
             }
             // And we stop tracking drain baselines for now
             lastSampleElapsedMs = 0L 
         }
 
-        persistState()
+        persistState(sync = true)
         // Tampilkan status charging seketika tanpa menunggu interval berikutnya
         try {
             lastCurrent = 0f
@@ -653,6 +654,7 @@ class BatteryMonitorService : Service() {
     }
 
     private fun onPowerDisconnected() {
+        Log.d("BatteryMonitorService", "onPowerDisconnected")
         if (preferenceManager.isMonitorAutoResetOnCharging()) {
             windowAccumMs = 0L // Start fresh window
             awakeAccumMs = 0L
@@ -680,7 +682,7 @@ class BatteryMonitorService : Service() {
         val sticky = registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
         val level = sticky?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
         lastSamplePercent = computeCurrentBatteryPercent(level, charge)
-        persistState()
+        persistState(sync = true)
         // Instant refresh to reflect discharging state without waiting for the next tick
         try {
             scope.launch {
@@ -692,6 +694,7 @@ class BatteryMonitorService : Service() {
     }
 
     private fun manualReset() {
+        Log.d("BatteryMonitorService", "Manual reset triggered")
         val nowEl = SystemClock.elapsedRealtime()
         val nowUp = SystemClock.uptimeMillis()
         val pm = getSystemService(POWER_SERVICE) as PowerManager
@@ -712,7 +715,7 @@ class BatteryMonitorService : Service() {
         val sticky = registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
         val level = sticky?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
         lastSamplePercent = computeCurrentBatteryPercent(level, charge)
-        persistState()
+        persistState(sync = true)
     }
 
     private fun fullReset() {
@@ -823,11 +826,10 @@ class BatteryMonitorService : Service() {
              if (preferenceManager.isAutoResetAtLevel()) {
                  val target = preferenceManager.getAutoResetTargetLevel()
                  if (level >= target && !hasResetForThisChargeCycle) {
+                     Log.d("BatteryMonitorService", "Auto-reset history at level $level (target $target)")
                      if (isUserUnlocked(this)) {
                          scope.launch { try { batteryGraphRepository.deleteAllEntries() } catch (_: Exception) { } }
                      }
-                     // Don't call fullReset() here as it forces manualReset() too.
-                     // We should separate them.
                  }
              }
              
@@ -835,19 +837,31 @@ class BatteryMonitorService : Service() {
              if (preferenceManager.isMonitorAutoResetAtLevel()) {
                  val target = preferenceManager.getMonitorAutoResetTargetLevel()
                  if (level >= target && !hasResetForThisChargeCycle) {
+                     Log.d("BatteryMonitorService", "Auto-reset monitor at level $level (target $target)")
                      manualReset()
                      hasResetForThisChargeCycle = true
                  }
              } else {
-                 // If only history reset was triggered, we still need to manage hasResetForThisChargeCycle flag
-                 // but it's shared. Let's assume if EITHER triggers, we set the flag.
                  if (preferenceManager.isAutoResetAtLevel()) {
                      val target = preferenceManager.getAutoResetTargetLevel()
-                     if (level >= target) hasResetForThisChargeCycle = true
+                     if (level >= target) {
+                         hasResetForThisChargeCycle = true
+                     }
                  }
              }
         } else {
-             hasResetForThisChargeCycle = false
+             // Only reset the flag if the level has dropped below target - 2%
+             // to prevent flip-flopping due to status noise on aggressive ROMs/buggy ports
+             val target = if (preferenceManager.isMonitorAutoResetAtLevel()) 
+                 preferenceManager.getMonitorAutoResetTargetLevel() 
+             else preferenceManager.getAutoResetTargetLevel()
+             
+             if (level < target - 2) {
+                 if (hasResetForThisChargeCycle) {
+                    Log.d("BatteryMonitorService", "Clearing hasResetForThisChargeCycle flag (level=$level, target=$target)")
+                 }
+                 hasResetForThisChargeCycle = false
+             }
         }
     }
 
