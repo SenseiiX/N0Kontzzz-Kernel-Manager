@@ -155,7 +155,7 @@
 
 ## Requirements
 
-- Kona (SM8250) devices running N0Kontzzz, N0kernel, FusionX, Lunar, E404R, perf+, or Oxygen+ kernel.
+- Kona (SM8250) devices running N0Kontzzz, N0kernel, FusionX, Lunar, E404R, perf+, Oxygen+ or dead-butterflies kernel.
 - Root access (Magisk or KernelSU supported).
 
 ---

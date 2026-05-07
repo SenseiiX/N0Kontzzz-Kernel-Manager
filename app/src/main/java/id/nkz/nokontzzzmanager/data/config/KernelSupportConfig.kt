@@ -7,7 +7,8 @@ data class KernelSupportConfig(
         "N0kernel",
         "FusionX",
         "perf+",
-        "Oxygen+"
+        "Oxygen+",
+        "dead-butterflies"
     ),
 
     val kernelHosts: Map<String, List<String>> = mapOf(
@@ -39,6 +40,9 @@ data class KernelSupportConfig(
         "oxygen+" to listOf(
             "danda@pavilion",
             "candy@arch"
+        ),
+        "dead-butterflies" to listOf(
+            "moon.ell@stargaze"
         )
     )
 )
